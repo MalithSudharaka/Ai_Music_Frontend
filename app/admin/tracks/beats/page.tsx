@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { FaEye, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 
 // Temporary local data type and initial data
-interface BeatCategory {
+export interface BeatCategory {
   id: number;
   name: string;
   description: string;
@@ -17,8 +17,8 @@ export const initialBeats: BeatCategory[] = [
   { id: 5, name: "Electronics05", description: "Lorem ipsum is simply dummy...." },
   { id: 6, name: "Electronics06", description: "Lorem ipsum is simply dummy...." },
   { id: 7, name: "Electronics07", description: "Lorem ipsum is simply dummy...." },
-  { id: 8, name: "Electronics08", description: "Lorem ipsum is simply dummy...." },
-  { id: 9, name: "Electronics09", description: "Lorem ipsum is simply dummy...." },
+  { id: 8, name: "Electronics08", description: "Lorem ipsum is simply du...." },
+  { id: 9, name: "Electronics09", description: "Lorem ipsum is simply dum...." },
 ];
 
 export default function BeatCategoryPage() {
