@@ -30,7 +30,7 @@ function DashboardKpiCard({ title, value, icon }: DashboardKpiCardProps) {
   return (
     <div className="flex items-center gap-3 md:gap-4 bg-[#101936] rounded-2xl p-4 md:p-6 shadow-xl">
       <div className="text-2xl md:text-3xl text-[#E100FF] bg-[#232B43] rounded-xl p-2 md:p-3">{icon}</div>
-      <div>
+    <div>
         <div className="text-lg md:text-2xl font-bold text-white">{value}</div>
         <div className="text-gray-400 text-xs md:text-sm mt-1">{title}</div>
       </div>
