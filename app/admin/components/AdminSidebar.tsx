@@ -69,9 +69,10 @@ const sidebarConfig = [
 ];
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose, showCloseButton }) => {
+  // All sub-menus collapsed by default
   const [open, setOpen] = useState<{ [key: string]: boolean }>({
-    'Track Management': true,
-    'Sound Kits': true,
+    'Track Management': false,
+    'Sound Kits': false,
     'Customers': false,
     'Users': false,
   });
@@ -84,7 +85,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose, showCloseButton })
   };
 
   return (
-    <aside className="w-72 min-h-screen flex flex-col bg-[#081028] shadow-2xl relative border-r border-[#232B43]">
+    <aside className="w-72 h-screen flex flex-col bg-[#081028] shadow-2xl fixed left-0 top-0 border-r border-[#232B43]">
       {/* Close button for mobile */}
       {showCloseButton && (
         <button
@@ -95,32 +96,30 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose, showCloseButton })
           ×
         </button>
       )}
-      {/* Logo */}
-      <div className="flex items-center px-6 py-8">
-        <span className="text-3xl font-bold">
-          <span className="text-[#E100FF]">MUS</span>
-          <span className="text-[#C7C7C7]">EEDLE</span>
-          <span className="text-xs align-super">®</span>
-        </span>
+      
+      {/* Fixed Header Section */}
+      <div className="flex-shrink-0">
+        {/* Logo */}
+        <div className="flex items-center px-6 py-6">
+          <span className="text-2xl sm:text-3xl font-bold">
+            <span className="text-[#E100FF]">MUS</span>
+            <span className="text-[#C7C7C7]">EEDLE</span>
+            <span className="text-xs align-super">®</span>
+          </span>
+        </div>
       </div>
-      {/* Search */}
-      <div className="px-6 mb-4">
-        <input
-          type="text"
-          placeholder="Search for..."
-          className="w-full px-4 py-2 rounded-lg bg-[#1A2236] text-sm text-white placeholder-gray-400 focus:outline-none"
-        />
-      </div>
-      {/* Navigation */}
-      <nav className="flex-1 px-2 space-y-2">
+
+      {/* Navigation Section - Scrollable only when content exceeds screen height */}
+      <nav className="flex-1 px-2 space-y-2 overflow-y-auto pb-4">
         {sidebarConfig.map((item) => (
           <div key={item.label}>
             {item.href ? (
               <Link href={item.href} legacyBehavior>
                 <a
-                  className={`flex items-center px-4 py-2 font-semibold rounded-lg cursor-pointer transition-colors
+                  className={`flex items-center px-4 py-3 font-semibold rounded-lg cursor-pointer transition-colors
                     ${isActive(item.href) ? 'text-[#E100FF]' : 'text-white'}
                     hover:bg-[#232B43]`}
+                  onClick={onClose}
                 >
                   <span className={`text-xl mr-3 ${isActive(item.href) ? 'text-[#E100FF]' : ''}`}>{item.icon}</span>
                   {item.label}
@@ -128,7 +127,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose, showCloseButton })
               </Link>
             ) : (
               <div
-                className={`flex items-center px-4 py-2 font-semibold rounded-lg cursor-pointer transition-colors
+                className={`flex items-center px-4 py-3 font-semibold rounded-lg cursor-pointer transition-colors
                   ${open[item.label] ? 'text-[#E100FF]' : 'text-white'}
                   justify-between hover:bg-[#232B43]`}
                 onClick={() => handleSection(item.label)}
@@ -153,6 +152,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose, showCloseButton })
                             ? 'bg-[#232B43] text-[#E100FF] border-l-4 border-[#E100FF]'
                             : 'text-white hover:bg-[#232B43] hover:text-[#E100FF]'}
                         `}
+                        onClick={onClose}
                       >
                         <span className="text-lg">{sub.icon}</span>
                         {sub.label}
@@ -165,16 +165,19 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose, showCloseButton })
           </div>
         ))}
       </nav>
-      {/* User Profile */}
-      <div className="mt-auto px-6 py-6 border-t border-[#232B43] flex items-center gap-3">
-        <img
-          src="https://randomuser.me/api/portraits/men/32.jpg"
-          alt="User"
-          className="w-10 h-10 rounded-full object-cover"
-        />
-        <div>
-          <div className="font-semibold">John Carter</div>
-          <div className="text-xs text-gray-400">Account settings</div>
+
+      {/* Fixed Footer Section */}
+      <div className="flex-shrink-0 px-6 py-4 border-t border-[#232B43]">
+        <div className="flex items-center gap-3">
+          <img
+            src="https://randomuser.me/api/portraits/men/32.jpg"
+            alt="User"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          <div>
+            <div className="font-semibold text-white">John Carter</div>
+            <div className="text-xs text-gray-400">Account settings</div>
+          </div>
         </div>
       </div>
     </aside>
