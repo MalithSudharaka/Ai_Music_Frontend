@@ -29,7 +29,8 @@ export default function TracksPage() {
         </div>
       </div>
       <div className="overflow-x-auto rounded-2xl shadow-xl bg-[#081028]">
-        <table className="min-w-full text-white">
+        {/* Table for md+ screens */}
+        <table className="min-w-full text-white hidden md:table">
           <thead>
             <tr className="bg-[#232B43] text-[#C7C7C7] text-left text-sm">
               <th className="px-6 py-4 font-semibold">Track Image</th>
@@ -60,14 +61,36 @@ export default function TracksPage() {
                 <td className="px-6 py-4 text-[#E100FF] font-semibold">{track.price}</td>
                 <td className="px-6 py-4">{track.trackKey}</td>
                 <td className="px-6 py-4 flex gap-4 text-lg">
-                  <button className="hover:text-[#7ED7FF] transition-colors" title="View"><FaEye /></button>
-                  <button className="hover:text-[#E100FF] transition-colors" title="Edit"><FaEdit /></button>
-                  <button className="hover:text-red-500 transition-colors" title="Delete"><FaTrash /></button>
+                  <button className="text-white hover:text-[#7ED7FF] transition-colors" title="View"><FaEye /></button>
+                  <button className="text-white hover:text-[#E100FF] transition-colors" title="Edit"><FaEdit /></button>
+                  <button className="text-white hover:text-red-500 transition-colors" title="Delete"><FaTrash /></button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {/* Cards for mobile screens */}
+        <div className="md:hidden flex flex-col gap-4 p-2">
+          {paginatedTracks.map((track, idx) => (
+            <div key={track.id} className="bg-[#101936] rounded-2xl shadow-xl p-4 flex flex-col gap-2">
+              <div className="flex items-center gap-4 mb-2">
+                <img src={track.trackImage} alt="Track" className="w-14 h-14 rounded-full border-2 border-[#E100FF] bg-white object-cover" />
+                <div>
+                  <div className="font-bold text-white">{track.trackName}</div>
+                  <div className="text-xs text-[#7ED7FF]">{track.musician}</div>
+                </div>
+              </div>
+              <div className="text-sm text-gray-400">Track ID: <span className="text-white font-mono">{track.trackId}</span></div>
+              <div className="text-sm text-gray-400">Price: <span className="text-[#E100FF] font-semibold">{track.price}</span></div>
+              <div className="text-sm text-gray-400">Track Key: <span className="text-white">{track.trackKey}</span></div>
+              <div className="flex gap-4 mt-2">
+                <button className="text-white hover:text-[#7ED7FF] transition-colors" title="View"><FaEye /></button>
+                <button className="text-white hover:text-[#E100FF] transition-colors" title="Edit"><FaEdit /></button>
+                <button className="text-white hover:text-red-500 transition-colors" title="Delete"><FaTrash /></button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       {/* Pagination */}
       <div className="flex items-center justify-between mt-6 text-white">
