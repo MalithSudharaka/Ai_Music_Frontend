@@ -2,8 +2,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaCloudUploadAlt, FaFileAudio } from "react-icons/fa";
 import { getGenres, Genre } from '../genres/genres';
-import { initialBeats } from '../beats/page';
-import { initialTags } from '../tags/page';
+import { initialBeats } from '../beats/beatData';
+import { initialTags } from '../tags/tagData';
 
 const typeOptions = ["Song", "Beats", "Beats w/hook", "Top lines", "Vocal"];
 const moodOptions = [
