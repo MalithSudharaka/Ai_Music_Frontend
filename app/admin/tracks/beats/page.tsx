@@ -17,7 +17,7 @@ export const initialBeats: BeatCategory[] = [
   { id: 5, name: "Electronics05", description: "Lorem ipsum is simply dummy...." },
   { id: 6, name: "Electronics06", description: "Lorem ipsum is simply dummy...." },
   { id: 7, name: "Electronics07", description: "Lorem ipsum is simply dummy...." },
-  { id: 8, name: "Electronics08", description: "Lorem ipsum is simply dummy...." },
+  { id: 8, name: "Electronics08", description: "Lorem ipsum is simply du...." },
   { id: 9, name: "Electronics09", description: "Lorem ipsum is simply dum...." },
 ];
 
