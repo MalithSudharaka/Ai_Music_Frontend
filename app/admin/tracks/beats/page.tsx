@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { FaEye, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 
 // Temporary local data type and initial data
-interface BeatCategory {
+export interface BeatCategory {
   id: number;
   name: string;
   description: string;
