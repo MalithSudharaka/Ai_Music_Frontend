@@ -7,7 +7,7 @@ export interface BeatCategory {
   }
   
   export const initialBeats: BeatCategory[] = [
-    { id: 1, name: "Electronics01", description: "Lorem ipsum is simply dummy...." },
+    { id: 1, name: "Electronics01", description: "Lorem ipsum simply dummy...." },
     { id: 2, name: "Electronics02", description: "Lorem ipsum is simply dummy...." },
     { id: 3, name: "Electronics03", description: "Lorem ipsum is simply dummy...." },
     { id: 4, name: "Electronics04", description: "Lorem ipsum is simply dummy...." },
