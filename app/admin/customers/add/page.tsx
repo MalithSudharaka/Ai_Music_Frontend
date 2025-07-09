@@ -69,8 +69,7 @@ export default function AddCustomerPage() {
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-[#081028] flex flex-col">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white">Customers</h1>
-        <a href="#" className="text-[#7ED7FF] text-base sm:text-lg">Add Customers</a>
+      <h1 className="text-2xl sm:text-3xl font-bold text-white">Customers <span className="text-lg font-normal text-gray-400 ml-4">Add Customers</span></h1>
       </div>
       
       <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
