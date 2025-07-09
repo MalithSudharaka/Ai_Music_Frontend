@@ -67,7 +67,7 @@ export default function AddTrackPage() {
 
   return (
     <div className="min-h-screen p-8 bg-[#081028]">
-      <h1 className="text-3xl font-bold text-white mb-8">Track Management <span className="text-lg font-normal text-gray-400">Add Tracks</span></h1>
+      <h1 className="text-3xl font-bold text-white mb-8">Track Management <span className="text-lg font-normal text-gray-400 ml-4">Add Tracks</span></h1>
       <form className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Main Form */}
         <div className="lg:col-span-2 flex flex-col gap-8">

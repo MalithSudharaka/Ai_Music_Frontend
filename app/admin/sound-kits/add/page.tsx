@@ -46,7 +46,7 @@ export default function AddSoundKitPage() {
 
   return (
     <div className="min-h-screen p-8 bg-[#081028]">
-      <h1 className="text-3xl font-bold text-white mb-8">Sound Kits <span className="text-lg font-normal text-gray-400">Add Sound Kits</span></h1>
+      <h1 className="text-3xl font-bold text-white mb-8">Sound Kits <span className="text-lg font-normal text-gray-400 ml-4">Add Sound Kits</span></h1>
       <form className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Main Form */}
         <div className="lg:col-span-2 flex flex-col gap-8">
@@ -104,11 +104,15 @@ export default function AddSoundKitPage() {
           {/* Publish Section */}
           <div className="bg-[#101936] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
             <label className="block text-gray-300 mb-2">Publish</label>
-            <select className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm" value={publish} onChange={e => setPublish(e.target.value)}>
-              {publishOptions.map(opt => <option key={opt}>{opt}</option>)}
-            </select>
-            <button type="submit" className="mt-4 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#E100FF] text-white font-semibold hover:bg-[#c800d6] transition">
-              Add Sound Kit <FaPlus />
+            <div className="relative">
+              <select value={publish} onChange={e => setPublish(e.target.value)} className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm">
+                <option>Private</option>
+                <option>Public</option>
+              </select>
+              <span className="pointer-events-none absolute right-4 top-3 text-gray-400 text-lg">▼</span>
+            </div>
+            <button className="mt-4 w-full py-2 rounded-lg bg-[#E100FF] text-white font-semibold flex items-center justify-center gap-2 hover:bg-[#c800d6] transition-colors">
+              Add Track <span className="ml-2">→</span>
             </button>
           </div>
           {/* Sound Kit Category */}

@@ -18,7 +18,7 @@ export default function SoundKitsPage() {
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-[#081028]">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white">Sound Kits <span className="text-lg font-normal text-gray-400">All Sound Kits</span></h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Sound Kits <span className="text-lg font-normal text-gray-400 ml-4">All Sound Kits</span></h1>
         <input
           type="text"
           placeholder="Search for..."

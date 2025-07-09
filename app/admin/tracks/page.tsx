@@ -17,7 +17,7 @@ export default function TracksPage() {
 
   return (
     <div className="min-h-screen p-8 rounded-xl bg-[#081028]">
-      <h1 className="text-3xl font-bold text-white mb-8">Track Management <span className="text-lg font-normal text-gray-400">All Tracks</span></h1>
+      <h1 className="text-3xl font-bold text-white mb-8 ">Track Management <span className="text-lg font-normal text-gray-400 ml-4">All Tracks</span></h1>
       <div className="flex justify-between items-center mb-4">
         <div></div>
         <div className="relative">
