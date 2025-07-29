@@ -97,27 +97,27 @@ function Navbar() {
         <div className="max-w-screen-xl flex items-center justify-between mx-auto p-1">
 
             <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
-                <img src={logo.src} className="h-6 sm:h-8" alt="Flowbite Logo" />
+                <img src={logo.src} className="h-6 sm:h-8 md:h-7 lg:h-8" alt="Flowbite Logo" />
             </a>
 
 
             {/* Desktop Navigation */}
             <div className='hidden md:block bg-black/70 backdrop-blur-sm rounded-full border border-white/50'>
-            <div className="flex items-center justify-center py-3 px-6 lg:px-12">
-            <ul className="font-roboto font-light-300 flex items-center space-x-4 lg:space-x-8">
+            <div className="flex items-center justify-center py-2 md:py-2 lg:py-3 px-4 md:px-4 lg:px-8">
+            <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-4 lg:space-x-6">
                 <li className="flex items-center">
-                <img src={Music.src} className="h-4 mr-2" alt="Flowbite Logo" />
-                <a href="#" className="block px-3 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Track</a>
+                <img src={Music.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
+                <a href="#" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Track</a>
                 </li>
-                <div className='h-6 w-px bg-white' />
+                <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center">
-                <img src={Musicians.src} className="h-4 mr-2" alt="Flowbite Logo" />
-                <a href="#" className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Sounds Kits</a>
+                <img src={Musicians.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
+                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Sounds Kits</a>
                 </li>
-                <div className='h-6 w-px bg-white' />
+                <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center">
-                <img src={Sounds.src} className="h-4 mr-2" alt="Flowbite Logo" />
-                <a href="#" className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Musicians</a>
+                <img src={Sounds.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
+                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Musicians</a>
                 </li>
             </ul>
             </div>
@@ -135,13 +135,13 @@ function Navbar() {
 
            
             <div className="hidden md:block">
-            <ul className="font-roboto font-light-300 flex items-center space-x-4 lg:space-x-8">
+            <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-3 lg:space-x-6">
                 <li>
-                <a href="#" className="block  px-3 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Sign up</a>
+                <a href="#" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Sign up</a>
                 </li>
-                <div className='h-6 w-px bg-white' />
+                <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li>
-                <a href="#" className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Sign in</a>
+                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Sign in</a>
                 </li>
                 
             </ul>
@@ -308,7 +308,7 @@ function Navbar() {
         
         <nav className="py-2">
         <div className="justify-end flex flex-col sm:flex-row gap-4 sm:gap-10 items-center"> 
-            <div className='bg-black/70 backdrop-blur-sm rounded-full border border-white/50 w-full max-w-lg'>
+            <div className='bg-black/70 backdrop-blur-sm rounded-full border border-white/50 w-full max-w-sm md:max-w-sm lg:max-w-lg'>
                 <div className="flex items-center justify-between py-1 px-6">
                     <div className="flex items-center flex-1 min-w-0">
                         <svg className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -352,16 +352,16 @@ function Navbar() {
                     </div>
                 </div>
             </div>
-            <div className="hidden sm:flex flex-wrap items-center justify-between">
+            <div className="hidden md:flex flex-wrap items-center justify-between">
             <div className="">
-            <ul className="font-roboto font-light-300 flex flex-col p-4 md:p-0 md:flex-row gap-4 md:mt-0">
+            <ul className="font-roboto font-light-300 flex flex-col p-4 md:p-0 md:flex-row gap-3 md:gap-3 lg:gap-3 md:mt-0">
                 <li className="flex items-center relative">
-                <img src={User.src} className="h-6" alt="User Icon" />
+                <img src={User.src} className="h-5 md:h-5 lg:h-6" alt="User Icon" />
                 <button 
                     onClick={() => setActiveDropdown(activeDropdown === 'user' ? null : 'user')}
-                    className="flex items-center hover:bg-white/10 rounded px-2 py-1 transition-colors"
+                    className="flex items-center hover:bg-white/10 rounded px-1 md:px-1 lg:px-2 py-1 transition-colors"
                 >
-                    <RiArrowDropDownLine className="text-white text-xl" />
+                    <RiArrowDropDownLine className="text-white text-lg md:text-lg lg:text-xl" />
                 </button>
                 
                 {activeDropdown === 'user' && (
@@ -409,14 +409,14 @@ function Navbar() {
                 )}
                 </li>
 
-                <div className='h-6 w-px bg-white' />
+                <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center relative">
-                <img src={Heart.src} className="h-6" alt="Heart Icon" />
+                <img src={Heart.src} className="h-5 md:h-5 lg:h-6" alt="Heart Icon" />
                 <button 
                     onClick={() => setActiveDropdown(activeDropdown === 'heart' ? null : 'heart')}
-                    className="flex items-center hover:bg-white/10 rounded px-2 py-1 transition-colors"
+                    className="flex items-center hover:bg-white/10 rounded px-1 md:px-1 lg:px-2 py-1 transition-colors"
                 >
-                    <RiArrowDropDownLine className="text-white text-xl" />
+                    <RiArrowDropDownLine className="text-white text-lg md:text-lg lg:text-xl" />
                 </button>
                 
                 {activeDropdown === 'heart' && (
@@ -435,14 +435,14 @@ function Navbar() {
                     </div>
                 )}
                 </li>
-                <div className='h-6 w-px bg-white' />
+                <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center relative">
-                <img src={Bell.src} className="h-6" alt="Bell Icon" />
+                <img src={Bell.src} className="h-5 md:h-5 lg:h-6" alt="Bell Icon" />
                 <button 
                     onClick={() => setActiveDropdown(activeDropdown === 'bell' ? null : 'bell')}
-                    className="flex items-center hover:bg-white/10 rounded px-2 py-1 transition-colors"
+                    className="flex items-center hover:bg-white/10 rounded px-1 md:px-1 lg:px-2 py-1 transition-colors"
                 >
-                    <RiArrowDropDownLine className="text-white text-xl" />
+                    <RiArrowDropDownLine className="text-white text-lg md:text-lg lg:text-xl" />
                 </button>
                 
                 {activeDropdown === 'bell' && (
@@ -461,14 +461,14 @@ function Navbar() {
                     </div>
                 )}
                 </li>
-                <div className='h-6 w-px bg-white' />
+                <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center relative">
-                <img src={Cart.src} className="h-6" alt="Cart Icon" />
+                <img src={Cart.src} className="h-5 md:h-5 lg:h-6" alt="Cart Icon" />
                 <button 
                     onClick={() => setActiveDropdown(activeDropdown === 'cart' ? null : 'cart')}
-                    className="flex items-center hover:bg-white/10 rounded px-2 py-1 transition-colors"
+                    className="flex items-center hover:bg-white/10 rounded px-1 md:px-1 lg:px-2 py-1 transition-colors"
                 >
-                    <RiArrowDropDownLine className="text-white text-xl" />
+                    <RiArrowDropDownLine className="text-white text-lg md:text-lg lg:text-xl" />
                 </button>
                 
                 {activeDropdown === 'cart' && (
