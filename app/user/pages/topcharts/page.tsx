@@ -17,7 +17,21 @@ export default function TopChartsPage() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const cardsPerPage = 10;
+  const [screenSize, setScreenSize] = useState('mobile');
+
+  // Determine cards per page based on screen size
+  const getCardsPerPage = () => {
+    if (typeof window !== 'undefined') {
+      const width = window.innerWidth;
+      if (width < 640) return 10; // mobile
+      if (width < 768) return 12; // sm
+      if (width < 1024) return 8;  // md
+      return 10; // lg and above
+    }
+    return 10; // default
+  };
+
+  const cardsPerPage = getCardsPerPage();
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
@@ -51,6 +65,20 @@ export default function TopChartsPage() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  // Handle window resize to update pagination
+  useEffect(() => {
+    const handleResize = () => {
+      const newCardsPerPage = getCardsPerPage();
+      const newTotalPages = Math.ceil(totalCards / newCardsPerPage);
+      if (currentPage > newTotalPages) {
+        setCurrentPage(newTotalPages || 1);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [totalCards, currentPage]);
 
   return (
     <div>
@@ -124,7 +152,7 @@ export default function TopChartsPage() {
             </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-5   gap-6 overflow-x-auto scrollbar-hide  mt-9">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5   gap-6 overflow-x-auto scrollbar-hide  mt-9">
 
             {
             currentCards.map( musicdata => (
@@ -135,8 +163,8 @@ export default function TopChartsPage() {
                           <h1 className="text-white text-sm font-roboto  ">Skeyes_A</h1>
                           <div className="grid grid-cols-8 gap-2 mt-2">
 
-                         <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-bold text-white px-4 py-1 rounded-sm hover:bg-white/30 transition-colors duration-200">$ {musicdata.plays}</button>
-                 <button className="grid col-span-2 bg-primary text-black px-4 py-1 rounded-sm hover:bg-primary/70 transition-colors duration-200">
+                         <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-bold text-white justify-center items-center rounded-sm hover:bg-white/30 transition-colors duration-200">$ {musicdata.plays}</button>
+                 <button className="grid col-span-2 bg-primary text-black px-2 py-2 md:px-2 md:py-2 xl:px-4 xl:py-1 rounded-sm hover:bg-primary/70 transition-colors duration-200">
                 <img src={Downloadicon.src} alt="Download" className="" />
               </button>
 
