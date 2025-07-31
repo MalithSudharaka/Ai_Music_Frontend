@@ -91,8 +91,8 @@ function Navbar() {
   };
 
   return (
-    <div className='fixed top-0 left-0 right-0 z-50 bg-[#081028]/80 backdrop-blur-sm' ref={dropdownRef}>
-      <div className='container mx-auto px-4 sm:px-6 lg:px-10 xl:px-20 2xl:px-20 py-2 sm:py-4'>
+    <div className='fixed top-0 left-0 right-0 z-50 ' ref={dropdownRef}>
+      <div className='containerpaddin container mx-auto  py-2 sm:py-4'>
         <nav className="bg-white/30 backdrop-blur-sm rounded-full px-4 sm:px-6 lg:px-10">
         <div className="max-w-screen-xl flex items-center justify-between mx-auto p-1">
 
