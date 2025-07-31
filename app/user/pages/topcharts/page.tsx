@@ -5,13 +5,19 @@ import Navbar from '../../components/Navbar'
 import Musicdata from '../musicdata.json'
 import Dropdown from '../../dropdown.json'
 import React, {useEffect, useState} from 'react'
-import Downloadicon from '../../images/icon/download.svg'
+import Downloadicon from '../../images/icon/Download.svg'
 import Image from '../../images/songimage/song.png'
+import First_carousel from '../../components/First_carousel'
+import Footer from '../../components/Footer'
 
 export default function TopChartsPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const cardsPerPage = 10;
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
@@ -35,12 +41,23 @@ export default function TopChartsPage() {
     e.currentTarget.scrollLeft = scrollLeft - walk;
   };
 
+  // Pagination logic
+  const totalCards = Musicdata.length;
+  const totalPages = Math.ceil(totalCards / cardsPerPage);
+  const startIndex = (currentPage - 1) * cardsPerPage;
+  const endIndex = startIndex + cardsPerPage;
+  const currentCards = Musicdata.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div>
       <Navbar />
       <div className="containerpaddin   container mx-auto  pt-24 sm:pt-28 md:pt-32 lg:pt-36 ">
           <h1 className="text-white text-4xl font-roboto font-bold mb-4">Top Charts</h1>
-
+          <First_carousel />
           <div className='flex items-center justify-between overflow-hidden'>
             <div className='bg-black/40 backdrop-blur-sm rounded-full border border-white/50 '>
                 <div className="flex items-center justify-between py-1 px-2">
@@ -83,11 +100,8 @@ export default function TopChartsPage() {
 
 
         <div 
-              className='flex items-center justify-between gap-2 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing mt-4'
-              onMouseDown={handleMouseDown}
-              onMouseLeave={handleMouseLeave}
-              onMouseUp={handleMouseUp}
-              onMouseMove={handleMouseMove}
+              className='flex items-center justify-between gap-2 overflow-x-auto  mt-4'
+              
             >
               <div className="flex items-center justify-center">
         
@@ -110,25 +124,67 @@ export default function TopChartsPage() {
             </div>
             </div>
 
-            <div className="grid grid-cols-5  gap-6 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing mt-9">
+            <div className="grid grid-cols-5  gap-6 overflow-x-auto scrollbar-hide  mt-9">
 
             {
-            Musicdata.map( musicdata => (
+            currentCards.map( musicdata => (
             <div key={musicdata.id} className='flex-shrink-0'>
             <div className="">
-            <img src={musicdata.image} className="rounded-sm" alt="Description" />
+                         <img src={musicdata.image} className="rounded-sm w-full h-full hover:brightness-125 hover:shadow-lg hover:shadow-white/20 transition-all duration-200 cursor-pointer" alt="Description" />
             <h1 className="text-white text-md font-roboto font-bold   mt-2">{musicdata.title}</h1>
             <h1 className="text-white text-sm font-roboto  ">Skeyes_A</h1>
             <div className="grid grid-cols-8 gap-2 mt-2">
-            <button className="grid col-span-6 bg-white/40 backdrop-blur-sm rounded-full border border-white font-bold text-white px-4 py-1 rounded-sm">$ {musicdata.plays}</button>
-            <button className="grid col-span-2 bg-white text-black px-4 py-1 rounded-sm">Play</button>
+
+                         <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-bold text-white px-4 py-1 rounded-sm hover:bg-white/30 transition-colors duration-200">$ {musicdata.plays}</button>
+                 <button className="grid col-span-2 bg-primary text-black px-4 py-1 rounded-sm hover:bg-primary/70 transition-colors duration-200">
+                <img src={Downloadicon.src} alt="Download" className="w-5 h-5 mx-auto" />
+              </button>
+
             </div>
             </div>
             </div>
             ))}
             </div>
 
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center space-x-2 mt-8 mb-8">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/20 text-white hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-roboto font-medium"
+                >
+                  Previous
+                </button>
+                
+                <div className="flex space-x-1">
+                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-6 py-2 rounded-lg font-roboto font-medium transition-colors ${
+                        currentPage === page
+                          ? 'bg-white/50 text-white'
+                          : 'bg-white/20 backdrop-blur-sm border border-white/20 text-white hover:bg-white/30'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/20 text-white hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-roboto font-medium"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+
       </div>
+      <Footer />
 </div>
   )
 } 

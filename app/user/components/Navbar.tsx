@@ -103,7 +103,7 @@ function Navbar() {
 
             {/* Desktop Navigation */}
             <div className='hidden md:block bg-black/70 backdrop-blur-sm rounded-full border border-white/50'>
-            <div className="flex items-center justify-center py-2 md:py-2 lg:py-3 px-4 md:px-4 lg:px-8">
+            <div className="flex items-center justify-center py-2 md:py-2 lg:py-1 px-4 md:px-4 lg:px-8">
             <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-4 lg:space-x-6">
                 <li className="flex items-center">
                 <img src={Music.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
