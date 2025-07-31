@@ -107,7 +107,7 @@ function Navbar() {
             <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-4 lg:space-x-6">
                 <li className="flex items-center">
                 <img src={Music.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
-                <a href="#" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Track</a>
+                <a href="/user/pages/topcharts" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Track</a>
                 </li>
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center">
