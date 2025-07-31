@@ -46,7 +46,22 @@ export default function Home() {
               <span>Top Charts</span>
             </span>
           </button>
+
+          <button
+            onClick={() => router.push('/user/pages/home')}
+            className="group relative px-8 py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 min-w-[200px]"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-green-700 to-teal-700 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <span className="relative flex items-center justify-center space-x-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+              </svg>
+              <span>Home</span>
+            </span>
+          </button>
         </div>
+
+        
 
         {/* Footer */}
         <div className="mt-12 text-gray-400 text-sm">
