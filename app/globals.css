@@ -22,6 +22,7 @@
 
 body {
   background: #251721;
+  font-family: 'Galldis', sans-serif;
 }
 
 .containerpaddin {
@@ -45,3 +46,28 @@ body {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+@font-face {
+  font-family: 'Galldis';
+  src: url('/fonts/Galldis-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Galldis';
+  src: url('/fonts/Galldis-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+@colorpatch {
+
+}
+
+
+
+
