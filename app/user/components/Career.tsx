@@ -1,5 +1,5 @@
 import React from 'react'
-import Career1 from '../images/Career/Rectangle 6083.png'
+import Career1 from '../images/Career/menwithheadphone.png'
 import Career2 from '../images/Career/Rectangle 6084.png'
 import MainIcon from '../images/Home/mainicon.svg'
 import Point from '../images/Career/Point.svg'
