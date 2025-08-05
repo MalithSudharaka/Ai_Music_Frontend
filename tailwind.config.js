@@ -23,6 +23,15 @@ module.exports = {
           'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
           'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
         },
+        animation: {
+          'scroll': 'scroll 30s linear infinite',
+        },
+        keyframes: {
+          scroll: {
+            '0%': { transform: 'translateX(0)' },
+            '100%': { transform: 'translateX(-50%)' },
+          },
+        },
       },
     },
     plugins: [],

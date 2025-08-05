@@ -94,72 +94,77 @@ export default function HomePage() {
       </div>
 
       <Navbar />
-      <SplashCursor />
+      {/* <SplashCursor />  */}
       
-      <div className='containerpaddin container mx-auto'>
-        <div className='pt-34 sm:pt-28 md:pt-32 lg:pt-36 leading-30 xl:leading-35'>
-          <h1 className='text-white text-[100px] font-Galldis font-bold'>
+      <div className='relative '>
+      <div className='absolute bottom-[40%] md:bottom-[20%] xl:bottom-[12%] right-0 left-0 w-full '>
+        
+        <img src={Whiteline.src} alt="" className="w-full items-center justify-center" />
+      </div>
+      <div className='relative containerpaddin container mx-auto'>
+        <div className='pt-34 sm:pt-28 md:pt-32 lg:pt-50 xl:pt-50leading-30 lg:leading-15 xl:leading-25 2xl:leading-35'>
+          <h1 className='text-white font-Title font-bold text-[40px] md:text-[50px] lg:text-[60px] xl:text-[80px] 2xl:text-[100px] font-bold'>
             Upload & Download<br />
             <span className='flex items-center'>
               AI S
               <span>
-                <img src={Music.src} alt="" className='w-30 h-30' />
+                <img src={Music.src} alt="" className='w-18 h-18 sm:w-20 sm:h-20 md:w-25 md:h-25 lg:w-30 lg:h-30' />
               </span>
               ngs
             </span>
           </h1>
-          <p className='font-Galldis font-light-500 text-white text-sm mt-4'>
-            After the trial, you can still use Cursor with limited features (GPT-4 mini or Cursor small models),<br />
+          <p className='max-w-[100%] font-bold  md:max-w-[60%] text-white lg:text-lg mt-4'>
+            After the trial, you can still use Cursor with limited features (GPT-4 mini or Cursor small models),
             which are only good for simple tasks.After the trial
           </p>
 
 
           
           <div>
-          <p className="font-Galldis font-light-500 text-white text-sm mt-4 text-right">
-          <div className='h-px w-[50%] bg-white' />
-            After the trial, you can still use Cursor with limited <br />
-            features (GPT-4 mini or Cursor small models), which <br />
-            are only good for simple tasks.After the trial
+          <p className=" text-white text-sm mt-4 mb-4 text-right  ">
+          
+            fter the trial, you can still use Cursor with limited <br />
+            features (GPT-4 mini or Cursor small models), <br />
+            which are only good for simple tasks.After the trial
           </p>
           </div>
         </div>
 
         <div>
-          <div className='flex items-center justify-between'>
-            <div className='rounded-full border border-white/50 flex-1 max-w-xl'>
-              <div className="flex items-center justify-between py-3 px-4">
+          <div className='flex flex-col lg:flex-row items-center justify-between gap-4 md:gap-0'>
+            <div className='rounded-full border border-white/50 flex-1 w-full  lg:max-w-lg xl:max-w-xl'>
+              <div className="flex items-center justify-between py-2 px-3 xl:py-3 xl:px-4">
                 <div className="flex items-center flex-1 min-w-0">
-                  <svg className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 lg:w-10 lg:h-10 text-white/50 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                   <input 
                     type="text" 
-                    placeholder="Try searching Trap or Sad or Juice Wrld..." 
-                    className="bg-transparent text-white placeholder-gray-400 outline-none flex-1 font-roboto font-light-300 w-full"
+                    placeholder="Try searching Sad or Juice Wrld..." 
+                    className="bg-transparent text-white text-white/70 text-sm md:text-lg outline-none flex-1  w-full"
                   />
                 </div>
-                <button className='bg-white font-roboto font-semibold text-black px-6 py-2 rounded-full'>
+                <button className='bg-white font-roboto font-semibold text-black px-4 py-1 md:px-6 md:py-3 rounded-full'>
                   Search
                 </button>
               </div>
             </div>
             
-            <div className='font-roboto font-light-300 text-white text- mt-2'>
-            <div className="flex items-center  gap-0">
-            <img src={MainIcon.src} alt="" className="h-15 w-auto mr-2" />
-            <img src={HeroButton.src} alt="" className="h-15 w-auto" />
+            <div className='font-roboto font-light-300 text-white  mt-2 md:mt-8 lg:mt-0 items-center justify-center'>
+            <div className="flex items-center  gap-2 md:gap-4">
+            <img src={MainIcon.src} alt="" className="h-10 md:h-15 lg:h-13 xl:h-15  w-auto " />
+            <img src={HeroButton.src} alt="" className="h-10 md:h-15 lg:h-13 xl:h-15 w-auto" />
             </div>
             
             </div>
           </div>
 
-          <div className='flex items-center gap-10'>
-            <div className='font-Galldis font-light-500 text-white text-sm text-white text- mt-2'>
+          <div className='flex flex-col lg:flex-row mt-4 md:mt-2 lg:mt-2 items-center gap-1 lg:gap-10'>
+            <div className='font-Galldis font-light-500 text-white text-sm text-white  mt-2'>
               <p>PWhat’s trending right nowhhhh</p>
             </div>
 
-            <div className='font-Galldis font-light-500 text-white text-sm text-white text- mt-2 flex items-center gap-2'>
+            <div className='font-Galldis font-light-500 text-white text-sm text-white  mt-2 flex items-center gap-2'>
               <button className='ffont-Galldis font-light-500 text-white text-sm text-white border border-white/50 font-regular text-black px-4 py-1 rounded-full justify-center items-center'>
                 POP
               </button>
@@ -174,22 +179,32 @@ export default function HomePage() {
         </div>
         
       </div>
-
+      
 
 
       <Hero4image />
 
-      <div className=' mx-auto mt-[350px]'>
-        <div className='bg-black/10 backdrop-blur-sm  px-4 py-8 shadow-xl shadow-black/20'>
+
+      </div>
+      <div className=' mx-auto mt-[50px]'>
+        <div className='bg-black/30 backdrop-blur-sm  px-4 py-8 overflow-hidden'>
         <div className='containerpaddin container mx-auto'>
-          <div className='flex items-center justify-between opacity-50'>
-             <img src={Logo1.src} alt="" className='' />
-             <img src={Logo2.src} alt="" className='' />
-             <img src={Logo3.src} alt="" className='' />
-             <img src={Logo4.src} alt="" className='' />
-             <img src={Logo5.src} alt="" className='' />
-             <img src={Logo6.src} alt="" className='' />
-             <img src={Logo7.src} alt="" className='' />
+          <div className='flex items-center opacity-50 animate-scroll'>
+             <img src={Logo1.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo2.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo3.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo4.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo5.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo6.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo7.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             {/* Duplicate logos for seamless loop */}
+             <img src={Logo1.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo2.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo3.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo4.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo5.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo6.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+             <img src={Logo7.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
           </div>
           </div>
         </div>
@@ -197,7 +212,7 @@ export default function HomePage() {
 
 {/* Music Cards */}
         <div className='containerpaddin container mx-auto mt-[50px] '>
-        <h1 className='text-white text-[30px] font-roboto font-bold leading-16'>
+        <h1 className='text-white font-Title text-[10px] md:text-[10px] lg:text-[10px] xl:text-[20px] 2xl:text-[20px]'>
             Trending Songs
           </h1>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5   gap-6 overflow-x-auto scrollbar-hide  mt-9">
@@ -226,12 +241,16 @@ export default function HomePage() {
 
 
        <Career />
+
+       <div className='mt-[50px] md:mt-[50px] lg:mt-[100px] xl:mt-[150px] 2xl:mt-[200px] mb-[50px] md:mb-[100px] lg:mb-[150px] xl:mb-[200px] 2xl:mb-[250px]'>
+        <Banner playAnimation={true} />
+        </div>
+
+
        <Madeon />
 
 
-        <div className='mt-[200px] mb-[500px]'>
-        <Banner playAnimation={true} />
-        </div>
+        
 
 
 
