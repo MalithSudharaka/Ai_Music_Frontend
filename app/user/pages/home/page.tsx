@@ -96,7 +96,7 @@ export default function HomePage() {
       </div>
 
       <Navbar />
-      {/* <SplashCursor />  */}
+      <SplashCursor /> 
       
       <div className='relative '>
       <div className='absolute bottom-[40%] md:bottom-[20%] xl:bottom-[12%] right-0 left-0 w-full '>
