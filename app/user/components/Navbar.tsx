@@ -103,21 +103,21 @@ function Navbar() {
 
             {/* Desktop Navigation */}
             <div className='hidden md:block bg-black/70 backdrop-blur-sm rounded-full border border-white/50'>
-            <div className="flex items-center justify-center py-2 md:py-2 lg:py-1 px-4 md:px-4 lg:px-8">
-            <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-4 lg:space-x-6">
+            <div className="flex items-center justify-center py-2 md:py-2 lg:py-1 px-4 md:px- lg:px-8">
+            <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-2 lg:space-x-6">
                 <li className="flex items-center">
                 <img src={Music.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
-                <a href="/user/pages/topcharts" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Track</a>
+                <a href="/user/pages/topcharts" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Track</a>
                 </li>
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center">
                 <img src={Musicians.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
-                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Sounds Kits</a>
+                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sounds Kits</a>
                 </li>
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center">
                 <img src={Sounds.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
-                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Musicians</a>
+                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Musicians</a>
                 </li>
             </ul>
             </div>
@@ -135,13 +135,13 @@ function Navbar() {
 
            
             <div className="hidden md:block">
-            <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-3 lg:space-x-6">
+            <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-3 lg:space-x-3 xl:space-x-6">
                 <li>
-                <a href="#" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Sign up</a>
+                <a href="#" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign up</a>
                 </li>
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li>
-                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-sm lg:text-base">Sign in</a>
+                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign in</a>
                 </li>
                 
             </ul>
