@@ -21,6 +21,8 @@ import Logo5 from '../../images/LogoCarousel/logo5.png'
 import Logo6 from '../../images/LogoCarousel/logo6.png'
 import Logo7 from '../../images/LogoCarousel/logo7.png'
 import Madeon from '../../components/Madeon'
+import MadeonCarousel from '../../components/MadeonCarousel'
+import ImageTrail from '../../components/ImageTrail'
 
 export default function HomePage() {
   // Pagination state
@@ -247,11 +249,50 @@ export default function HomePage() {
         </div>
 
 
-       <Madeon />
+       
 
-
+       <MadeonCarousel />
         
+       <div style={{ height: '500px', position: 'relative', overflow: 'hidden'}}>
+         <div className="absolute inset-0 flex items-center justify-center z-10">
+         <div className='containerpaddin container mx-auto mt-[50px] xl:mt-[100px]  items-center justify-center'>
 
+<p className='font-Galldis font-light-500 text-white text-[10px] text-white  mt-4 text-center'>
+  #MADEONBEATSTARS
+</p>
+
+<h1 className='text-white font-Title text-[20px] md:text-[25px] lg:text-[30px] xl:text-[40px] 2xl:text-[50px] text-center mt-4'>
+  Create Song With <br></br>
+  The Power of AI
+</h1>
+
+<p className='font-Galldis font-light-500 text-white text-[10px] text-white  mt-4 text-center'>
+  The largest marketplace for high quality beatsAccess over 8 <br/>million beats from our growing community of producers<br/> around the world.
+</p>
+
+<div className='flex items-center justify-center gap-4 mt-10'>
+<div className="flex items-center  gap-2 md:gap-4">
+  <img src={MainIcon.src} alt="" className="h-10 md:h-15 lg:h-13 xl:h-15  w-auto " />
+  <img src={HeroButton.src} alt="" className="h-10 md:h-15 lg:h-13 xl:h-15 w-auto" />
+  </div>
+</div>
+</div>
+         </div>
+  <ImageTrail
+    items={[
+      'https://picsum.photos/id/287/300/300',
+      'https://picsum.photos/id/1001/300/300',
+      'https://picsum.photos/id/1025/300/300',
+      'https://picsum.photos/id/1026/300/300',
+      'https://picsum.photos/id/1027/300/300',
+      'https://picsum.photos/id/1028/300/300',
+      'https://picsum.photos/id/1029/300/300',
+      'https://picsum.photos/id/1030/300/300',
+      // ...
+    ]}
+    variant={1}
+  />
+</div>
 
 
       <Footer />
