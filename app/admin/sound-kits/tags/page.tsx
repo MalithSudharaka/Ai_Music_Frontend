@@ -8,7 +8,12 @@ export default function SoundKitTagsPage() {
   const [page, setPage] = useState(1);
   const pageSize = 8;
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<SoundKitTag | null>(null);
   const [newTag, setNewTag] = useState({ name: '', description: '' });
+  const [editTag, setEditTag] = useState({ name: '', description: '' });
 
   useEffect(() => {
     getSoundKitTags().then(setTags);
@@ -29,6 +34,66 @@ export default function SoundKitTagsPage() {
   function handleCloseModal() {
     setShowAddModal(false);
     setNewTag({ name: '', description: '' });
+  }
+
+  function handleViewTag(tag: SoundKitTag) {
+    setSelectedTag(tag);
+    setShowViewModal(true);
+  }
+
+  function handleCloseViewModal() {
+    setShowViewModal(false);
+    setSelectedTag(null);
+  }
+
+  function handleEditTag(tag: SoundKitTag) {
+    setSelectedTag(tag);
+    setEditTag({ 
+      name: tag.name, 
+      description: tag.description 
+    });
+    setShowEditModal(true);
+  }
+
+  function handleSaveEditTag() {
+    // Here you would typically update to your backend
+    console.log('Updating tag:', selectedTag?.id, editTag);
+    // Update the tag in the local state (simulate backend update)
+    setTags(tags.map(tag => 
+      tag.id === selectedTag?.id 
+        ? { ...tag, name: editTag.name, description: editTag.description }
+        : tag
+    ));
+    setShowEditModal(false);
+    setSelectedTag(null);
+    setEditTag({ name: '', description: '' });
+  }
+
+  function handleCloseEditModal() {
+    setShowEditModal(false);
+    setSelectedTag(null);
+    setEditTag({ name: '', description: '' });
+  }
+
+  function handleDeleteTag(tag: SoundKitTag) {
+    setSelectedTag(tag);
+    setShowDeleteModal(true);
+  }
+
+  function handleConfirmDelete() {
+    if (selectedTag) {
+      // Here you would typically delete from your backend
+      console.log('Deleting tag:', selectedTag.id);
+      // Remove the tag from the local state (simulate backend deletion)
+      setTags(tags.filter(tag => tag.id !== selectedTag.id));
+      setShowDeleteModal(false);
+      setSelectedTag(null);
+    }
+  }
+
+  function handleCloseDeleteModal() {
+    setShowDeleteModal(false);
+    setSelectedTag(null);
   }
 
   return (
@@ -70,9 +135,27 @@ export default function SoundKitTagsPage() {
                 <td className="px-6 py-4">{tag.name}</td>
                 <td className="px-6 py-4">{tag.description}</td>
                 <td className="px-6 py-4 flex gap-4 text-lg">
-                  <button className="text-white hover:text-[#7ED7FF] transition-colors" title="View"><FaEye /></button>
-                  <button className="text-white hover:text-[#E100FF] transition-colors" title="Edit"><FaEdit /></button>
-                  <button className="text-white hover:text-red-500 transition-colors" title="Delete"><FaTrash /></button>
+                  <button 
+                    className="text-white hover:text-[#7ED7FF] transition-colors" 
+                    title="View"
+                    onClick={() => handleViewTag(tag)}
+                  >
+                    <FaEye />
+                  </button>
+                  <button 
+                    className="text-white hover:text-[#E100FF] transition-colors" 
+                    title="Edit"
+                    onClick={() => handleEditTag(tag)}
+                  >
+                    <FaEdit />
+                  </button>
+                  <button 
+                    className="text-white hover:text-red-500 transition-colors" 
+                    title="Delete"
+                    onClick={() => handleDeleteTag(tag)}
+                  >
+                    <FaTrash />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -93,13 +176,25 @@ export default function SoundKitTagsPage() {
                 <p className="text-gray-400 text-sm">{tag.description}</p>
               </div>
               <div className="flex gap-3 text-lg ml-4">
-                <button className="text-white hover:text-[#7ED7FF] transition-colors p-1" title="View">
+                <button 
+                  className="text-white hover:text-[#7ED7FF] transition-colors p-1" 
+                  title="View"
+                  onClick={() => handleViewTag(tag)}
+                >
                   <FaEye />
                 </button>
-                <button className="text-white hover:text-[#E100FF] transition-colors p-1" title="Edit">
+                <button 
+                  className="text-white hover:text-[#E100FF] transition-colors p-1" 
+                  title="Edit"
+                  onClick={() => handleEditTag(tag)}
+                >
                   <FaEdit />
                 </button>
-                <button className="text-white hover:text-red-500 transition-colors p-1" title="Delete">
+                <button 
+                  className="text-white hover:text-red-500 transition-colors p-1" 
+                  title="Delete"
+                  onClick={() => handleDeleteTag(tag)}
+                >
                   <FaTrash />
                 </button>
               </div>
@@ -187,6 +282,147 @@ export default function SoundKitTagsPage() {
                 className="flex-1 py-2 rounded-lg bg-[#E100FF] text-white font-semibold hover:bg-[#c800d6] transition-colors"
               >
                 Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Tag Modal */}
+      {showViewModal && selectedTag && (
+        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
+          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-lg mx-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">View Tag Details</h2>
+              <button
+                onClick={handleCloseViewModal}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <FaTimes className="text-xl" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 mb-2 font-semibold">Tag Name</label>
+                <div className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43]">
+                  {selectedTag.name}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2 font-semibold">Description</label>
+                <div className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43] min-h-[80px]">
+                  {selectedTag.description}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={handleCloseViewModal}
+                className="py-2 px-6 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Tag Modal */}
+      {showEditModal && selectedTag && (
+        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
+          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-lg mx-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">Edit Tag</h2>
+              <button
+                onClick={handleCloseEditModal}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <FaTimes className="text-xl" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 mb-2 font-semibold">Tag Name</label>
+                <input
+                  type="text"
+                  value={editTag.name}
+                  onChange={(e) => setEditTag({ ...editTag, name: e.target.value })}
+                  className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none border border-[#232B43] focus:border-[#E100FF]"
+                  placeholder="Enter tag name..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2 font-semibold">Description</label>
+                <textarea
+                  value={editTag.description}
+                  onChange={(e) => setEditTag({ ...editTag, description: e.target.value })}
+                  rows={3}
+                  className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none border border-[#232B43] focus:border-[#E100FF] resize-none"
+                  placeholder="Enter tag description..."
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-4 mt-6">
+              <button
+                onClick={handleCloseEditModal}
+                className="flex-1 py-2 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEditTag}
+                className="flex-1 py-2 rounded-lg bg-[#E100FF] text-white font-semibold hover:bg-[#c800d6] transition-colors"
+              >
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Tag Modal */}
+      {showDeleteModal && selectedTag && (
+        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
+          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-lg mx-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">Delete Tag</h2>
+              <button
+                onClick={handleCloseDeleteModal}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <FaTimes className="text-xl" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="text-red-500 text-6xl mb-4 flex justify-center">
+                  <FaTrash />
+                </div>
+                <p className="text-gray-300 mb-4">
+                  Are you sure you want to delete this tag?
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-4 mt-6">
+              <button
+                onClick={handleCloseDeleteModal}
+                className="flex-1 py-2 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="flex-1 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
+              >
+                Delete
               </button>
             </div>
           </div>
