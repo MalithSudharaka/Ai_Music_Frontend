@@ -99,7 +99,7 @@ function Navbar() {
         <nav className="bg-white/30 backdrop-blur-sm rounded-full px-4 sm:px-6 lg:px-10">
         <div className="max-w-screen-xl flex items-center justify-between mx-auto p-1">
 
-            <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+            <a href="/user/pages/home" className="flex items-center space-x-3 rtl:space-x-reverse">
                 <img src={logo.src} className="h-6 sm:h-8 md:h-7 lg:h-8" alt="Flowbite Logo" />
             </a>
 
@@ -110,17 +110,17 @@ function Navbar() {
             <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-2 lg:space-x-6">
                 <li className="flex items-center">
                 <img src={Music.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
-                <a href="/user/pages/topcharts" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Track</a>
+                <a href="/user/pages/topcharts" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 text-white md:hover:text-blue-500 hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Track</a>
                 </li>
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center">
                 <img src={Musicians.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
-                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sounds Kits</a>
+                <a href="/user/pages/SoundsKit" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-white rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 text-white md:hover:text-blue-500 hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sounds Kits</a>
                 </li>
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center">
                 <img src={Sounds.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
-                <a href="/user/pages/Musicians" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Musicians</a>
+                <a href="/user/pages/Musicians" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-white rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 text-white md:hover:text-blue-500 hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Musicians</a>
                 </li>
             </ul>
             </div>
@@ -140,11 +140,11 @@ function Navbar() {
             <div className="hidden md:block">
             <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-3 lg:space-x-3 xl:space-x-6">
                 <li>
-                <a href="#" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign up</a>
+                <a href="#" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 text-white md:hover:text-blue-500 hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign up</a>
                 </li>
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li>
-                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign in</a>
+                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-white rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 text-white md:hover:text-blue-500 hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign in</a>
                 </li>
                 
             </ul>
@@ -162,10 +162,10 @@ function Navbar() {
                             <img src={Music.src} className="h-4" alt="Track" />
                             <span className="font-roboto font-light-300">Track</span>
                         </div>
-                        <div className="flex items-center space-x-3 text-white">
+                        <a href="/user/pages/SoundsKit" className="flex items-center space-x-3 text-white hover:bg-white/10 rounded-lg p-2 transition-colors">
                             <img src={Musicians.src} className="h-4" alt="Sounds Kits" />
                             <span className="font-roboto font-light-300">Sounds Kits</span>
-                        </div>
+                        </a>
                         <a href="/user/pages/Musicians" className="flex items-center space-x-3 text-white hover:bg-white/10 rounded-lg p-2 transition-colors">
                             <img src={Sounds.src} className="h-4" alt="Musicians" />
                             <span className="font-roboto font-light-300">Musicians</span>
