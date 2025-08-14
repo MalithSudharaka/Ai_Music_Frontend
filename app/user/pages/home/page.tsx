@@ -23,6 +23,8 @@ import Logo7 from '../../images/LogoCarousel/logo7.png'
 import Madeon from '../../components/Madeon'
 import MadeonCarousel from '../../components/MadeonCarousel'
 import ImageTrail from '../../components/ImageTrail'
+import CircularGallery from '../../components/CircularGallery'
+import FlowingMenu from '../../components/FlowingMenu'
 
 export default function HomePage() {
   // Pagination state
@@ -40,6 +42,13 @@ export default function HomePage() {
     }
     return 5; // default
   };
+
+  const demoItems = [
+    { link: '#', text: 'Mojave', image: 'https://picsum.photos/600/400?random=1' },
+    { link: '#', text: 'Sonoma', image: 'https://picsum.photos/600/400?random=2' },
+    { link: '#', text: 'Monterey', image: 'https://picsum.photos/600/400?random=3' },
+    { link: '#', text: 'Sequoia', image: 'https://picsum.photos/600/400?random=4' }
+  ];
 
   const cardsPerPage = getCardsPerPage();
 
@@ -104,7 +113,7 @@ export default function HomePage() {
         <img src={Whiteline.src} alt="" className="w-full items-center justify-center" />
       </div>
       <div className='relative containerpaddin container mx-auto'>
-        <div className='pt-34 sm:pt-28 md:pt-32 lg:pt-50 xl:pt-50leading-30 lg:leading-15 xl:leading-25 2xl:leading-35'>
+        <div className='pt-34 sm:pt-28 md:pt-32 lg:pt-50  lg:leading-15 xl:leading-25 2xl:leading-35'>
           <h1 className='text-white font-Title font-bold text-[40px] md:text-[50px] lg:text-[60px] xl:text-[80px] 2xl:text-[100px] font-bold'>
             Upload & Download<br />
             <span className='flex items-center'>
@@ -294,6 +303,13 @@ export default function HomePage() {
   />
 </div>
 
+<div style={{ height: '600px', position: 'relative' }}>
+  <FlowingMenu items={demoItems} />
+</div>
+
+<div style={{ height: '600px', position: 'relative' }}>
+  <CircularGallery bend={10} textColor="#ffffff" borderRadius={0.05} scrollEase={0.2}/>
+</div>
 
       <Footer />
     </div>

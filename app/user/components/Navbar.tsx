@@ -9,6 +9,9 @@ import Music from '../images/Navbar/Music.svg'
 import Sounds from '../images/Navbar/Person.svg'
 import Musicians from '../images/Navbar/Sonometer.svg'
 import { RiArrowDropDownLine } from "react-icons/ri";
+import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+
 
 import Bell from '../images/Navbar/Bell.svg'
 import User from '../images/Navbar/User.svg'
@@ -117,7 +120,7 @@ function Navbar() {
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center">
                 <img src={Sounds.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
-                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Musicians</a>
+                <a href="/user/pages/Musicians" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Musicians</a>
                 </li>
             </ul>
             </div>
@@ -163,10 +166,10 @@ function Navbar() {
                             <img src={Musicians.src} className="h-4" alt="Sounds Kits" />
                             <span className="font-roboto font-light-300">Sounds Kits</span>
                         </div>
-                        <div className="flex items-center space-x-3 text-white">
+                        <a href="/user/pages/Musicians" className="flex items-center space-x-3 text-white hover:bg-white/10 rounded-lg p-2 transition-colors">
                             <img src={Sounds.src} className="h-4" alt="Musicians" />
                             <span className="font-roboto font-light-300">Musicians</span>
-                        </div>
+                        </a>
                     </div>
                     
                     {/* Mobile Icon Options */}
