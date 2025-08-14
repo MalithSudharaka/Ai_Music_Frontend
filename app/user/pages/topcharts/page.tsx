@@ -1,6 +1,5 @@
 'use client'
 import { IoMdArrowDropdown } from "react-icons/io";
-import { ImMenu } from "react-icons/im";
 import Navbar from '../../components/Navbar'
 import Musicdata from '../musicdata.json'
 import Dropdown from '../../dropdown.json'
@@ -148,7 +147,7 @@ export default function TopChartsPage() {
             ))}
             </div>
             <div className="text-white items-end justify-end">
-            <ImMenu />
+            
             </div>
             </div>
 
