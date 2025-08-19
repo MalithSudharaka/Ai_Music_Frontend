@@ -4,11 +4,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 
 import { CgProfile } from "react-icons/cg";
+import { RiArrowDropDownLine, RiPlayListLine, RiHeartLine, RiCheckLine, RiSettings3Line, RiLogoutBoxRLine } from "react-icons/ri";
 import logo from '../images/logo/logo.png'
 import Music from '../images/Navbar/Music.svg'
 import Sounds from '../images/Navbar/Person.svg'
 import Musicians from '../images/Navbar/Sonometer.svg'
-import { RiArrowDropDownLine } from "react-icons/ri";
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 
@@ -26,7 +26,25 @@ function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const dropdownOptions = ['Track', 'Sound Kits', 'Musicians'];
+  const dropdownOptions = ['All','Track', 'Sound Kits', 'Musicians'];
+  
+  // Function to render icons
+  const renderIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'RiPlayListLine':
+        return <RiPlayListLine size={20} />;
+      case 'RiHeartLine':
+        return <RiHeartLine size={20} />;
+      case 'RiCheckLine':
+        return <RiCheckLine size={20} />;
+      case 'RiSettings3Line':
+        return <RiSettings3Line size={20} />;
+      case 'RiLogoutBoxRLine':
+        return <RiLogoutBoxRLine size={20} />;
+      default:
+        return <span>{iconName}</span>;
+    }
+  };
   
   // Handle click outside to close dropdowns
   useEffect(() => {
@@ -55,41 +73,24 @@ function Navbar() {
         {
           title: 'User Content',
           items: [
-            { name: 'My Playlist', icon: '🎵' },
-            { name: 'Favorites', icon: '❤️' },
-            { name: 'Listening History', icon: '⏰' },
-            { name: 'Lyrics', icon: '📝' },
-            { name: 'Purchased', icon: '✅' },
-            { name: 'Collaborations', icon: '🤝' }
-          ]
-        },
-        {
-          title: 'Orders & Connections',
-          items: [
-            { name: 'My Orders', icon: '📋' },
-            { name: 'Gift Card Orders', icon: '🎁' },
-            { name: 'Negotiations', icon: '✓' },
-            { name: 'Connections', icon: '🔗' }
+            { name: 'Favorites', icon: 'RiHeartLine' },
+            { name: 'Purchased', icon: 'RiCheckLine' }
           ]
         },
         {
           title: 'Settings',
           items: [
-            { name: 'Account Setting', icon: '⚙️' },
-            { name: 'Help', icon: '❓' },
-            { name: 'Studio Profile', icon: '🎙️' }
+            { name: 'Account Setting', icon: 'RiSettings3Line' }
           ]
         },
         {
           title: 'Logout',
           items: [
-            { name: 'Log out', icon: '⏻' }
+            { name: 'Log out', icon: 'RiLogoutBoxRLine' }
           ]
         }
       ]
     },
-    heart: ['Favorites', 'Wishlist', 'Liked'],
-    bell: ['Notifications', 'Messages', 'Alerts'],
     cart: ['Cart', 'Orders', 'History']
   };
 
@@ -110,17 +111,17 @@ function Navbar() {
             <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-2 lg:space-x-6">
                 <li className="flex items-center">
                 <img src={Music.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
-                <a href="/user/pages/topcharts" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 text-white md:hover:text-blue-500 hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Track</a>
+                <a href="/user/pages/topcharts" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-primary md:p-0 text-white md:hover:text-primary hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Track</a>
                 </li>
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center">
                 <img src={Musicians.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
-                <a href="/user/pages/SoundsKit" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-white rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 text-white md:hover:text-blue-500 hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sounds Kits</a>
+                <a href="/user/pages/SoundsKit" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-white rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-primary md:p-0 text-white md:hover:text-primary hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sounds Kits</a>
                 </li>
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center">
                 <img src={Sounds.src} className="h-3 md:h-3 lg:h-4 mr-1 md:mr-1 lg:mr-2" alt="Flowbite Logo" />
-                <a href="/user/pages/Musicians" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-white rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 text-white md:hover:text-blue-500 hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Musicians</a>
+                <a href="/user/pages/Musicians" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-white rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-primary md:p-0 text-white md:hover:text-primary hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Musicians</a>
                 </li>
             </ul>
             </div>
@@ -140,11 +141,11 @@ function Navbar() {
             <div className="hidden md:block">
             <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-3 lg:space-x-3 xl:space-x-6">
                 <li>
-                <a href="#" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 text-white md:hover:text-blue-500 hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign up</a>
+                <a href="/user/pages/SignUp" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-primary md:p-0 text-white md:hover:text-primary hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign up</a>
                 </li>
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li>
-                <a href="#" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-white rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 text-white md:hover:text-blue-500 hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign in</a>
+                <a href="/user/pages/SignIn" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-white rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-primary md:p-0 text-white md:hover:text-primary hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign in</a>
                 </li>
                 
             </ul>
@@ -196,10 +197,15 @@ function Navbar() {
                                                 {section.items.map((item) => (
                                                     <button
                                                         key={item.name}
-                                                        onClick={() => setActiveDropdown(null)}
+                                                        onClick={() => {
+                                                            setActiveDropdown(null);
+                                                            if (item.name === 'My Playlist') {
+                                                                window.location.href = '/user/pages/PlayList';
+                                                            }
+                                                        }}
                                                         className="w-full flex items-center space-x-3 px-3 py-2 text-sm hover:bg-white/10 transition-colors text-white rounded"
                                                     >
-                                                        <span className="text-base">{item.icon}</span>
+                                                        {renderIcon(item.icon)}
                                                         <span>{item.name}</span>
                                                     </button>
                                                 ))}
@@ -209,63 +215,9 @@ function Navbar() {
                                 )}
                             </div>
 
-                            {/* Heart Dropdown */}
-                            <div className="relative">
-                                <button 
-                                    onClick={() => setActiveDropdown(activeDropdown === 'mobile-heart' ? null : 'mobile-heart')}
-                                    className="w-full flex items-center justify-between p-3 text-white hover:bg-white/10 rounded-lg transition-colors"
-                                >
-                                    <div className="flex items-center space-x-3">
-                                        <img src={Heart.src} className="h-5" alt="Favorites" />
-                                        <span className="font-roboto font-light-300 text-sm">Favorites</span>
-                                    </div>
-                                    <RiArrowDropDownLine className="text-white text-lg" />
-                                </button>
-                                
-                                {activeDropdown === 'mobile-heart' && (
-                                    <div className="mt-2 ml-4 bg-black/70 rounded-lg border border-white/20 p-2 max-h-[40vh] overflow-y-auto">
-                                        {iconDropdowns.heart.map((option) => (
-                                            <button
-                                                key={option}
-                                                onClick={() => setActiveDropdown(null)}
-                                                className="w-full flex items-center space-x-3 px-3 py-2 text-sm hover:bg-white/10 transition-colors text-white rounded"
-                                            >
-                                                <span>❤️</span>
-                                                <span>{option}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
 
-                            {/* Bell Dropdown */}
-                            <div className="relative">
-                                <button 
-                                    onClick={() => setActiveDropdown(activeDropdown === 'mobile-bell' ? null : 'mobile-bell')}
-                                    className="w-full flex items-center justify-between p-3 text-white hover:bg-white/10 rounded-lg transition-colors"
-                                >
-                                    <div className="flex items-center space-x-3">
-                                        <img src={Bell.src} className="h-5" alt="Notifications" />
-                                        <span className="font-roboto font-light-300 text-sm">Notifications</span>
-                                    </div>
-                                    <RiArrowDropDownLine className="text-white text-lg" />
-                                </button>
-                                
-                                {activeDropdown === 'mobile-bell' && (
-                                    <div className="mt-2 ml-4 bg-black/70 rounded-lg border border-white/20 p-2 max-h-[40vh] overflow-y-auto">
-                                        {iconDropdowns.bell.map((option) => (
-                                            <button
-                                                key={option}
-                                                onClick={() => setActiveDropdown(null)}
-                                                className="w-full flex items-center space-x-3 px-3 py-2 text-sm hover:bg-white/10 transition-colors text-white rounded"
-                                            >
-                                                <span>🔔</span>
-                                                <span>{option}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+
+
 
                             {/* Cart Dropdown */}
                             <div className="relative">
@@ -285,7 +237,12 @@ function Navbar() {
                                         {iconDropdowns.cart.map((option) => (
                                             <button
                                                 key={option}
-                                                onClick={() => setActiveDropdown(null)}
+                                                onClick={() => {
+                                                    setActiveDropdown(null);
+                                                    if (option === 'Cart') {
+                                                        window.location.href = '/user/pages/Cart';
+                                                    }
+                                                }}
                                                 className="w-full flex items-center space-x-3 px-3 py-2 text-sm hover:bg-white/10 transition-colors text-white rounded"
                                             >
                                                 <span>🛒</span>
@@ -300,8 +257,8 @@ function Navbar() {
                     
                     <div className="border-t border-white/20 pt-4">
                         <div className="flex items-center justify-between">
-                            <a href="#" className="text-red-500 font-roboto font-light-300">Sign up</a>
-                            <a href="#" className="text-white font-roboto font-light-300">Sign in</a>
+                            <a href="/user/pages/SignUp" className="text-red-500 font-roboto font-light-300">Sign up</a>
+                            <a href="/user/pages/SignIn" className="text-white font-roboto font-light-300">Sign in</a>
                         </div>
                     </div>
                 </div>
@@ -371,7 +328,13 @@ function Navbar() {
                     <div className="absolute top-full left-0 mt-2 w-80 bg-black/95 backdrop-blur-sm rounded-lg border border-white/20 shadow-lg z-50 max-h-[80vh] overflow-hidden">
                         {/* Profile Section */}
                         <div className="p-4 border-b border-white/20">
-                            <div className="flex items-center space-x-3">
+                            <div 
+                                className="flex items-center space-x-3 cursor-pointer hover:bg-white/10 rounded-lg p-2 transition-colors"
+                                onClick={() => {
+                                    setActiveDropdown(null);
+                                    window.location.href = '/user/pages/UserProfile';
+                                }}
+                            >
                                 <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center">
                                     <CgProfile className="text-white text-xl" />
                                 </div>
@@ -379,14 +342,6 @@ function Navbar() {
                                     <div className="text-white font-medium">{iconDropdowns.user.profile.username}</div>
                                     <div className="text-gray-400 text-sm">{iconDropdowns.user.profile.status}</div>
                                 </div>
-                            </div>
-                            <div className="mt-3 space-y-2">
-                                <button className="w-full bg-blue-600 text-white py-2 px-3 rounded text-sm font-medium hover:bg-blue-700 transition-colors">
-                                    Become a Seller
-                                </button>
-                                <button className="w-full bg-gray-700 text-white py-2 px-3 rounded text-sm font-medium hover:bg-gray-600 transition-colors">
-                                    Total Wallet {iconDropdowns.user.profile.wallet}
-                                </button>
                             </div>
                         </div>
                         
@@ -398,10 +353,17 @@ function Navbar() {
                                     {section.items.map((item) => (
                                         <button
                                             key={item.name}
-                                            onClick={() => setActiveDropdown(null)}
+                                            onClick={() => {
+                                                setActiveDropdown(null);
+                                                if (item.name === 'Account Setting') {
+                                                    window.location.href = '/user/pages/UserProfile?edit=true';
+                                                } else if (item.name === 'Favorites') {
+                                                    window.location.href = '/user/pages/PlayList';
+                                                }
+                                            }}
                                             className="w-full flex items-center space-x-3 px-4 py-1 text-sm hover:bg-white/10 transition-colors text-white"
                                         >
-                                            <span className="text-lg">{item.icon}</span>
+                                            {renderIcon(item.icon)}
                                             <span>{item.name}</span>
                                         </button>
                                     ))}
@@ -412,58 +374,8 @@ function Navbar() {
                 )}
                 </li>
 
-                <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
-                <li className="flex items-center relative">
-                <img src={Heart.src} className="h-5 md:h-5 lg:h-6" alt="Heart Icon" />
-                <button 
-                    onClick={() => setActiveDropdown(activeDropdown === 'heart' ? null : 'heart')}
-                    className="flex items-center hover:bg-white/10 rounded px-1 md:px-1 lg:px-2 py-1 transition-colors"
-                >
-                    <RiArrowDropDownLine className="text-white text-lg md:text-lg lg:text-xl" />
-                </button>
-                
-                {activeDropdown === 'heart' && (
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-black/90 backdrop-blur-sm rounded-lg border border-white/20 shadow-lg z-50 max-h-[60vh] overflow-hidden">
-                        <div className="py-1 overflow-y-auto max-h-[60vh]">
-                            {iconDropdowns.heart.map((option) => (
-                                <button
-                                    key={option}
-                                    onClick={() => setActiveDropdown(null)}
-                                    className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors text-white"
-                                >
-                                    {option}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                </li>
-                <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
-                <li className="flex items-center relative">
-                <img src={Bell.src} className="h-5 md:h-5 lg:h-6" alt="Bell Icon" />
-                <button 
-                    onClick={() => setActiveDropdown(activeDropdown === 'bell' ? null : 'bell')}
-                    className="flex items-center hover:bg-white/10 rounded px-1 md:px-1 lg:px-2 py-1 transition-colors"
-                >
-                    <RiArrowDropDownLine className="text-white text-lg md:text-lg lg:text-xl" />
-                </button>
-                
-                {activeDropdown === 'bell' && (
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-black/90 backdrop-blur-sm rounded-lg border border-white/20 shadow-lg z-50 max-h-[60vh] overflow-hidden">
-                        <div className="py-1 overflow-y-auto max-h-[60vh]">
-                            {iconDropdowns.bell.map((option) => (
-                                <button
-                                    key={option}
-                                    onClick={() => setActiveDropdown(null)}
-                                    className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors text-white"
-                                >
-                                    {option}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                </li>
+
+
                 <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
                 <li className="flex items-center relative">
                 <img src={Cart.src} className="h-5 md:h-5 lg:h-6" alt="Cart Icon" />
@@ -480,7 +392,12 @@ function Navbar() {
                             {iconDropdowns.cart.map((option) => (
                                 <button
                                     key={option}
-                                    onClick={() => setActiveDropdown(null)}
+                                    onClick={() => {
+                                        setActiveDropdown(null);
+                                        if (option === 'Cart') {
+                                            window.location.href = '/user/pages/Cart';
+                                        }
+                                    }}
                                     className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors text-white"
                                 >
                                     {option}
