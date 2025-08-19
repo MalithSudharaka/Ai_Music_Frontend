@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import musicData from '../musicdata.json'
@@ -9,25 +9,41 @@ import { FaTwitter } from "react-icons/fa";
 import { FaInstagram } from "react-icons/fa";
 import Profileimage from '../../images/icon/cd.png'
 import Downloadicon from '../../images/icon/Download.svg'
+import data from '../../data.json'
 
 function page() {
-  const Musicdata = musicData;
+    const Musicdata = musicData;
     const [currentPage, setCurrentPage] = useState(0);
-  const [allSongsPage, setAllSongsPage] = useState(1);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const cardsPerPage = 4;
-  const allSongsPerPage = 10;
-  
+    const [allSongsPage, setAllSongsPage] = useState(1);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [selectedMusicianId, setSelectedMusicianId] = useState(1); // Default to first musician
+    const cardsPerPage = 4;
+    const allSongsPerPage = 10;
 
-    const totalPages = Math.ceil(musicData.length / cardsPerPage);
-    const totalAllSongsPages = Math.ceil(musicData.length / allSongsPerPage);
+    // Get the specific musician data based on ID
+    const selectedMusician = data.find(musician => musician.id === selectedMusicianId);
+    
+    // Filter music data to show only tracks by the selected musician
+    const musicianTracks = data.filter(track => track.musician === selectedMusician?.musician);
+
+    const totalPages = Math.ceil(musicianTracks.length / cardsPerPage);
+    const totalAllSongsPages = Math.ceil(musicianTracks.length / allSongsPerPage);
     const startIndex = currentPage * cardsPerPage;
     const endIndex = startIndex + cardsPerPage;
-    const displayedCards = musicData.slice(startIndex, endIndex);
+    const displayedCards = musicianTracks.slice(startIndex, endIndex);
 
     const allSongsStartIndex = (allSongsPage - 1) * allSongsPerPage;
     const allSongsEndIndex = allSongsStartIndex + allSongsPerPage;
-    const displayedAllSongs = musicData.slice(allSongsStartIndex, allSongsEndIndex);
+    const displayedAllSongs = musicianTracks.slice(allSongsStartIndex, allSongsEndIndex);
+
+    // Get URL parameters to set musician ID
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const musicianId = urlParams.get('id');
+        if (musicianId) {
+            setSelectedMusicianId(parseInt(musicianId));
+        }
+    }, []);
 
     const nextPage = () => {
         setCurrentPage(prev => Math.min(prev + 1, totalPages - 1));
@@ -74,17 +90,33 @@ function page() {
         }
     };
 
-    return (
+    // If no musician is found, show loading or error
+    if (!selectedMusician) {
+        return (
             <div className="relative">
-        <Navbar />
-        
-        {/* Mobile Sidebar Overlay */}
-        {isSidebarOpen && (
-            <div 
-                className="md:hidden fixed inset-0 bg-black/50 z-40"
-                onClick={() => setIsSidebarOpen(false)}
-            />
-        )}
+                <Navbar />
+                <div className='containerpaddin container mx-auto pt-34 sm:pt-28 md:pt-32 lg:pt-50 xl:pt-50'>
+                    <div className="text-center text-white">
+                        <h1 className="text-2xl font-bold">Musician not found</h1>
+                        <p className="text-gray-400">The requested musician profile could not be found.</p>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
+
+    return (
+        <div className="relative">
+            <Navbar />
+
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="md:hidden fixed inset-0 bg-black/50 z-40"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
 
             <div className='containerpaddin container mx-auto pt-34 sm:pt-28 md:pt-32 lg:pt-50 xl:pt-50'>
                 {/* Mobile Menu Button */}
@@ -113,18 +145,22 @@ function page() {
 
                             <div className='p-4 flex justify-center'>
                                 <div className='bg-white/20 backdrop-blur-sm rounded-full  flex items-center justify-center'>
-                                    <img src={Profileimage.src} alt="" className="w-40 h-40 rounded-full object-cover" />
+                                    <img 
+                                        src={selectedMusician.musician_image || Profileimage.src} 
+                                        alt={selectedMusician.musician} 
+                                        className="w-40 h-40 rounded-full object-cover" 
+                                    />
                                 </div>
                             </div>
 
                             <div className='items-center justify-center flex text-white 2xl:text-2xl text-xl font-bold'>
                                 <h1>
-                                    Fantom, CA
+                                    {selectedMusician.musician}
                                 </h1>
                             </div>
                             <div className='items-center justify-center flex text-white text-[12px] 2xl:text-sm mt-2'>
                                 <h1 className='text-center'>
-                                    "Hg" is the chemical symbol for the element Mercury, also known as quicksilver. It is a heavy, silvery-white transition metal
+                                    {selectedMusician.musician_country}
                                 </h1>
                             </div>
                             <div className='items-center justify-center flex mb-10'>
@@ -141,16 +177,16 @@ function page() {
                                     Followers
                                 </div>
                                 <div className='font-bold text-white 2xl:text-sm text-xs'>
-                                    447
+                                    {selectedMusician.musician_followers_count}
                                 </div>
                             </div>
 
                             <div className='flex gap-4 justify-between items-center'>
                                 <div className='font-bold text-white 2xl:text-sm text-xs'>
-                                    Plays
+                                    Downloads
                                 </div>
                                 <div className='font-bold text-white 2xl:text-sm text-xs'>
-                                    44.5K
+                                    {selectedMusician.musician_downloads_count}
                                 </div>
                             </div>
 
@@ -159,7 +195,7 @@ function page() {
                                     Tracks
                                 </div>
                                 <div className='font-bold text-white 2xl:text-sm text-xs'>
-                                    87
+                                    {selectedMusician.musician_track_count}
                                 </div>
                             </div>
 
@@ -168,18 +204,18 @@ function page() {
                             <div className='flex gap-4 justify-between items-center'>
                                 <div>
                                     <div className='font-bold text-white text-sm'>
-                                        Products
+                                        Track Types
                                     </div>
                                     <div className='flex gap-4'>
                                         <div
                                             className='flex flex-wrap items-center gap-2 py-2'
                                         >
                                             {
-                                                Musicdata.map(musicdata => (
+                                                data.filter(track => track.musician === selectedMusician.musician).map(musicdata => (
                                                     <div key={musicdata.id} className='flex-shrink-0'>
                                                         <div className='bg-black/40 backdrop-blur-sm rounded-full border border-white/50 flex items-center justify-center'>
                                                             <div className="py-1 px-1 flex items-center justify-center w-full">
-                                                                <p className='font-roboto font-light-300 text-white px-2 xl:px-2  2xl:px-4 text-[10px] xl:text-[12px] 2xl:text-[16px]'>{musicdata.tag}</p>
+                                                                <p className='font-roboto font-light-300 text-white px-2 xl:px-2  2xl:px-4 text-[10px] xl:text-[12px] 2xl:text-[16px]'>{musicdata.track_type}</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -195,61 +231,78 @@ function page() {
                                 About Me
                             </div>
                             <div className=' text-white 2xl:text-sm text-xs mt-2'>
-                                "Hg" is the chemical symbol for the element Mercury, also known as quicksilver. It is a heavy, silvery-white transition metal, and the only common metal that is a liquid at room temperature.
+                                {selectedMusician.musiciaan_about}
                             </div>
-
 
                             <div className='bg-white w-full h-[0.5px] mt-4 mb-4'></div>
 
                             <div className='font-bold text-white text-sm mb-2'>
                                 Find Me On
                             </div>
-                            <div className='flex gap-4 items-center text-white '>
-                                <div>
-                                    <RiYoutubeLine />
-                                </div>
+                            {selectedMusician.musician_social_instalink && (
+                                <a 
+                                    href={selectedMusician.musician_social_instalink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className='flex gap-4 items-center text-white hover:text-blue-400 transition-colors cursor-pointer'
+                                >
+                                    <div>
+                                        <FaInstagram />
+                                    </div>
+                                    <div>
+                                        Instagram
+                                    </div>
+                                </a>
+                            )}
 
-                                <div>
-                                    You Tube
-                                </div>
-                            </div>
+                            {selectedMusician.musician_social_twitterlink && (
+                                <a 
+                                    href={selectedMusician.musician_social_twitterlink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className='flex gap-4 items-center text-white hover:text-blue-400 transition-colors cursor-pointer'
+                                >
+                                    <div>
+                                        <FaTwitter />
+                                    </div>
+                                    <div>
+                                        Twitter
+                                    </div>
+                                </a>
+                            )}
 
-                            <div className='flex gap-4 items-center text-white '>
-                                <div>
-                                    < BsTiktok />
-                                </div>
+                            {selectedMusician.musician_social_tiktoklink && (
+                                <a 
+                                    href={selectedMusician.musician_social_tiktoklink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className='flex gap-4 items-center text-white hover:text-blue-400 transition-colors cursor-pointer'
+                                >
+                                    <div>
+                                        < BsTiktok />
+                                    </div>
+                                    <div>
+                                        Tik Tok
+                                    </div>
+                                </a>
+                            )}
 
-                                <div>
-                                    Tik Tok
-                                </div>
-                            </div>
-
-                            <div className='flex gap-4 items-center text-white '>
-                                <div>
-                                    <FaTwitter />
-                                </div>
-
-                                <div>
-                                    Twitter
-                                </div>
-                            </div>
-
-                            <div className='flex gap-4 items-center text-white '>
-                                <div>
-                                    <FaInstagram />
-                                </div>
-
-                                <div>
-                                    Instagram
-                                </div>
-                            </div>
-
-
-
+                            {selectedMusician.musician_social_spotifylink && (
+                                <a 
+                                    href={selectedMusician.musician_social_spotifylink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className='flex gap-4 items-center text-white hover:text-blue-400 transition-colors cursor-pointer'
+                                >
+                                    <div>
+                                        <RiYoutubeLine />
+                                    </div>
+                                    <div>
+                                        Spotify
+                                    </div>
+                                </a>
+                            )}
                         </div>
-
-
-
                     </div>
 
                     {/* Right_Side */}
@@ -283,12 +336,12 @@ function page() {
                                     displayedCards.map(musicdata => (
                                         <div key={musicdata.id} className='flex-shrink-0'>
                                             <div className="">
-                                                <img src={musicdata.image} className="rounded-sm w-full h-full hover:brightness-125 hover:shadow-lg hover:shadow-white/20 transition-all duration-200 cursor-pointer" alt="Description" />
-                                                <h1 className="text-white text-md font-roboto font-bold md:text-[10px] lg:text-sm xl:text-sm 2xl:text-sm  mt-2">{musicdata.title}</h1>
-                                                <h1 className="text-white text-sm md:text-[10px] lg:text-sm xl:text-sm 2xl:text-sm font-roboto  ">Skeyes_A</h1>
+                                                <img src={musicdata.track_image} className="rounded-sm w-full h-full hover:brightness-125 hover:shadow-lg hover:shadow-white/20 transition-all duration-200 cursor-pointer" alt="Description" />
+                                                <h1 className="text-white text-md font-roboto font-bold md:text-[10px] lg:text-sm xl:text-sm 2xl:text-sm  mt-2">{musicdata.track_name}</h1>
+                                                <h1 className="text-white text-sm md:text-[10px] lg:text-sm xl:text-sm 2xl:text-sm font-roboto  ">{musicdata.musician}</h1>
                                                 <div className="grid grid-cols-8 gap-2 mt-2">
 
-                                                    <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-bold text-white justify-center items-center rounded-sm hover:bg-white/30 transition-colors duration-200">$ {musicdata.plays}</button>
+                                                    <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-bold text-white justify-center items-center rounded-sm hover:bg-white/30 transition-colors duration-200">$ {musicdata.track_price}</button>
                                                     <button className="grid col-span-2 bg-primary text-black px-2 py-2 md:px-2 md:py-2 xl:px-4 xl:py-1 rounded-sm hover:bg-primary/70 transition-colors duration-200">
                                                         <img src={Downloadicon.src} alt="Download" className="" />
                                                     </button>
@@ -301,6 +354,26 @@ function page() {
 
                             <div className='text-white  flex justify-between items-center mt-10'>
                                 <h1 className='text-2xl font-bold'> All Songs </h1>
+                                
+                                <div className='flex items-center gap-2'>
+                                    <button
+                                        onClick={() => handleAllSongsPageChange(allSongsPage - 1)}
+                                        disabled={allSongsPage === 1}
+                                        className="text-white hover:text-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <RiArrowLeftSLine />
+                                    </button>
+                                    <span className="text-white text-sm">
+                                        {allSongsPage} / {totalAllSongsPages}
+                                    </span>
+                                    <button
+                                        onClick={() => handleAllSongsPageChange(allSongsPage + 1)}
+                                        disabled={allSongsPage === totalAllSongsPages}
+                                        className="text-white hover:text-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <RiArrowRightSLine />
+                                    </button>
+                                </div>
                             </div>
                             <div>
                                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-2 lg:gap-4 overflow-x-auto scrollbar-hide mt-9">
@@ -309,12 +382,12 @@ function page() {
                                         displayedAllSongs.map(musicdata => (
                                             <div key={musicdata.id} className='flex-shrink-0'>
                                                 <div className="">
-                                                    <img src={musicdata.image} className="rounded-sm w-full h-full hover:brightness-125 hover:shadow-lg hover:shadow-white/20 transition-all duration-200 cursor-pointer" alt="Description" />
-                                                    <h1 className="text-white text-md font-roboto font-bold   mt-2">{musicdata.title}</h1>
-                                                    <h1 className="text-white text-sm font-roboto  ">Skeyes_A</h1>
+                                                    <img src={musicdata.track_image} className="rounded-sm w-full h-full hover:brightness-125 hover:shadow-lg hover:shadow-white/20 transition-all duration-200 cursor-pointer" alt="Description" />
+                                                    <h1 className="text-white text-md font-roboto font-bold   mt-2">{musicdata.track_name}</h1>
+                                                    <h1 className="text-white text-sm font-roboto  ">{musicdata.musician}</h1>
                                                     <div className="grid grid-cols-8 gap-2 mt-2">
 
-                                                        <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-bold text-white justify-center items-center rounded-sm hover:bg-white/30 transition-colors duration-200">$ {musicdata.plays}</button>
+                                                        <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-bold text-white justify-center items-center rounded-sm hover:bg-white/30 transition-colors duration-200">$ {musicdata.track_price}</button>
                                                         <button className="grid col-span-2 bg-primary text-black px-2 py-2 md:px-2 md:py-2 xl:px-4 xl:py-1 rounded-sm hover:bg-primary/70 transition-colors duration-200">
                                                             <img src={Downloadicon.src} alt="Download" className="" />
                                                         </button>
