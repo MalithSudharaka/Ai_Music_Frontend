@@ -63,24 +63,9 @@ function First_carousel() {
     let filtered: any[] = [];
     
     switch (filterType) {
-      case 'Under $20':
-        filtered = data.filter(track => parseInt(track.track_price) < 20);
-        break;
-      case 'Free Beat':
-        filtered = data.filter(track => parseInt(track.track_price) === 0);
-        break;
-      case 'Beat':
-        filtered = data.filter(track => track.track_type === 'Beat');
-        break;
-      case 'Beat w/ Hook':
-        filtered = data.filter(track => track.track_type === 'Beat w/ Hook');
-        break;
-      case 'Top Lines':
-        filtered = data.filter(track => track.track_type === 'Top Lines');
-        break;
       case 'New & Notable':
         // Filter for recent tracks (you can adjust this logic)
-        filtered = data.slice(0, 20); // Show first 10 tracks as "new"
+        filtered = data.slice(0, 20); // Show first 20 tracks as "new"
         break;
       case 'For You':
         // Filter based on user preferences (you can customize this)
@@ -90,9 +75,43 @@ function First_carousel() {
         // Filter for popular tracks
         filtered = data.filter(track => parseInt(track.download_count) > 150);
         break;
+      case 'Drum Kit':
+        // Filter for drum kits (you can customize this based on your data structure)
+        filtered = data.filter(track => track.track_type === 'Drum Kit' || track.genres_category === 'Drum Kit');
+        break;
+      case 'Loop Kit':
+        // Filter for loop kits
+        filtered = data.filter(track => track.track_type === 'Loop Kit' || track.genres_category === 'Loop Kit');
+        break;
+      case 'Sample Pack':
+        // Filter for sample packs
+        filtered = data.filter(track => track.track_type === 'Sample Pack' || track.genres_category === 'Sample Pack');
+        break;
+      case 'Loops and Sample':
+        // Filter for loops and samples
+        filtered = data.filter(track => track.track_type === 'Loops and Sample' || track.genres_category === 'Loops and Sample');
+        break;
+      case 'Midi Kit':
+        // Filter for MIDI kits
+        filtered = data.filter(track => track.track_type === 'Midi Kit' || track.genres_category === 'Midi Kit');
+        break;
+      case 'Present Bank':
+        // Filter for preset banks
+        filtered = data.filter(track => track.track_type === 'Present Bank' || track.genres_category === 'Present Bank');
+        break;
+      case 'One Shots':
+        // Filter for one shots
+        filtered = data.filter(track => track.track_type === 'One Shots' || track.genres_category === 'One Shots');
+        break;
       case 'Exclusive Only':
         // Filter for exclusive tracks (you can customize this)
         filtered = data.filter(track => parseInt(track.track_price) > 700);
+        break;
+      case 'Under $20':
+        filtered = data.filter(track => parseInt(track.track_price) < 20);
+        break;
+      case 'Free Kit':
+        filtered = data.filter(track => parseInt(track.track_price) === 0);
         break;
       default:
         filtered = data;
@@ -220,6 +239,140 @@ function First_carousel() {
         <div className='flex-shrink-0'>
           <div 
             className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
+              selectedFilter === 'Drum Kit' 
+                ? 'bg-blue-500/60 border-2 border-blue-400' 
+                : 'bg-white/20 hover:bg-white/30'
+            }`}
+            onClick={() => handleFilterClick('Drum Kit')}
+          >
+            <div className='flex flex-col items-center justify-center'>
+              <img src={Cd.src} alt="Cd" className='w-40 h-40' />
+              <div className='flex flex-col items-center justify-center '>
+                <h1 className='text-white text-lg font-roboto font-semibold'>Drum Kit</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div className='flex-shrink-0'>
+          <div 
+            className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
+              selectedFilter === 'Loop Kit' 
+                ? 'bg-blue-500/60 border-2 border-blue-400' 
+                : 'bg-white/20 hover:bg-white/30'
+            }`}
+            onClick={() => handleFilterClick('Loop Kit')}
+          >
+            <div className='flex flex-col items-center justify-center'>
+              <img src={Cd.src} alt="Cd" className='w-40 h-40' />
+              <div className='flex flex-col items-center justify-center '>
+                <h1 className='text-white text-lg font-roboto font-semibold'>Loop Kit</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div className='flex-shrink-0'>
+          <div 
+            className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
+              selectedFilter === 'Sample Pack' 
+                ? 'bg-blue-500/60 border-2 border-blue-400' 
+                : 'bg-white/20 hover:bg-white/30'
+            }`}
+            onClick={() => handleFilterClick('Sample Pack')}
+          >
+            <div className='flex flex-col items-center justify-center'>
+              <img src={Cd.src} alt="Cd" className='w-40 h-40' />
+              <div className='flex flex-col items-center justify-center '>
+                <h1 className='text-white text-lg font-roboto font-semibold'>Sample Pack</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div className='flex-shrink-0'>
+          <div 
+            className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
+              selectedFilter === 'Loops and Sample' 
+                ? 'bg-blue-500/60 border-2 border-blue-400' 
+                : 'bg-white/20 hover:bg-white/30'
+            }`}
+            onClick={() => handleFilterClick('Loops and Sample')}
+          >
+            <div className='flex flex-col items-center justify-center'>
+              <img src={Cd.src} alt="Cd" className='w-40 h-40' />
+              <div className='flex flex-col items-center justify-center '>
+                <h1 className='text-white text-lg font-roboto font-semibold'>Loops and Sample</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div className='flex-shrink-0'>
+          <div 
+            className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
+              selectedFilter === 'Midi Kit' 
+                ? 'bg-blue-500/60 border-2 border-blue-400' 
+                : 'bg-white/20 hover:bg-white/30'
+            }`}
+            onClick={() => handleFilterClick('Midi Kit')}
+          >
+            <div className='flex flex-col items-center justify-center'>
+              <img src={Cd.src} alt="Cd" className='w-40 h-40' />
+              <div className='flex flex-col items-center justify-center '>
+                <h1 className='text-white text-lg font-roboto font-semibold'>Midi Kit</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div className='flex-shrink-0'>
+          <div 
+            className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
+              selectedFilter === 'Present Bank' 
+                ? 'bg-blue-500/60 border-2 border-blue-400' 
+                : 'bg-white/20 hover:bg-white/30'
+            }`}
+            onClick={() => handleFilterClick('Present Bank')}
+          >
+            <div className='flex flex-col items-center justify-center'>
+              <img src={Cd.src} alt="Cd" className='w-40 h-40' />
+              <div className='flex flex-col items-center justify-center '>
+                <h1 className='text-white text-lg font-roboto font-semibold'>Present Bank</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div className='flex-shrink-0'>
+          <div 
+            className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
+              selectedFilter === 'One Shots' 
+                ? 'bg-blue-500/60 border-2 border-blue-400' 
+                : 'bg-white/20 hover:bg-white/30'
+            }`}
+            onClick={() => handleFilterClick('One Shots')}
+          >
+            <div className='flex flex-col items-center justify-center'>
+              <img src={Cd.src} alt="Cd" className='w-40 h-40' />
+              <div className='flex flex-col items-center justify-center '>
+                <h1 className='text-white text-lg font-roboto font-semibold'>One Shots</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div className='flex-shrink-0'>
+          <div 
+            className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
               selectedFilter === 'Exclusive Only' 
                 ? 'bg-blue-500/60 border-2 border-blue-400' 
                 : 'bg-white/20 hover:bg-white/30'
@@ -258,81 +411,20 @@ function First_carousel() {
         <div className='flex-shrink-0'>
           <div 
             className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
-              selectedFilter === 'Free Beat' 
+              selectedFilter === 'Free Kit' 
                 ? 'bg-blue-500/60 border-2 border-blue-400' 
                 : 'bg-white/20 hover:bg-white/30'
             }`}
-            onClick={() => handleFilterClick('Free Beat')}
+            onClick={() => handleFilterClick('Free Kit')}
           >
             <div className='flex flex-col items-center justify-center'>
               <img src={Cd.src} alt="Cd" className='w-40 h-40' />
               <div className='flex flex-col items-center justify-center '>
-                <h1 className='text-white text-lg font-roboto font-semibold'>Free Beat</h1>
+                <h1 className='text-white text-lg font-roboto font-semibold'>Free Kit</h1>
               </div>
             </div>
           </div>
         </div>
-
-
-        <div className='flex-shrink-0'>
-          <div 
-            className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
-              selectedFilter === 'Beat' 
-                ? 'bg-blue-500/60 border-2 border-blue-400' 
-                : 'bg-white/20 hover:bg-white/30'
-            }`}
-            onClick={() => handleFilterClick('Beat')}
-          >
-            <div className='flex flex-col items-center justify-center'>
-              <img src={Cd.src} alt="Cd" className='w-40 h-40' />
-              <div className='flex flex-col items-center justify-center '>
-                <h1 className='text-white text-lg font-roboto font-semibold'>Beat</h1>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-        <div className='flex-shrink-0'>
-          <div 
-            className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
-              selectedFilter === 'Beat w/ Hook' 
-                ? 'bg-blue-500/60 border-2 border-blue-400' 
-                : 'bg-white/20 hover:bg-white/30'
-            }`}
-            onClick={() => handleFilterClick('Beat w/ Hook')}
-          >
-            <div className='flex flex-col items-center justify-center'>
-              <img src={Cd.src} alt="Cd" className='w-40 h-40' />
-              <div className='flex flex-col items-center justify-center '>
-                <h1 className='text-white text-lg font-roboto font-semibold'>Beat w/ Hook</h1>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-
-        <div className='flex-shrink-0'>
-          <div 
-            className={`h-50 w-50 backdrop-blur-sm rounded-sm relative items-center justify-center cursor-pointer transition-all duration-300 ${
-              selectedFilter === 'Top Lines' 
-                ? 'bg-blue-500/60 border-2 border-blue-400' 
-                : 'bg-white/20 hover:bg-white/30'
-            }`}
-            onClick={() => handleFilterClick('Top Lines')}
-          >
-            <div className='flex flex-col items-center justify-center'>
-              <img src={Cd.src} alt="Cd" className='w-40 h-40' />
-              <div className='flex flex-col items-center justify-center '>
-                <h1 className='text-white text-lg font-roboto font-semibold'>Top Lines</h1>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-
 
       </div>
     </div>
