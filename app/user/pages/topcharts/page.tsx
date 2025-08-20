@@ -40,6 +40,10 @@ export default function TopChartsPage() {
   const [selectedInstrument, setSelectedInstrument] = useState<string | null>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
+  
+  // Carousel filter state
+  const [carouselFilter, setCarouselFilter] = useState<string | null>(null);
+  const [carouselFilteredData, setCarouselFilteredData] = useState<any[]>([]);
 
   // Determine cards per page based on screen size
   const getCardsPerPage = () => {
@@ -77,8 +81,14 @@ export default function TopChartsPage() {
     e.currentTarget.scrollLeft = scrollLeft - walk;
   };
 
-  // Filter data based on selected tag and dropdown filters
+  // Filter data based on selected tag, dropdown filters, and carousel filter
   const filteredData = data.filter(track => {
+    // Carousel filter (highest priority)
+    if (carouselFilter && carouselFilteredData.length > 0) {
+      const isInCarouselFilter = carouselFilteredData.some(filteredTrack => filteredTrack.id === track.id);
+      if (!isInCarouselFilter) return false;
+    }
+    
     // Tag filtering (if selectedTag is set)
     if (selectedTag) {
       const tags = Array.isArray(track.track_tags) 
@@ -193,6 +203,15 @@ export default function TopChartsPage() {
     setOpenDropdown(null); // Close dropdown
   };
 
+  // Clear carousel filter
+  const clearCarouselFilter = () => {
+    setCarouselFilter(null);
+    setCarouselFilteredData([]);
+    sessionStorage.removeItem('selectedFilter');
+    sessionStorage.removeItem('filteredMusicData');
+    console.log('Carousel filter cleared');
+  };
+
   // Handle window resize to update pagination
   useEffect(() => {
     const handleResize = () => {
@@ -206,6 +225,49 @@ export default function TopChartsPage() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [totalCards, currentPage]);
+
+  // Listen for carousel filter changes from session storage
+  useEffect(() => {
+    const checkCarouselFilter = () => {
+      const storedFilter = sessionStorage.getItem('selectedFilter');
+      const storedData = sessionStorage.getItem('filteredMusicData');
+      
+      if (storedFilter && storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          setCarouselFilter(storedFilter);
+          setCarouselFilteredData(parsedData);
+          console.log(`Carousel filter applied: ${storedFilter} with ${parsedData.length} tracks`);
+        } catch (error) {
+          console.error('Error parsing carousel filter data:', error);
+        }
+      } else {
+        // Clear carousel filter if no data in session storage
+        setCarouselFilter(null);
+        setCarouselFilteredData([]);
+      }
+    };
+
+    // Check immediately
+    checkCarouselFilter();
+
+    // Listen for storage events (when First_carousel updates session storage)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'selectedFilter' || e.key === 'filteredMusicData') {
+        checkCarouselFilter();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also check periodically (for same-tab updates)
+    const interval = setInterval(checkCarouselFilter, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Handle dropdown toggle
   const toggleDropdown = (dropdownId: number, event: React.MouseEvent) => {
@@ -474,9 +536,20 @@ export default function TopChartsPage() {
 
 
         {/* Debug info */}
-        {(selectedTag || searchQuery || selectedGenre || selectedTrackType || selectedPrice || selectedMood || selectedBPM || selectedInstrument || selectedKey || selectedDuration) && (
+        {(carouselFilter || selectedTag || searchQuery || selectedGenre || selectedTrackType || selectedPrice || selectedMood || selectedBPM || selectedInstrument || selectedKey || selectedDuration) && (
           <div className="mt-4 mb-4 p-3 bg-black/20 rounded-lg">
             <p className="text-white text-sm">
+              {carouselFilter && (
+                <span>
+                  <strong>Carousel Filter:</strong> <span className="text-blue-400 font-bold">{carouselFilter}</span>
+                  <button 
+                    onClick={clearCarouselFilter}
+                    className="ml-2 text-blue-300 hover:text-white text-xs underline"
+                  >
+                    Clear
+                  </button> | 
+                </span>
+              )}
               {selectedTag && (
                 <span><strong>Tag:</strong> <span className="text-primary font-bold">{selectedTag}</span> | </span>
               )}
@@ -512,6 +585,7 @@ export default function TopChartsPage() {
             </p>
             <p className="text-white text-xs mt-1">
               <strong>Active Filters:</strong> {[
+                carouselFilter && 'Carousel',
                 selectedTag && 'Tag',
                 searchQuery && 'Search',
                 selectedGenre && 'Genre',

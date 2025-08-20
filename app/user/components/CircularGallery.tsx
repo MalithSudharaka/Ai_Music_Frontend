@@ -471,51 +471,51 @@ class App {
   ) {
     const defaultItems = [
       {
-        image: `https://picsum.photos/seed/1/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzE3OTM2NTgzL2NvbXAtNi0wLTAwLTAwLTAwLS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiZmlsbCIsIndpZHRoIjoyNDAsImhlaWdodCI6MjQwfSwidG9Gb3JtYXQiOiJ3ZWJwIn19?t=1709743464393`,
         text: "Bridge",
       },
       {
-        image: `https://picsum.photos/seed/2/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzIzNTM5NDA2L3Bob3RvLTIwMjUtMDgtMTctMTgtNDItNTEuanBnIiwiZWRpdHMiOnsicmVzaXplIjp7ImZpdCI6ImZpbGwiLCJ3aWR0aCI6MjQwLCJoZWlnaHQiOjI0MH0sInRvRm9ybWF0Ijoid2VicCJ9fQ==?t=1755481396561`,
         text: "Desk Setup",
       },
       {
-        image: `https://picsum.photos/seed/3/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzIxNTA3NTEyLzIwMjQtY292ZXIuanBnIiwiZWRpdHMiOnsicmVzaXplIjp7ImZpdCI6ImZpbGwiLCJ3aWR0aCI6MjQwLCJoZWlnaHQiOjI0MH0sInRvRm9ybWF0Ijoid2VicCJ9fQ==?t=1738330621858`,
         text: "Waterfall",
       },
       {
-        image: `https://picsum.photos/seed/4/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzE1NDUzMDIzL25vdC1teS1mYXVsdC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiZmlsbCIsIndpZHRoIjoyNDAsImhlaWdodCI6MjQwfSwidG9Gb3JtYXQiOiJ3ZWJwIn19?t=1687180699241`,
         text: "Strawberries",
       },
       {
-        image: `https://picsum.photos/seed/5/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzIyMjAxODk5Ly0xLmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJmaXQiOiJmaWxsIiwid2lkdGgiOjI0MCwiaGVpZ2h0IjoyNDB9LCJ0b0Zvcm1hdCI6IndlYnAifX0=?t=1747064940077`,
         text: "Deep Diving",
       },
       {
-        image: `https://picsum.photos/seed/16/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzIzNTYxNTYxL2JldHN0cmFycy5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiZmlsbCIsIndpZHRoIjoyNDAsImhlaWdodCI6MjQwfSwidG9Gb3JtYXQiOiJ3ZWJwIn19?t=1755680021155`,
         text: "Train Track",
       },
       {
-        image: `https://picsum.photos/seed/17/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzIwMDExODU5L3N3aXNoLmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJmaXQiOiJmaWxsIiwid2lkdGgiOjI0MCwiaGVpZ2h0IjoyNDB9LCJ0b0Zvcm1hdCI6IndlYnAifX0=?t=1727270124485`,
         text: "Santorini",
       },
       {
-        image: `https://picsum.photos/seed/8/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzIzMzQ5ODk2L2NyYXp0LXlvdW5nLWZhbS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiZmlsbCIsIndpZHRoIjoyNDAsImhlaWdodCI6MjQwfSwidG9Gb3JtYXQiOiJ3ZWJwIn19?t=1753731469997`,
         text: "Blurry Lights",
       },
       {
-        image: `https://picsum.photos/seed/9/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzIzNDE3MjIxLzY1OUNEMjdFLTk5MjktNDkxMC1COTczLTkxMENGOUNEQzM2NS5qcGVnIiwiZWRpdHMiOnsicmVzaXplIjp7ImZpdCI6ImZpbGwiLCJ3aWR0aCI6MjQwLCJoZWlnaHQiOjI0MH0sInRvRm9ybWF0Ijoid2VicCJ9fQ==?t=1754341632`,
         text: "New York",
       },
       {
-        image: `https://picsum.photos/seed/10/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzE5MzQyNzM0L3VubmFtZWQtMTMtLnBuZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJmaXQiOiJmaWxsIiwid2lkdGgiOjI0MCwiaGVpZ2h0IjoyNDB9LCJ0b0Zvcm1hdCI6IndlYnAifX0=?t=1751497608820`,
         text: "Good Boy",
       },
       {
-        image: `https://picsum.photos/seed/21/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzIwNDQxMzM4L2Fub3RoZXJkYXlhbm90aGVyZG9sbGFyLmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJmaXQiOiJmaWxsIiwid2lkdGgiOjI0MCwiaGVpZ2h0IjoyNDB9LCJ0b0Zvcm1hdCI6IndlYnAifX0=?t=1730815507989`,
         text: "Coastline",
       },
       {
-        image: `https://picsum.photos/seed/12/800/600?grayscale`,
+        image: `https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzExMDcwOTQ0L2Vhcmx5bW9ybmluZ3MuanBnIiwiZWRpdHMiOnsicmVzaXplIjp7ImZpdCI6ImZpbGwiLCJ3aWR0aCI6MjQwLCJoZWlnaHQiOjI0MH0sInRvRm9ybWF0Ijoid2VicCJ9fQ==?t=1656602976409`,
         text: "Palm Trees",
       },
     ];
@@ -653,7 +653,7 @@ export default function CircularGallery({
   textColor = "#ffffff",
   borderRadius = 0.05,
   font = "bold 30px Figtree",
-  scrollSpeed = 2,
+  scrollSpeed = 0.5,
   scrollEase = 0.05,
 }: CircularGalleryProps) {
   const containerRef = useRef<HTMLDivElement>(null);

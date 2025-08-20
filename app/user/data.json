@@ -37,7 +37,8 @@
       "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
       "musician_social_twitterlink": "https://twitter.com/johndoe",
       "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-      "musician_social_spotifylink": "https://spotify.com/johndoe"
+      "musician_social_spotifylink": "https://spotify.com/johndoe",
+      "soundsKit": "false"
     },
     {
         "id": 2,
@@ -46,7 +47,7 @@
         "password": "password123",
         "track_Id": "T001",
         "track_key": "C Major",
-        "track_price": "100",
+        "track_price": "10",
         "track_type": "Rap",
         "mood_type": "Chill",
         "energy_type": "Medium",
@@ -77,7 +78,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },
       {
         "id": 3,
@@ -86,7 +88,7 @@
         "password": "password123",
         "track_Id": "T001",
         "track_key": "C Major",
-        "track_price": "100",
+        "track_price": "1000",
         "track_type": "Hip-Hop",
         "mood_type": "Chill",
         "energy_type": "Medium",
@@ -117,7 +119,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },
       {
         "id": 4,
@@ -126,7 +129,7 @@
         "password": "password123",
         "track_Id": "T001",
         "track_key": "C Major",
-        "track_price": "100",
+        "track_price": "2500",
         "track_type": "Hip-Hop",
         "mood_type": "Chill",
         "energy_type": "Medium",
@@ -157,7 +160,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },
       {
         "id": 5,
@@ -196,7 +200,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },
       {
         "id": 6,
@@ -236,7 +241,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },
     {
       "id": 7,
@@ -276,7 +282,8 @@
       "musician_social_linkedinlink": "https://linkedin.com/in/emilystone",
       "musician_social_twitterlink": "https://twitter.com/emilystone",
       "musician_social_tiktoklink": "https://tiktok.com/@emilystone",
-      "musician_social_spotifylink": "https://spotify.com/emilystone"
+      "musician_social_spotifylink": "https://spotify.com/emilystone",
+      "soundsKit": "false"
     },
     {
       "id": 8,
@@ -316,7 +323,9 @@
       "musician_social_linkedinlink": "https://linkedin.com/in/djflux",
       "musician_social_twitterlink": "https://twitter.com/djflux",
       "musician_social_tiktoklink": "https://tiktok.com/@djflux",
-      "musician_social_spotifylink": "https://spotify.com/djflux"
+      "musician_social_spotifylink": "https://spotify.com/djflux",
+      "soundsKit": "false"
+
     },
     {
       "id": 9,
@@ -356,7 +365,8 @@
       "musician_social_linkedinlink": "https://linkedin.com/in/lunasky",
       "musician_social_twitterlink": "https://twitter.com/lunasky",
       "musician_social_tiktoklink": "https://tiktok.com/@lunasky",
-      "musician_social_spotifylink": "https://spotify.com/lunasky"
+      "musician_social_spotifylink": "https://spotify.com/lunasky",
+      "soundsKit": "false"
     },
 
     {
@@ -394,7 +404,8 @@
       "musiciaan_about": "Performs classical violin pieces. Performs classical violin pieces Performs classical violin piecesPerforms classical violin pieces",
       "musician_social_fblinks": "https://facebook.com/miabloom",
       "musician_social_instalink": "https://instagram.com/miabloom",
-      "musician_social_linkedinlink": "https://linkedin.com/in/miabloom"
+      "musician_social_linkedinlink": "https://linkedin.com/in/miabloom",
+      "soundsKit": "false"
   
     },
     {
@@ -432,7 +443,8 @@
         "musiciaan_about": "Performs classical violin pieces. Performs classical violin pieces Performs classical violin piecesPerforms classical violin pieces",
         "musician_social_fblinks": "https://facebook.com/miabloom",
         "musician_social_instalink": "https://instagram.com/miabloom",
-        "musician_social_linkedinlink": "https://linkedin.com/in/miabloom"
+        "musician_social_linkedinlink": "https://linkedin.com/in/miabloom",
+        "soundsKit": "false"
     }  ,
     {
         "id": 12,
@@ -472,7 +484,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },
       {
         "id": 13,
@@ -512,7 +525,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },
       {
         "id": 14,
@@ -552,7 +566,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },
       {
         "id": 15,
@@ -592,7 +607,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },
       {
         "id": 16,
@@ -632,7 +648,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },
       {
         "id": 17,
@@ -672,7 +689,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },
       {
         "id": 18,
@@ -712,7 +730,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/johndoe",
         "musician_social_twitterlink": "https://twitter.com/johndoe",
         "musician_social_tiktoklink": "https://tiktok.com/@johndoe",
-        "musician_social_spotifylink": "https://spotify.com/johndoe"
+        "musician_social_spotifylink": "https://spotify.com/johndoe",
+        "soundsKit": "false"
       },    {
         "id": 19,
         "track_name": "Summer Breeze",
@@ -751,7 +770,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/emilystone",
         "musician_social_twitterlink": "https://twitter.com/emilystone",
         "musician_social_tiktoklink": "https://tiktok.com/@emilystone",
-        "musician_social_spotifylink": "https://spotify.com/emilystone"
+        "musician_social_spotifylink": "https://spotify.com/emilystone",
+        "soundsKit": "false"
       },
       {
         "id": 20,
@@ -791,7 +811,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/emilystone",
         "musician_social_twitterlink": "https://twitter.com/emilystone",
         "musician_social_tiktoklink": "https://tiktok.com/@emilystone",
-        "musician_social_spotifylink": "https://spotify.com/emilystone"
+        "musician_social_spotifylink": "https://spotify.com/emilystone",
+        "soundsKit": "false"
       },
       {
         "id": 21,
@@ -831,7 +852,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/emilystone",
         "musician_social_twitterlink": "https://twitter.com/emilystone",
         "musician_social_tiktoklink": "https://tiktok.com/@emilystone",
-        "musician_social_spotifylink": "https://spotify.com/emilystone"
+        "musician_social_spotifylink": "https://spotify.com/emilystone",
+        "soundsKit": "false"
       },
       {
         "id": 22,
@@ -871,7 +893,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/djflux",
         "musician_social_twitterlink": "https://twitter.com/djflux",
         "musician_social_tiktoklink": "https://tiktok.com/@djflux",
-        "musician_social_spotifylink": "https://spotify.com/djflux"
+        "musician_social_spotifylink": "https://spotify.com/djflux",
+        "soundsKit": "false"
       },
       {
         "id": 23,
@@ -911,7 +934,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/djflux",
         "musician_social_twitterlink": "https://twitter.com/djflux",
         "musician_social_tiktoklink": "https://tiktok.com/@djflux",
-        "musician_social_spotifylink": "https://spotify.com/djflux"
+        "musician_social_spotifylink": "https://spotify.com/djflux",
+        "soundsKit": "false"
       },
       {
         "id": 24,
@@ -951,7 +975,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/djflux",
         "musician_social_twitterlink": "https://twitter.com/djflux",
         "musician_social_tiktoklink": "https://tiktok.com/@djflux",
-        "musician_social_spotifylink": "https://spotify.com/djflux"
+        "musician_social_spotifylink": "https://spotify.com/djflux",
+        "soundsKit": "false"
       },
       {
         "id": 25,
@@ -991,7 +1016,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/lunasky",
         "musician_social_twitterlink": "https://twitter.com/lunasky",
         "musician_social_tiktoklink": "https://tiktok.com/@lunasky",
-        "musician_social_spotifylink": "https://spotify.com/lunasky"
+        "musician_social_spotifylink": "https://spotify.com/lunasky",
+        "soundsKit": "true"
       },
       {
         "id": 26,
@@ -1031,7 +1057,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/lunasky",
         "musician_social_twitterlink": "https://twitter.com/lunasky",
         "musician_social_tiktoklink": "https://tiktok.com/@lunasky",
-        "musician_social_spotifylink": "https://spotify.com/lunasky"
+        "musician_social_spotifylink": "https://spotify.com/lunasky",
+        "soundsKit": "true"
       },
       {
         "id": 27,
@@ -1071,7 +1098,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/lunasky",
         "musician_social_twitterlink": "https://twitter.com/lunasky",
         "musician_social_tiktoklink": "https://tiktok.com/@lunasky",
-        "musician_social_spotifylink": "https://spotify.com/lunasky"
+        "musician_social_spotifylink": "https://spotify.com/lunasky",
+        "soundsKit": "true"
       },
       {
         "id": 28,
@@ -1111,7 +1139,8 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/lunasky",
         "musician_social_twitterlink": "https://twitter.com/lunasky",
         "musician_social_tiktoklink": "https://tiktok.com/@lunasky",
-        "musician_social_spotifylink": "https://spotify.com/lunasky"
+        "musician_social_spotifylink": "https://spotify.com/lunasky",
+        "soundsKit": "true"
       },
       {
         "id": 29,
@@ -1120,14 +1149,14 @@
         "password": "dreamwave",
         "track_Id": "T004",
         "track_key": "A Minor",
-        "track_price": "500",
+        "track_price": "10",
         "musician": "Luna Sky",
-        "track_type": "kk",
+        "track_type": "Lo-Fi",
         "mood_type": "Relaxing",
         "energy_type": "Low",
         "instrument_type": "Keyboard",
         "generated_track_platform": "openAi",
-        "track_image": "https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzIxNTA3NTEyLzIwMjQtY292ZXIuanBnIiwiZWRpdHMiOnsicmVzaXplIjp7ImZpdCI6ImZpbGwiLCJ3aWR0aCI6MjQwLCJoZWlnaHQiOjI0MH0sInRvRm9ybWF0Ijoid2VicCJ9fQ==?t=1738330621858",
+        "track_image": "https://cdn5.beatstars.com/eyJidWNrZXQiOiJwcm9kLWJ0cy10cmFjayIsImtleSI6InByb2QvdHJhY2svYXJ0d29yay9USzE1NzUyMjkzL25vY2FwLmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJmaXQiOiJmaWxsIiwid2lkdGgiOjI0MCwiaGVpZ2h0IjoyNDB9LCJ0b0Zvcm1hdCI6IndlYnAifX0=?t=1689881798895",
         "track_file": "mp3",
         "about": "Lo-fi beats for relaxation and study.",
         "status": "active",
@@ -1151,6 +1180,7 @@
         "musician_social_linkedinlink": "https://linkedin.com/in/lunasky",
         "musician_social_twitterlink": "https://twitter.com/lunasky",
         "musician_social_tiktoklink": "https://tiktok.com/@lunasky",
-        "musician_social_spotifylink": "https://spotify.com/lunasky"
+        "musician_social_spotifylink": "https://spotify.com/lunasky",
+        "soundsKit": "true"
       }
 ]

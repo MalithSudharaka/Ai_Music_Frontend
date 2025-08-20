@@ -104,10 +104,12 @@ export default function HomePage() {
 
       </div>
 
-      <Navbar />
+      <div className='relative z-1000'>
+        <Navbar />
+      </div>
       <SplashCursor /> 
       
-      <div className='relative '>
+      <div className='relative z-50'>
       <div className='absolute bottom-[40%] md:bottom-[20%] xl:bottom-[12%] right-0 left-0 w-full '>
         
         <img src={Whiteline.src} alt="" className="w-full items-center justify-center" />
@@ -312,6 +314,7 @@ export default function HomePage() {
 </div>
 
       <Footer />
-    </div>
+      </div>
+    
   )
 }
