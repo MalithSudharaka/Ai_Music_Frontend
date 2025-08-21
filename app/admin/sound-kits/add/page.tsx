@@ -3,6 +3,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { FaCloudUploadAlt, FaFileAudio, FaPlus } from "react-icons/fa";
 import { getSoundKitCategories, SoundKitCategory } from "../category/categorydata";
 import { getSoundKitTags, SoundKitTag } from "../tags/tag";
+import { soundKitAPI } from "../../../utils/api";
 
 
 const musicianOptions = ["Waytoolost", "ProducerX", "DJ Sample"];
@@ -23,6 +24,20 @@ export default function AddSoundKitPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [categoryOptions, setCategoryOptions] = useState<SoundKitCategory[]>([]);
   const [tagOptions, setTagOptions] = useState<SoundKitTag[]>([]);
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    kitName: '',
+    kitId: '',
+    price: '',
+    kitType: '',
+    bpm: '',
+    key: ''
+  });
+  
+  // Loading and message states
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
 
   useEffect(() => {
     getSoundKitCategories().then(setCategoryOptions);
@@ -44,24 +59,149 @@ export default function AddSoundKitPage() {
     setTags((prev) => prev.includes(option) ? prev.filter(t => t !== option) : [...prev, option]);
   }
 
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitMessage('');
+
+    try {
+      // Validate required fields
+      if (!formData.kitName || !formData.kitId) {
+        setSubmitMessage('Please fill in all required fields (Kit Name and Kit ID)');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const soundKitData = {
+        ...formData,
+        description: description,
+        category: categories.join(', '),
+        price: formData.price ? parseFloat(formData.price) : 0,
+        producer: musician,
+        bpm: formData.bpm ? parseInt(formData.bpm) : undefined,
+        kitImage: image || '',
+        kitFile: kitFile ? kitFile.name : '',
+        tags: tags,
+        publish: publish,
+        seoTitle: seoTitle,
+        metaKeyword: seoKeyword,
+        metaDescription: seoDescription
+      };
+
+      console.log('Sending sound kit data:', soundKitData);
+
+      const response = await soundKitAPI.createSoundKit(soundKitData);
+      
+      if (response.success) {
+        setSubmitMessage('Sound kit created successfully!');
+        // Reset form
+        setFormData({
+          kitName: '',
+          kitId: '',
+          price: '',
+          kitType: '',
+          bpm: '',
+          key: ''
+        });
+        setDescription('');
+        setMusician('');
+        setCategories([]);
+        setTags([]);
+        setImage(null);
+        setKitFile(null);
+        setPublish('Private');
+        setSeoTitle('');
+        setSeoKeyword('');
+        setSeoDescription('');
+      }
+    } catch (error: any) {
+      console.error('Error creating sound kit:', error);
+      console.error('Error response:', error.response?.data);
+      setSubmitMessage(
+        error.response?.data?.details || 
+        error.response?.data?.message || 
+        'Failed to create sound kit. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <div className="min-h-screen p-8 bg-[#081028]">
       <h1 className="text-3xl font-bold text-white mb-8">Sound Kits <span className="text-lg font-normal text-gray-400 ml-4">Add Sound Kits</span></h1>
-      <form className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Main Form */}
         <div className="lg:col-span-2 flex flex-col gap-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#101936] rounded-2xl p-8 shadow-xl">
             <div>
-              <label className="block text-gray-300 mb-2">Sound Name</label>
-              <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" />
+              <label className="block text-gray-300 mb-2">Sound Name *</label>
+              <input 
+                name="kitName"
+                value={formData.kitName}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+                required
+              />
             </div>
             <div>
-              <label className="block text-gray-300 mb-2">Sound ID</label>
-              <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" />
+              <label className="block text-gray-300 mb-2">Sound ID *</label>
+              <input 
+                name="kitId"
+                value={formData.kitId}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+                required
+              />
             </div>
             <div>
               <label className="block text-gray-300 mb-2">Sound Kit Price</label>
-              <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" />
+              <input 
+                name="price"
+                type="number"
+                value={formData.price}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Kit Type</label>
+              <input 
+                name="kitType"
+                value={formData.kitType}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+                placeholder="e.g., Drum Kit, Bass Kit, etc."
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">BPM</label>
+              <input 
+                name="bpm"
+                type="number"
+                value={formData.bpm}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+                placeholder="Beats per minute"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Key</label>
+              <input 
+                name="key"
+                value={formData.key}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+                placeholder="e.g., C, Am, etc."
+              />
             </div>
             <div>
               <label className="block text-gray-300 mb-2">Musician</label>
@@ -111,8 +251,34 @@ export default function AddSoundKitPage() {
               </select>
               <span className="pointer-events-none absolute right-4 top-3 text-gray-400 text-lg">▼</span>
             </div>
-            <button className="mt-4 w-full py-2 rounded-lg bg-[#E100FF] text-white font-semibold flex items-center justify-center gap-2 hover:bg-[#c800d6] transition-colors">
-              Add Track <span className="ml-2">→</span>
+            {submitMessage && (
+              <div className={`mt-4 p-3 rounded-lg text-sm ${
+                submitMessage.includes('successfully') 
+                  ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                  : 'bg-red-500/20 text-red-400 border border-red-500/30'
+              }`}>
+                {submitMessage}
+              </div>
+            )}
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className={`mt-4 w-full py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors ${
+                isSubmitting 
+                  ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
+                  : 'bg-[#E100FF] text-white hover:bg-[#c800d6]'
+              }`}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Adding Sound Kit...</span>
+                </>
+              ) : (
+                <>
+                  Add Sound Kit <span className="ml-2">→</span>
+                </>
+              )}
             </button>
           </div>
           {/* Sound Kit Category */}

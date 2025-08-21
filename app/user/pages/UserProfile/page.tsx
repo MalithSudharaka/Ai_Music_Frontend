@@ -1,5 +1,6 @@
 'use client'
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import { profileAPI } from '../../../utils/api'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import { 
@@ -31,9 +32,10 @@ function UserProfile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    displayName: 'johndoe',
+    firstName: '',
+    lastName: '',
+    displayName: '',
+    email: '',
     location: '',
     country: '',
     biography: 'Music enthusiast and creator. Love exploring new sounds and connecting with fellow musicians.',
@@ -46,6 +48,36 @@ function UserProfile() {
       website: ''
     }
   });
+
+  // Load user data from localStorage on component mount
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setFormData(prev => ({
+          ...prev,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          displayName: user.displayName || (user.firstName?.toLowerCase() + user.lastName?.toLowerCase()) || '',
+          email: user.email || '',
+          location: user.location || '',
+          country: user.country || '',
+          biography: user.biography || 'Music enthusiast and creator. Love exploring new sounds and connecting with fellow musicians.',
+          socialLinks: user.socialLinks || {
+            facebook: '',
+            twitter: '',
+            instagram: '',
+            youtube: '',
+            linkedin: '',
+            website: ''
+          }
+        }));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
 
   const countries = [
     'United States', 'Canada', 'United Kingdom', 'Germany', 'France', 'Australia', 'Japan', 'India', 'Brazil', 'Mexico'
@@ -83,10 +115,60 @@ function UserProfile() {
     }
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Here you would typically save to backend
-    console.log('Profile saved:', formData);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveMessage(null);
+    
+    try {
+      // Get current user data from localStorage
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        
+        // Save to backend
+        const response = await profileAPI.updateProfile(user.id, {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          displayName: formData.displayName,
+          location: formData.location,
+          country: formData.country,
+          biography: formData.biography,
+          socialLinks: formData.socialLinks
+        });
+        
+        if (response.success) {
+          // Update localStorage with new data
+          const updatedUser = {
+            ...user,
+            ...response.user
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          
+          setSaveMessage({
+            type: 'success',
+            text: 'Profile updated successfully!'
+          });
+          
+          setIsEditing(false);
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            setSaveMessage(null);
+          }, 3000);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      setSaveMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to update profile. Please try again.'
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -100,7 +182,8 @@ function UserProfile() {
             <h1 className="text-3xl font-bold text-white">Profile Settings</h1>
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors"
+              disabled={isSaving}
+              className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
             >
               {isEditing ? (
                 <>
@@ -115,6 +198,17 @@ function UserProfile() {
               )}
             </button>
           </div>
+
+          {/* Save Message */}
+          {saveMessage && (
+            <div className={`p-4 rounded-lg mb-6 ${
+              saveMessage.type === 'success' 
+                ? 'bg-green-500/20 border border-green-500/30 text-green-400' 
+                : 'bg-red-500/20 border border-red-500/30 text-red-400'
+            }`}>
+              {saveMessage.text}
+            </div>
+          )}
 
           {/* Profile Image Section */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8 border border-white/20">
@@ -219,6 +313,19 @@ function UserProfile() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    disabled={true}
+                    className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-gray-400 cursor-not-allowed"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">Location</label>
@@ -281,8 +388,10 @@ function UserProfile() {
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
-                <RiFacebookBoxLine size={20} className="text-blue-500" />
+              <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <RiFacebookBoxLine size={24} className="text-primary" />
+                </div>
                 <input
                   type="url"
                   name="socialLinks.facebook"
@@ -290,12 +399,14 @@ function UserProfile() {
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   placeholder="Facebook URL"
-                  className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:outline-none disabled:opacity-50"
                 />
               </div>
               
-              <div className="flex items-center space-x-3">
-                <RiTwitterLine size={20} className="text-blue-400" />
+              <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <RiTwitterLine size={24} className="text-primary" />
+                </div>
                 <input
                   type="url"
                   name="socialLinks.twitter"
@@ -303,12 +414,14 @@ function UserProfile() {
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   placeholder="Twitter URL"
-                  className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:outline-none disabled:opacity-50"
                 />
               </div>
               
-              <div className="flex items-center space-x-3">
-                <RiInstagramLine size={20} className="text-pink-500" />
+              <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <RiInstagramLine size={24} className="text-primary" />
+                </div>
                 <input
                   type="url"
                   name="socialLinks.instagram"
@@ -316,12 +429,14 @@ function UserProfile() {
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   placeholder="Instagram URL"
-                  className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:outline-none disabled:opacity-50"
                 />
               </div>
               
-              <div className="flex items-center space-x-3">
-                <RiYoutubeLine size={20} className="text-red-500" />
+              <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <RiYoutubeLine size={24} className="text-primary" />
+                </div>
                 <input
                   type="url"
                   name="socialLinks.youtube"
@@ -329,12 +444,14 @@ function UserProfile() {
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   placeholder="YouTube URL"
-                  className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:outline-none disabled:opacity-50"
                 />
               </div>
               
-              <div className="flex items-center space-x-3">
-                <RiLinkedinBoxLine size={20} className="text-blue-600" />
+              <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <RiLinkedinBoxLine size={24} className="text-primary" />
+                </div>
                 <input
                   type="url"
                   name="socialLinks.linkedin"
@@ -342,14 +459,14 @@ function UserProfile() {
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   placeholder="LinkedIn URL"
-                  className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:outline-none disabled:opacity-50"
                 />
               </div>
               
-
-              
-              <div className="flex items-center space-x-3">
-                <RiGlobeLine size={20} className="text-green-500" />
+              <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <RiGlobeLine size={24} className="text-primary" />
+                </div>
                 <input
                   type="url"
                   name="socialLinks.website"
@@ -357,7 +474,7 @@ function UserProfile() {
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   placeholder="Website URL"
-                  className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:outline-none disabled:opacity-50"
                 />
               </div>
             </div>
@@ -368,10 +485,24 @@ function UserProfile() {
             <div className="mt-8 text-center">
               <button
                 onClick={handleSave}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2 mx-auto"
+                disabled={isSaving}
+                className={`px-8 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2 mx-auto ${
+                  isSaving 
+                    ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
               >
-                <RiSaveLine size={20} />
-                <span>Save Profile</span>
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <RiSaveLine size={20} />
+                    <span>Save Profile</span>
+                  </>
+                )}
               </button>
             </div>
           )}

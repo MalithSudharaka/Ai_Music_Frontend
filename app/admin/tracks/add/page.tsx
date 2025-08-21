@@ -4,6 +4,7 @@ import { FaCloudUploadAlt, FaFileAudio } from "react-icons/fa";
 import { getGenres, Genre } from '../genres/genres';
 import { initialBeats } from '../beats/beatData';
 import { initialTags } from '../tags/tagData';
+import { trackAPI } from '../../../utils/api';
 
 const typeOptions = ["Song", "Beats", "Beats w/hook", "Top lines", "Vocal"];
 const moodOptions = [
@@ -28,6 +29,32 @@ export default function AddTrackPage() {
   const [genresData, setGenresData] = useState<Genre[]>([]);
   const [beatsData, setBeatsData] = useState<{ id: number; name: string; description: string; }[]>([]);
   const [tagsData, setTagsData] = useState<{ id: number; name: string; description: string; }[]>([]);
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    trackName: '',
+    trackId: '',
+    bpm: '',
+    trackKey: '',
+    trackPrice: '',
+    musician: '',
+    trackType: '',
+    moodType: '',
+    energyType: '',
+    instrument: '',
+    generatedTrackPlatform: '',
+    about: '',
+    genreCategory: '',
+    beatCategory: '',
+    trackTags: '',
+    seoTitle: '',
+    metaKeyword: '',
+    metaDescription: ''
+  });
+  
+  // Loading and message states
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,20 +92,100 @@ export default function AddTrackPage() {
     }
   }
 
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitMessage('');
+
+    try {
+      // Validate required fields
+      if (!formData.trackName || !formData.trackId || !formData.trackType) {
+        setSubmitMessage('Please fill in all required fields (Track Name, Track ID, and Track Type)');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const trackData = {
+        ...formData,
+        bpm: formData.bpm ? parseInt(formData.bpm) : undefined,
+        trackPrice: formData.trackPrice ? parseFloat(formData.trackPrice) : 0,
+        trackImage: trackImage || '',
+        trackFile: trackFile ? trackFile.name : '',
+        publish: publish
+      };
+
+      console.log('Sending track data:', trackData);
+
+      const response = await trackAPI.createTrack(trackData);
+      
+      if (response.success) {
+        setSubmitMessage('Track created successfully!');
+        // Reset form
+        setFormData({
+          trackName: '',
+          trackId: '',
+          bpm: '',
+          trackKey: '',
+          trackPrice: '',
+          musician: '',
+          trackType: '',
+          moodType: '',
+          energyType: '',
+          instrument: '',
+          generatedTrackPlatform: '',
+          about: '',
+          genreCategory: '',
+          beatCategory: '',
+          trackTags: '',
+          seoTitle: '',
+          metaKeyword: '',
+          metaDescription: ''
+        });
+        setTrackImage(null);
+        setTrackFile(null);
+        setPublish('Private');
+      }
+    } catch (error: any) {
+      console.error('Error creating track:', error);
+      console.error('Error response:', error.response?.data);
+      setSubmitMessage(
+        error.response?.data?.details || 
+        error.response?.data?.message || 
+        'Failed to create track. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <div className="min-h-screen p-8 bg-[#081028]">
       <h1 className="text-3xl font-bold text-white mb-8">Track Management <span className="text-lg font-normal text-gray-400 ml-4">Add Tracks</span></h1>
-      <form className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Main Form */}
         <div className="lg:col-span-2 flex flex-col gap-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#101936] rounded-2xl p-8 shadow-xl">
             <div>
-              <label className="block text-gray-300 mb-2">Track Name</label>
-              <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" />
+              <label className="block text-gray-300 mb-2">Track Name *</label>
+              <input 
+                name="trackName"
+                value={formData.trackName}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+                required
+              />
             </div>
             <div className="relative">
               <label className="block text-gray-300 mb-2 flex items-center gap-2">
-                Track ID
+                Track ID *
                 <span className="relative group cursor-pointer">
                   <span className="w-5 h-5 flex items-center justify-center rounded-full bg-[#232B43] text-xs text-[#7ED7FF]">i</span>
                   <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-64 bg-[#232B43] text-white text-xs rounded-lg px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
@@ -86,7 +193,13 @@ export default function AddTrackPage() {
                   </span>
                 </span>
               </label>
-              <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" />
+              <input 
+                name="trackId"
+                value={formData.trackId}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+                required
+              />
             </div>
             <div className="relative">
               <label className="block text-gray-300 mb-2 flex items-center gap-2">
@@ -98,29 +211,61 @@ export default function AddTrackPage() {
                   </span>
                 </span>
               </label>
-              <input type="text" inputMode="numeric" pattern="[0-9]*" className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" />
+              <input 
+                name="bpm"
+                type="text" 
+                inputMode="numeric" 
+                pattern="[0-9]*" 
+                value={formData.bpm}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+              />
             </div>
             <div className="relative">
               <label className="block text-gray-300 mb-2">Track Key</label>
               <div className="relative">
-                <select className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm">
-                  {trackKeyOptions.map(opt => <option key={opt}>{opt}</option>)}
+                <select 
+                  name="trackKey"
+                  value={formData.trackKey}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm"
+                >
+                  <option value="">Select Track Key</option>
+                  {trackKeyOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
                 <span className="pointer-events-none absolute right-4 top-3 text-gray-400 text-lg">▼</span>
               </div>
             </div>
             <div>
               <label className="block text-gray-300 mb-2">Track Price</label>
-              <input type="text" className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" />
+              <input 
+                name="trackPrice"
+                type="text" 
+                value={formData.trackPrice}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+              />
             </div>
             <div>
               <label className="block text-gray-300 mb-2">Musician</label>
-              <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" />
+              <input 
+                name="musician"
+                value={formData.musician}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+              />
             </div>
             <div className="relative">
-              <label className="block text-gray-300 mb-2">Track Type</label>
-              <select className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm">
-                {typeOptions.map(opt => <option key={opt}>{opt}</option>)}
+              <label className="block text-gray-300 mb-2">Track Type *</label>
+              <select 
+                name="trackType"
+                value={formData.trackType}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm"
+                required
+              >
+                <option value="">Select Track Type</option>
+                {typeOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
               <span className="pointer-events-none absolute right-4 top-9 text-gray-400 text-lg">▼</span>
             </div>
@@ -221,7 +366,14 @@ export default function AddTrackPage() {
                   </span>
                 </span>
               </label>
-              <textarea rows={4} className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" placeholder="Describe your track, genre, instruments, mood or any special production notes." />
+              <textarea 
+                name="about"
+                rows={4} 
+                value={formData.about}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+                placeholder="Describe your track, genre, instruments, mood or any special production notes." 
+              />
             </div>
           </div>
         </div>
@@ -237,8 +389,34 @@ export default function AddTrackPage() {
               </select>
               <span className="pointer-events-none absolute right-4 top-3 text-gray-400 text-lg">▼</span>
             </div>
-            <button className="mt-4 w-full py-2 rounded-lg bg-[#E100FF] text-white font-semibold flex items-center justify-center gap-2 hover:bg-[#c800d6] transition-colors">
-              Add Track <span className="ml-2">→</span>
+            {submitMessage && (
+              <div className={`mt-4 p-3 rounded-lg text-sm ${
+                submitMessage.includes('successfully') 
+                  ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                  : 'bg-red-500/20 text-red-400 border border-red-500/30'
+              }`}>
+                {submitMessage}
+              </div>
+            )}
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className={`mt-4 w-full py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors ${
+                isSubmitting 
+                  ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
+                  : 'bg-[#E100FF] text-white hover:bg-[#c800d6]'
+              }`}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Adding Track...</span>
+                </>
+              ) : (
+                <>
+                  Add Track <span className="ml-2">→</span>
+                </>
+              )}
             </button>
           </div>
           {/* Genres Category */}

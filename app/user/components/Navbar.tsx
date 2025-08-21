@@ -1,6 +1,4 @@
 "use client";
-
-"use client";
 import React, { useState, useEffect, useRef } from 'react'
 
 import { CgProfile } from "react-icons/cg";
@@ -24,8 +22,10 @@ function Navbar() {
     const [selectedOption, setSelectedOption] = useState('Track');
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [user, setUser] = useState<any>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
+    const router = useRouter();
 
     const dropdownOptions = ['All', 'Track', 'Sound Kits', 'Musicians'];
 
@@ -47,6 +47,19 @@ function Navbar() {
         }
     };
 
+    // Load user data from localStorage
+    useEffect(() => {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            try {
+                const userInfo = JSON.parse(userData);
+                setUser(userInfo);
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+            }
+        }
+    }, []);
+
     // Handle click outside to close dropdowns
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -63,10 +76,17 @@ function Navbar() {
         };
     }, []);
 
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        setUser(null);
+        setActiveDropdown(null);
+        router.push('/user/pages/SignIn');
+    };
+
     const iconDropdowns = {
         user: {
             profile: {
-                username: 'Skeyes_A007',
+                username: user ? `${user.firstName} ${user.lastName}` : 'Guest User',
                 status: 'FREE',
                 wallet: '00.00 $'
             },
@@ -143,16 +163,21 @@ function Navbar() {
 
 
                         <div className="hidden md:block">
-                            <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-3 lg:space-x-3 xl:space-x-6">
-                                <li>
-                                    <a href="/user/pages/SignUp" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-primary md:p-0 text-white md:hover:text-primary hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign up</a>
-                                </li>
-                                <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
-                                <li>
-                                    <a href="/user/pages/SignIn" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-white rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-primary md:p-0 text-white md:hover:text-primary hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign in</a>
-                                </li>
-
-                            </ul>
+                            {user ? (
+                                <div className="text-white text-lg bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                                    Welcome, <span className="text-primary font-bold">{user.firstName}</span>!
+                                </div>
+                            ) : (
+                                <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-3 lg:space-x-3 xl:space-x-6">
+                                    <li>
+                                        <a href="/user/pages/SignUp" className="block px-2 md:px-2 lg:px-2 text-red-500 rounded-sm hover:bg-red-100 md:hover:bg-transparent md:border-0 md:hover:text-primary md:p-0 text-white md:hover:text-primary hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign up</a>
+                                    </li>
+                                    <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
+                                    <li>
+                                        <a href="/user/pages/SignIn" className="block py-1 md:py-1 lg:py-2 px-2 md:px-2 lg:px-2 text-white rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-primary md:p-0 text-white md:hover:text-primary hover:bg-gray-700 hover:text-white md:hover:bg-transparent text-sm md:text-[10px] lg:text-[12px] xl:text-base">Sign in</a>
+                                    </li>
+                                </ul>
+                            )}
                         </div>
                     </div>
                 </nav>
@@ -208,6 +233,8 @@ function Navbar() {
                                                                     setActiveDropdown(null);
                                                                     if (item.name === 'My Playlist') {
                                                                         window.location.href = '/user/pages/PlayList';
+                                                                    } else if (item.name === 'Log out') {
+                                                                        handleLogout();
                                                                     }
                                                                 }}
                                                                 className="w-full flex items-center space-x-3 px-3 py-2 text-sm hover:bg-white/10 transition-colors text-white rounded"
@@ -263,10 +290,24 @@ function Navbar() {
                             </div>
 
                             <div className="border-t border-white/20 pt-4">
-                                <div className="flex items-center justify-between">
-                                    <a href="/user/pages/SignUp" className="text-red-500 font-roboto font-light-300">Sign up</a>
-                                    <a href="/user/pages/SignIn" className="text-white font-roboto font-light-300">Sign in</a>
-                                </div>
+                                {user ? (
+                                    <div className="text-center">
+                                        <div className="text-white text-lg mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                                            Welcome, <span className="text-primary font-bold">{user.firstName}</span>!
+                                        </div>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="text-red-400 font-roboto font-light-300 hover:text-red-300"
+                                        >
+                                            Logout
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between">
+                                        <a href="/user/pages/SignUp" className="text-red-500 font-roboto font-light-300">Sign up</a>
+                                        <a href="/user/pages/SignIn" className="text-white font-roboto font-light-300">Sign in</a>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -274,8 +315,9 @@ function Navbar() {
 
 
                 <nav className="py-2">
-                    <div className="justify-end flex flex-col sm:flex-row gap-4 sm:gap-10 items-center">
+                                            <div className="justify-end flex flex-col sm:flex-row gap-4 sm:gap-10 items-center">
 
+                        {user && (
                         <div className="hidden md:flex flex-wrap items-center justify-between">
                             <div className="">
                                 <ul className="font-roboto font-light-300 flex flex-col p-4 md:p-0 md:flex-row gap-3 md:gap-3 lg:gap-3 md:mt-0">
@@ -323,6 +365,8 @@ function Navbar() {
                                                                             window.location.href = '/user/pages/UserProfile?edit=true';
                                                                         } else if (item.name === 'Favorites') {
                                                                             window.location.href = '/user/pages/PlayList';
+                                                                        } else if (item.name === 'Log out') {
+                                                                            handleLogout();
                                                                         }
                                                                     }}
                                                                     className="w-full flex items-center space-x-3 px-4 py-1 text-sm hover:bg-white/10 transition-colors text-white"
@@ -374,6 +418,7 @@ function Navbar() {
                                 </ul>
                             </div>
                         </div>
+                        )}
                     </div>
 
                 </nav>
