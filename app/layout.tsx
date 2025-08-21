@@ -40,6 +40,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} ${montserrat.variable} font-primary antialiased`}
       >
+        <div className="light-accent"></div>
         {children}
       </body>
     </html>

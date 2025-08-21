@@ -24,9 +24,9 @@ const sidebarConfig = [
     subpages: [
       { label: 'All Tracks', icon: <FaMusic />, href: '/admin/tracks' },
       { label: 'Add Track', icon: <FaPlus />, href: '/admin/tracks/add' },
-      { label: 'Genres Category', icon: <FaTags />, href: '/admin/tracks/genres' },
-      { label: 'Beat Category', icon: <FaDrum />, href: '/admin/tracks/beats' },
-      { label: 'Track Tags', icon: <FaTags />, href: '/admin/tracks/tags' },
+      { label: 'Genres Category', icon: <FaTags />, href: '/admin/genres' },
+      { label: 'Beat Category', icon: <FaDrum />, href: '/admin/beats' },
+      { label: 'Track Tags', icon: <FaTags />, href: '/admin/tags' },
     ],
   },
   {

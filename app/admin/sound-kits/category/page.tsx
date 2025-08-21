@@ -1,433 +1,401 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { getSoundKitCategories, SoundKitCategory } from "./categorydata";
-import { FaEye, FaEdit, FaTrash, FaPlus, FaTimes } from "react-icons/fa";
+import React, { useState, useEffect } from 'react';
+import { FaEye, FaEdit, FaTrash, FaPlus, FaTimes, FaMusic } from 'react-icons/fa';
+import { soundKitCategoryAPI } from '../../../utils/api';
 
-export default function SoundKitCategoryPage() {
+interface SoundKitCategory {
+  _id: string;
+  name: string;
+  description?: string;
+  color: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export default function SoundKitCategoriesPage() {
   const [categories, setCategories] = useState<SoundKitCategory[]>([]);
-  const [page, setPage] = useState(1);
-  const pageSize = 8;
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<SoundKitCategory | null>(null);
-  const [newCategory, setNewCategory] = useState({ name: '', description: '' });
-  const [editCategory, setEditCategory] = useState({ name: '', description: '' });
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    itemsPerPage: 10,
+    totalItems: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<SoundKitCategory | null>(null);
+  const [newCategory, setNewCategory] = useState({
+    name: '',
+    description: '',
+    color: '#E100FF'
+  });
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    getSoundKitCategories().then(setCategories);
+    loadCategories();
   }, []);
 
-  const totalPages = Math.ceil(categories.length / pageSize);
-  const paginatedCategories = categories.slice((page - 1) * pageSize, page * pageSize);
-
-  function handleSaveCategory() {
-    setCategories([
-      ...categories,
-      { id: categories.length + 1, name: newCategory.name, description: newCategory.description },
-    ]);
-    setShowAddModal(false);
-    setNewCategory({ name: '', description: '' });
-  }
-
-  function handleCloseModal() {
-    setShowAddModal(false);
-    setNewCategory({ name: '', description: '' });
-  }
-
-  function handleViewCategory(category: SoundKitCategory) {
-    setSelectedCategory(category);
-    setShowViewModal(true);
-  }
-
-  function handleCloseViewModal() {
-    setShowViewModal(false);
-    setSelectedCategory(null);
-  }
-
-  function handleEditCategory(category: SoundKitCategory) {
-    setSelectedCategory(category);
-    setEditCategory({ 
-      name: category.name, 
-      description: category.description 
-    });
-    setShowEditModal(true);
-  }
-
-  function handleSaveEditCategory() {
-    // Here you would typically update to your backend
-    console.log('Updating category:', selectedCategory?.id, editCategory);
-    // Update the category in the local state (simulate backend update)
-    setCategories(categories.map(cat => 
-      cat.id === selectedCategory?.id 
-        ? { ...cat, name: editCategory.name, description: editCategory.description }
-        : cat
-    ));
-    setShowEditModal(false);
-    setSelectedCategory(null);
-    setEditCategory({ name: '', description: '' });
-  }
-
-  function handleCloseEditModal() {
-    setShowEditModal(false);
-    setSelectedCategory(null);
-    setEditCategory({ name: '', description: '' });
-  }
-
-  function handleDeleteCategory(category: SoundKitCategory) {
-    setSelectedCategory(category);
-    setShowDeleteModal(true);
-  }
-
-  function handleConfirmDelete() {
-    if (selectedCategory) {
-      // Here you would typically delete from your backend
-      console.log('Deleting category:', selectedCategory.id);
-      // Remove the category from the local state (simulate backend deletion)
-      setCategories(categories.filter(cat => cat.id !== selectedCategory.id));
-      setShowDeleteModal(false);
-      setSelectedCategory(null);
+  const loadCategories = async () => {
+    try {
+      setLoading(true);
+      const response = await soundKitCategoryAPI.getCategories();
+      if (response.success) {
+        setCategories(response.categories);
+        setPagination(prev => ({
+          ...prev,
+          totalItems: response.categories.length
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      setMessage('Failed to load categories');
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  function handleCloseDeleteModal() {
-    setShowDeleteModal(false);
-    setSelectedCategory(null);
-  }
+  const handleSaveCategory = async () => {
+    if (!newCategory.name.trim()) {
+      setMessage('Category name is required');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setMessage('');
+
+      const response = await soundKitCategoryAPI.createCategory(newCategory);
+      
+      if (response.success) {
+        setMessage('Category created successfully!');
+        setNewCategory({ name: '', description: '', color: '#00D4FF' });
+        setShowModal(false);
+        loadCategories();
+      }
+    } catch (error: any) {
+      console.error('Error creating category:', error);
+      setMessage(error.response?.data?.message || 'Failed to create category');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!editingCategory || !editingCategory.name.trim()) {
+      setMessage('Category name is required');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setMessage('');
+
+      const response = await soundKitCategoryAPI.updateCategory(editingCategory._id, {
+        name: editingCategory.name,
+        description: editingCategory.description,
+        color: editingCategory.color
+      });
+      
+      if (response.success) {
+        setMessage('Category updated successfully!');
+        setEditingCategory(null);
+        setShowModal(false);
+        loadCategories();
+      }
+    } catch (error: any) {
+      console.error('Error updating category:', error);
+      setMessage(error.response?.data?.message || 'Failed to update category');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this category?')) {
+      return;
+    }
+
+    try {
+      const response = await soundKitCategoryAPI.deleteCategory(id);
+      if (response.success) {
+        setMessage('Category deleted successfully!');
+        loadCategories();
+      }
+    } catch (error: any) {
+      console.error('Error deleting category:', error);
+      setMessage(error.response?.data?.message || 'Failed to delete category');
+    }
+  };
+
+  const handleEditCategory = (category: SoundKitCategory) => {
+    setEditingCategory(category);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingCategory(null);
+    setNewCategory({ name: '', description: '', color: '#00D4FF' });
+    setMessage('');
+  };
+
+  const filteredCategories = categories.filter(category =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (category.description && category.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const paginatedCategories = filteredCategories.slice(
+    (pagination.currentPage - 1) * pagination.itemsPerPage,
+    pagination.currentPage * pagination.itemsPerPage
+  );
 
   return (
-    <div className="min-h-screen p-4 sm:p-8 bg-[#081028]">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white">Sound Kits <span className="text-lg font-normal text-gray-400 ml-4">Category</span></h1>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
-          <input
-            type="text"
-            placeholder="Search for..."
-           className="w-64 px-4 py-2 rounded-lg bg-[#181F36] text-sm text-white placeholder-gray-400 focus:outline-none border border-[#232B43]"
-          />
-          <button onClick={() => setShowAddModal(true)} className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#101936] text-white border border-[#232F4B] hover:bg-[#232F4B] transition">
-            <FaPlus /> Add Category
-          </button>
-        </div>
-      </div>
-
-      {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto rounded-2xl shadow-xl bg-[#101936]">
-        <table className="min-w-full text-white">
-          <thead>
-            <tr className="bg-[#19213A] text-[#C7C7C7] text-left text-sm">
-              <th className="px-6 py-4 font-semibold">Category Name</th>
-              <th className="px-6 py-4 font-semibold">Description</th>
-              <th className="px-6 py-4 font-semibold">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedCategories.map((cat, idx) => (
-              <tr
-                key={cat.id + '-' + idx}
-                className={
-                  idx % 2 === 0
-                    ? "bg-[#181F36] hover:bg-[#232B43] transition-colors"
-                    : "bg-[#081028] hover:bg-[#232B43] transition-colors"
-                }
-              >
-                <td className="px-6 py-4">{cat.name}</td>
-                <td className="px-6 py-4">{cat.description}</td>
-                <td className="px-6 py-4 flex gap-4 text-lg">
-                  <button 
-                    className="text-white hover:text-[#7ED7FF] transition-colors" 
-                    title="View"
-                    onClick={() => handleViewCategory(cat)}
-                  >
-                    <FaEye />
-                  </button>
-                  <button 
-                    className="text-white hover:text-[#E100FF] transition-colors" 
-                    title="Edit"
-                    onClick={() => handleEditCategory(cat)}
-                  >
-                    <FaEdit />
-                  </button>
-                  <button 
-                    className="text-white hover:text-red-500 transition-colors" 
-                    title="Delete"
-                    onClick={() => handleDeleteCategory(cat)}
-                  >
-                    <FaTrash />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile Cards View */}
-      <div className="md:hidden space-y-4">
-        {paginatedCategories.map((cat, idx) => (
-          <div
-            key={cat.id + '-' + idx}
-            className="bg-[#101936] rounded-xl p-4 shadow-lg border border-[#232B43]"
-          >
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-white mb-1">{cat.name}</h3>
-                <p className="text-gray-400 text-sm">{cat.description}</p>
-              </div>
-              <div className="flex gap-3 text-lg ml-4">
-                <button 
-                  className="text-white hover:text-[#7ED7FF] transition-colors p-1" 
-                  title="View"
-                  onClick={() => handleViewCategory(cat)}
-                >
-                  <FaEye />
-                </button>
-                <button 
-                  className="text-white hover:text-[#E100FF] transition-colors p-1" 
-                  title="Edit"
-                  onClick={() => handleEditCategory(cat)}
-                >
-                  <FaEdit />
-                </button>
-                <button 
-                  className="text-white hover:text-red-500 transition-colors p-1" 
-                  title="Delete"
-                  onClick={() => handleDeleteCategory(cat)}
-                >
-                  <FaTrash />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Pagination */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mt-6 text-white gap-4">
-        <span className="text-sm text-gray-400 text-center sm:text-left">
-          Showing data {categories.length === 0 ? 0 : (page - 1) * pageSize + 1} to {Math.min(page * pageSize, categories.length)} of {categories.length} entries
-        </span>
-        <div className="flex gap-2 items-center">
+    <div className="min-h-screen p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+                    <h1 className="text-3xl font-bold text-white">
+            Sound Kit Categories
+          </h1>
           <button
-            className={`w-8 h-8 rounded-full flex items-center justify-center ${page === 1 ? 'bg-[#232B43] text-gray-500' : 'bg-[#232B43] hover:bg-[#E100FF] hover:text-white'} transition-colors`}
-            onClick={() => setPage(page - 1)}
-            disabled={page === 1}
+            onClick={() => setShowModal(true)}
+            className="bg-primary text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-primary/80 transition-colors"
           >
-            &lt;
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
-            <button
-              key={num}
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${page === num ? 'bg-[#E100FF] text-white' : 'bg-[#232B43] text-gray-300 hover:bg-[#E100FF] hover:text-white'} transition-colors`}
-              onClick={() => setPage(num)}
-            >
-              {num}
-            </button>
-          ))}
-          <button
-            className={`w-8 h-8 rounded-full flex items-center justify-center ${page === totalPages ? 'bg-[#232B43] text-gray-500' : 'bg-[#232B43] hover:bg-[#E100FF] hover:text-white'} transition-colors`}
-            onClick={() => setPage(page + 1)}
-            disabled={page === totalPages}
-          >
-            &gt;
+            <FaPlus />
+            Add Category
           </button>
         </div>
-      </div>
 
-      {/* Add Category Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
-          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-md mx-4">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">Add Category</h2>
-              <button
-                onClick={handleCloseModal}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes className="text-xl" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-300 mb-2">Category Name</label>
-                <input
-                  type="text"
-                  value={newCategory.name}
-                  onChange={e => setNewCategory({ ...newCategory, name: e.target.value })}
-                  className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none border border-[#232B43] focus:border-[#E100FF]"
-                  placeholder="Enter category name..."
-                />
-              </div>
-              <div>
-                <label className="block text-gray-300 mb-2">Description</label>
-                <textarea
-                  value={newCategory.description}
-                  onChange={e => setNewCategory({ ...newCategory, description: e.target.value })}
-                  rows={3}
-                  className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none border border-[#232B43] focus:border-[#E100FF] resize-none"
-                  placeholder="Enter category description..."
-                />
-              </div>
-            </div>
-            <div className="flex gap-4 mt-6">
-              <button
-                onClick={handleCloseModal}
-                className="flex-1 py-2 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveCategory}
-                className="flex-1 py-2 rounded-lg bg-[#E100FF] text-white font-semibold hover:bg-[#c800d6] transition-colors"
-              >
-                Save
-              </button>
-            </div>
+        {/* Search and Message */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search categories..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+                             className="w-full bg-[#101936] text-white rounded-lg px-4 py-2 border border-[#232B43] focus:border-primary focus:outline-none"
+            />
           </div>
         </div>
-      )}
 
-      {/* View Category Modal */}
-      {showViewModal && selectedCategory && (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
-          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-lg mx-4">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">View Category Details</h2>
-              <button
-                onClick={handleCloseViewModal}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes className="text-xl" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-300 mb-2 font-semibold">Category Name</label>
-                <div className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43]">
-                  {selectedCategory.name}
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-gray-300 mb-2 font-semibold">Description</label>
-                <div className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43] min-h-[80px]">
-                  {selectedCategory.description}
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={handleCloseViewModal}
-                className="py-2 px-6 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
-              >
-                Close
-              </button>
+        {message && (
+          <div className={`mb-6 p-4 rounded-lg ${
+            message.includes('successfully') 
+              ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+              : 'bg-red-500/20 text-red-400 border border-red-500/30'
+          }`}>
+            {message}
+          </div>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex justify-center items-center py-12">
+                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        )}
+
+        {/* Desktop Table View */}
+        {!loading && (
+          <div className="hidden lg:block bg-[#101936] rounded-2xl shadow-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-[#181F36]">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-gray-300 font-semibold">Category Name</th>
+                    <th className="px-6 py-4 text-left text-gray-300 font-semibold">Description</th>
+                    <th className="px-6 py-4 text-left text-gray-300 font-semibold">Status</th>
+                    <th className="px-6 py-4 text-left text-gray-300 font-semibold">Created</th>
+                    <th className="px-6 py-4 text-center text-gray-300 font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#232B43]">
+                  {paginatedCategories.map((category) => (
+                    <tr key={category._id} className="hover:bg-[#181F36]/50 transition-colors">
+                      <td className="px-6 py-4 text-white font-medium">{category.name}</td>
+                      <td className="px-6 py-4 text-gray-300 max-w-xs truncate">
+                        {category.description || 'No description'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          category.isActive 
+                            ? 'bg-green-500/20 text-green-400' 
+                            : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {category.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-300 text-sm">
+                        {new Date(category.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleEditCategory(category)}
+                            className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCategory(category._id)}
+                            className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Edit Category Modal */}
-      {showEditModal && selectedCategory && (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
-          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-lg mx-4">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">Edit Category</h2>
-              <button
-                onClick={handleCloseEditModal}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes className="text-xl" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-300 mb-2 font-semibold">Category Name</label>
-                <input
-                  type="text"
-                  value={editCategory.name}
-                  onChange={(e) => setEditCategory({ ...editCategory, name: e.target.value })}
-                  className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none border border-[#232B43] focus:border-[#E100FF]"
-                  placeholder="Enter category name..."
-                />
-              </div>
-              
-              <div>
-                <label className="block text-gray-300 mb-2 font-semibold">Description</label>
-                <textarea
-                  value={editCategory.description}
-                  onChange={(e) => setEditCategory({ ...editCategory, description: e.target.value })}
-                  rows={3}
-                  className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none border border-[#232B43] focus:border-[#E100FF] resize-none"
-                  placeholder="Enter category description..."
-                />
-              </div>
-            </div>
-            
-            <div className="flex gap-4 mt-6">
-              <button
-                onClick={handleCloseEditModal}
-                className="flex-1 py-2 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveEditCategory}
-                className="flex-1 py-2 rounded-lg bg-[#E100FF] text-white font-semibold hover:bg-[#c800d6] transition-colors"
-              >
-                Update
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Category Modal */}
-      {showDeleteModal && selectedCategory && (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
-          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-lg mx-4">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">Delete Category</h2>
-              <button
-                onClick={handleCloseDeleteModal}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes className="text-xl" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="text-center">
-                <div className="text-red-500 text-6xl mb-4 flex justify-center">
-                  <FaTrash />
+        {/* Mobile Card View */}
+        {!loading && (
+          <div className="lg:hidden space-y-4">
+            {paginatedCategories.map((category) => (
+              <div key={category._id} className="bg-[#101936] rounded-xl p-4 shadow-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-white font-semibold">{category.name}</h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEditCategory(category)}
+                      className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(category._id)}
+                      className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
                 </div>
-                <p className="text-gray-300 mb-4">
-                  Are you sure you want to delete this category?
+                <p className="text-gray-300 text-sm mb-3">
+                  {category.description || 'No description'}
                 </p>
+                                 <div className="flex items-center justify-end">
+                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                     category.isActive 
+                       ? 'bg-green-500/20 text-green-400' 
+                       : 'bg-red-500/20 text-red-400'
+                   }`}>
+                     {category.isActive ? 'Active' : 'Inactive'}
+                   </span>
+                 </div>
               </div>
-            </div>
-            
-            <div className="flex gap-4 mt-6">
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && filteredCategories.length > pagination.itemsPerPage && (
+          <div className="mt-8 flex justify-center">
+            <div className="flex gap-2">
               <button
-                onClick={handleCloseDeleteModal}
-                className="flex-1 py-2 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
+                onClick={() => setPagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }))}
+                disabled={pagination.currentPage === 1}
+                className="px-4 py-2 bg-[#101936] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#181F36] transition-colors"
               >
-                Cancel
+                Previous
               </button>
+              <span className="px-4 py-2 bg-[#101936] text-white rounded-lg">
+                Page {pagination.currentPage} of {Math.ceil(filteredCategories.length / pagination.itemsPerPage)}
+              </span>
               <button
-                onClick={handleConfirmDelete}
-                className="flex-1 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
+                onClick={() => setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }))}
+                disabled={pagination.currentPage >= Math.ceil(filteredCategories.length / pagination.itemsPerPage)}
+                className="px-4 py-2 bg-[#101936] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#181F36] transition-colors"
               >
-                Delete
+                Next
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-[#101936] rounded-2xl p-6 w-full max-w-md">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white">
+                  {editingCategory ? 'Edit Category' : 'Add Category'}
+                </h2>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-300 mb-2">Category Name *</label>
+                                     <input
+                     type="text"
+                     value={editingCategory ? editingCategory.name : newCategory.name}
+                     onChange={(e) => {
+                       if (editingCategory) {
+                         setEditingCategory({ ...editingCategory, name: e.target.value });
+                       } else {
+                         setNewCategory({ ...newCategory, name: e.target.value });
+                       }
+                     }}
+                     className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43] focus:border-primary focus:outline-none"
+                     placeholder="Enter category name"
+                   />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2">Description</label>
+                                     <textarea
+                     value={editingCategory ? editingCategory.description || '' : newCategory.description}
+                     onChange={(e) => {
+                       if (editingCategory) {
+                         setEditingCategory({ ...editingCategory, description: e.target.value });
+                       } else {
+                         setNewCategory({ ...newCategory, description: e.target.value });
+                       }
+                     }}
+                     className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43] focus:border-primary focus:outline-none"
+                     placeholder="Enter description"
+                     rows={3}
+                   />
+                </div>
+
+                
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={editingCategory ? handleUpdateCategory : handleSaveCategory}
+                    disabled={isSubmitting}
+                                         className={`flex-1 py-2 rounded-lg font-semibold transition-colors ${
+                       isSubmitting
+                         ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                         : 'bg-primary text-white hover:bg-primary/80'
+                     }`}
+                  >
+                    {isSubmitting ? 'Saving...' : (editingCategory ? 'Update' : 'Save')}
+                  </button>
+                  <button
+                    onClick={handleCloseModal}
+                    className="flex-1 py-2 rounded-lg bg-[#181F36] text-white font-semibold hover:bg-[#232B43] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 } 

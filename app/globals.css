@@ -21,8 +21,18 @@
  */
 
 body {
-  background: #251721;
-  
+  background-image: linear-gradient(to top, #09203f 0%, #251721 100%) !important;
+  min-height: 100vh;
+}
+
+/* Override any other background styles */
+html, body {
+  background-image: linear-gradient(to top, #000000 0%, #251721 100%) !important;
+}
+
+/* Ensure the background applies to all pages */
+#__next, .min-h-screen {
+  background: inherit !important;
 }
 
 .containerpaddin {

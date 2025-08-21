@@ -1,5 +1,6 @@
 'use client'
 import React, { useState } from 'react'
+import { authAPI } from '../../../utils/api'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import { RiEyeLine, RiEyeOffLine, RiGoogleFill, RiAppleFill } from "react-icons/ri"
@@ -77,12 +78,51 @@ function SignIn() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      // Handle form submission here
-      console.log('Form submitted:', formData);
-      // You can add your signin logic here
+      setIsLoading(true);
+      setSubmitMessage(null);
+      
+      try {
+        const response = await authAPI.signin({
+          email: formData.email,
+          password: formData.password
+        });
+        
+        if (response.success) {
+          setSubmitMessage({
+            type: 'success',
+            text: 'Login successful! Redirecting...'
+          });
+          
+          // Store user data in localStorage (in production, store JWT token)
+          localStorage.setItem('user', JSON.stringify(response.user));
+          
+          // Redirect to home page after successful login
+          setTimeout(() => {
+            window.location.href = '/user/pages/home';
+          }, 1500);
+        }
+      } catch (error: any) {
+        console.error('Signin error:', error);
+        if (error.response?.data?.message) {
+          setSubmitMessage({
+            type: 'error',
+            text: error.response.data.message
+          });
+        } else {
+          setSubmitMessage({
+            type: 'error',
+            text: 'An error occurred during signin. Please try again.'
+          });
+        }
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -175,12 +215,28 @@ function SignIn() {
                 </a>
               </div>
 
+              {/* Submit Message */}
+              {submitMessage && (
+                <div className={`p-3 rounded-lg text-sm ${
+                  submitMessage.type === 'success' 
+                    ? 'bg-green-500/20 border border-green-500/30 text-green-400' 
+                    : 'bg-red-500/20 border border-red-500/30 text-red-400'
+                }`}>
+                  {submitMessage.text}
+                </div>
+              )}
+
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors"
+                disabled={isLoading}
+                className={`w-full py-2 px-4 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors ${
+                  isLoading 
+                    ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
               >
-                Sign In
+                {isLoading ? 'Signing In...' : 'Sign In'}
               </button>
             </form>
 
