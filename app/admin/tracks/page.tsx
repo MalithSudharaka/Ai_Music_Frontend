@@ -1,11 +1,21 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { getTracks, Track } from "./data";
-import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 
 export default function TracksPage() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [page, setPage] = useState(1);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
+  const [editTrack, setEditTrack] = useState({
+    trackName: '',
+    musician: '',
+    price: '',
+    trackKey: ''
+  });
   const pageSize = 8;
   const totalPages = Math.ceil(tracks.length / pageSize);
 
@@ -14,6 +24,76 @@ export default function TracksPage() {
   }, []);
 
   const paginatedTracks = tracks.slice((page - 1) * pageSize, page * pageSize);
+
+  function handleViewTrack(track: Track) {
+    setSelectedTrack(track);
+    setShowViewModal(true);
+  }
+
+  function handleCloseViewModal() {
+    setShowViewModal(false);
+    setSelectedTrack(null);
+  }
+
+  function handleEditTrack(track: Track) {
+    setSelectedTrack(track);
+    setEditTrack({
+      trackName: track.trackName,
+      musician: track.musician,
+      price: track.price,
+      trackKey: track.trackKey
+    });
+    setShowEditModal(true);
+  }
+
+  function handleSaveEditTrack() {
+    if (!selectedTrack) return;
+    
+    console.log('Updating track:', selectedTrack.id, editTrack);
+    
+    setTracks(tracks.map(track => 
+      track.id === selectedTrack.id 
+        ? { 
+            ...track, 
+            trackName: editTrack.trackName,
+            musician: editTrack.musician,
+            price: editTrack.price,
+            trackKey: editTrack.trackKey
+          }
+        : track
+    ));
+    
+    setShowEditModal(false);
+    setSelectedTrack(null);
+    setEditTrack({ trackName: '', musician: '', price: '', trackKey: '' });
+  }
+
+  function handleCloseEditModal() {
+    setShowEditModal(false);
+    setSelectedTrack(null);
+    setEditTrack({ trackName: '', musician: '', price: '', trackKey: '' });
+  }
+
+  function handleDeleteTrack(track: Track) {
+    setSelectedTrack(track);
+    setShowDeleteModal(true);
+  }
+
+  function handleConfirmDelete() {
+    if (!selectedTrack) return;
+    
+    console.log('Deleting track:', selectedTrack.id);
+    
+    setTracks(tracks.filter(track => track.id !== selectedTrack.id));
+    
+    setShowDeleteModal(false);
+    setSelectedTrack(null);
+  }
+
+  function handleCloseDeleteModal() {
+    setShowDeleteModal(false);
+    setSelectedTrack(null);
+  }
 
   return (
     <div className="min-h-screen p-8 rounded-xl bg-[#081028]">
@@ -61,9 +141,27 @@ export default function TracksPage() {
                 <td className="px-6 py-4 text-[#E100FF] font-semibold">{track.price}</td>
                 <td className="px-6 py-4">{track.trackKey}</td>
                 <td className="px-6 py-4 flex gap-4 text-lg">
-                  <button className="text-white hover:text-[#7ED7FF] transition-colors" title="View"><FaEye /></button>
-                  <button className="text-white hover:text-[#E100FF] transition-colors" title="Edit"><FaEdit /></button>
-                  <button className="text-white hover:text-red-500 transition-colors" title="Delete"><FaTrash /></button>
+                  <button 
+                    className="text-white hover:text-[#7ED7FF] transition-colors" 
+                    title="View"
+                    onClick={() => handleViewTrack(track)}
+                  >
+                    <FaEye />
+                  </button>
+                  <button 
+                    className="text-white hover:text-[#E100FF] transition-colors" 
+                    title="Edit"
+                    onClick={() => handleEditTrack(track)}
+                  >
+                    <FaEdit />
+                  </button>
+                  <button 
+                    className="text-white hover:text-red-500 transition-colors" 
+                    title="Delete"
+                    onClick={() => handleDeleteTrack(track)}
+                  >
+                    <FaTrash />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -84,9 +182,27 @@ export default function TracksPage() {
               <div className="text-sm text-gray-400">Price: <span className="text-[#E100FF] font-semibold">{track.price}</span></div>
               <div className="text-sm text-gray-400">Track Key: <span className="text-white">{track.trackKey}</span></div>
               <div className="flex gap-4 mt-2">
-                <button className="text-white hover:text-[#7ED7FF] transition-colors" title="View"><FaEye /></button>
-                <button className="text-white hover:text-[#E100FF] transition-colors" title="Edit"><FaEdit /></button>
-                <button className="text-white hover:text-red-500 transition-colors" title="Delete"><FaTrash /></button>
+                <button 
+                  className="text-white hover:text-[#7ED7FF] transition-colors" 
+                  title="View"
+                  onClick={() => handleViewTrack(track)}
+                >
+                  <FaEye />
+                </button>
+                <button 
+                  className="text-white hover:text-[#E100FF] transition-colors" 
+                  title="Edit"
+                  onClick={() => handleEditTrack(track)}
+                >
+                  <FaEdit />
+                </button>
+                <button 
+                  className="text-white hover:text-red-500 transition-colors" 
+                  title="Delete"
+                  onClick={() => handleDeleteTrack(track)}
+                >
+                  <FaTrash />
+                </button>
               </div>
             </div>
           ))}
@@ -123,6 +239,214 @@ export default function TracksPage() {
           </button>
         </div>
       </div>
+
+      {/* View Track Modal */}
+      {showViewModal && selectedTrack && (
+        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
+          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-lg mx-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">View Track Details</h2>
+              <button
+                onClick={handleCloseViewModal}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <FaTimes className="text-xl" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 mb-4">
+                <img 
+                  src={selectedTrack.trackImage} 
+                  alt={selectedTrack.trackName} 
+                  className="w-20 h-20 rounded-xl object-cover border border-[#232B43]" 
+                />
+                <div>
+                  <h3 className="text-lg font-semibold text-white">{selectedTrack.trackName}</h3>
+                  <p className="text-[#7ED7FF] text-sm">{selectedTrack.musician}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">Track ID</label>
+                  <div className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43] font-mono">
+                    {selectedTrack.trackId}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">Price</label>
+                  <div className="w-full bg-[#181F36] text-[#E100FF] font-semibold rounded-lg px-4 py-2 border border-[#232B43]">
+                    {selectedTrack.price}
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2 font-semibold">Track Name</label>
+                <div className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43]">
+                  {selectedTrack.trackName}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2 font-semibold">Musician</label>
+                <div className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43]">
+                  {selectedTrack.musician}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2 font-semibold">Track Key</label>
+                <div className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43]">
+                  {selectedTrack.trackKey}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={handleCloseViewModal}
+                className="py-2 px-6 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Track Modal */}
+      {showEditModal && selectedTrack && (
+        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
+          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-lg mx-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">Edit Track</h2>
+              <button
+                onClick={handleCloseEditModal}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <FaTimes className="text-xl" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 mb-4">
+                <img 
+                  src={selectedTrack.trackImage} 
+                  alt={selectedTrack.trackName} 
+                  className="w-20 h-20 rounded-xl object-cover border border-[#232B43]" 
+                />
+                <div>
+                  <h3 className="text-lg font-semibold text-white">{selectedTrack.trackId}</h3>
+                  <p className="text-[#7ED7FF] text-sm">Track ID</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">Track Name</label>
+                  <input
+                    type="text"
+                    value={editTrack.trackName}
+                    onChange={(e) => setEditTrack({...editTrack, trackName: e.target.value})}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43] focus:outline-none focus:border-[#7ED7FF]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">Musician</label>
+                  <input
+                    type="text"
+                    value={editTrack.musician}
+                    onChange={(e) => setEditTrack({...editTrack, musician: e.target.value})}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43] focus:outline-none focus:border-[#7ED7FF]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">Price</label>
+                  <input
+                    type="text"
+                    value={editTrack.price}
+                    onChange={(e) => setEditTrack({...editTrack, price: e.target.value})}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43] focus:outline-none focus:border-[#7ED7FF]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-gray-300 mb-2 font-semibold">Track Key</label>
+                  <input
+                    type="text"
+                    value={editTrack.trackKey}
+                    onChange={(e) => setEditTrack({...editTrack, trackKey: e.target.value})}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43] focus:outline-none focus:border-[#7ED7FF]"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={handleCloseEditModal}
+                className="py-2 px-6 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEditTrack}
+                className="py-2 px-6 rounded-lg bg-[#E100FF] text-white font-semibold hover:bg-opacity-90 transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Track Modal */}
+      {showDeleteModal && selectedTrack && (
+        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
+          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-lg mx-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">Delete Track</h2>
+              <button
+                onClick={handleCloseDeleteModal}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <FaTimes className="text-xl" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="text-red-500 text-6xl mb-4 flex justify-center">
+                  <FaTrash />
+                </div>
+                <p className="text-gray-300 mb-4">
+                  Are you sure you want to delete this track?
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-4 mt-6">
+              <button
+                onClick={handleCloseDeleteModal}
+                className="flex-1 py-2 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="flex-1 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
