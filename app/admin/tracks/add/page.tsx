@@ -1,10 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { FaCloudUploadAlt, FaFileAudio } from "react-icons/fa";
-import { getGenres, Genre } from '../genres/genres';
-import { initialBeats } from '../beats/beatData';
-import { initialTags } from '../tags/tagData';
-import { trackAPI } from '../../../utils/api';
+import { trackAPI, genreAPI, beatAPI, tagAPI } from '../../../utils/api';
 
 const typeOptions = ["Song", "Beats", "Beats w/hook", "Top lines", "Vocal"];
 const moodOptions = [
@@ -21,14 +18,35 @@ const trackKeyOptions = [
 
 export default function AddTrackPage() {
   const [publish, setPublish] = useState("Private");
-  const [genre, setGenre] = useState<string[]>([]);
-  const [beat, setBeat] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedBeats, setSelectedBeats] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  
+  // Add new item states
+  const [showAddGenre, setShowAddGenre] = useState(false);
+  const [showAddBeat, setShowAddBeat] = useState(false);
+  const [showAddTag, setShowAddTag] = useState(false);
+  const [newGenreName, setNewGenreName] = useState('');
+  const [newBeatName, setNewBeatName] = useState('');
+  const [newTagName, setNewTagName] = useState('');
+  const [newGenreDescription, setNewGenreDescription] = useState('');
+  const [newBeatDescription, setNewBeatDescription] = useState('');
+  const [newTagDescription, setNewTagDescription] = useState('');
+  
+  // Loading states for add operations
+  const [isAddingGenre, setIsAddingGenre] = useState(false);
+  const [isAddingBeat, setIsAddingBeat] = useState(false);
+  const [isAddingTag, setIsAddingTag] = useState(false);
+  
+  // Search states
+  const [genreSearch, setGenreSearch] = useState('');
+  const [beatSearch, setBeatSearch] = useState('');
+  const [tagSearch, setTagSearch] = useState('');
   const [trackImage, setTrackImage] = useState<string | null>(null);
   const [trackFile, setTrackFile] = useState<File | null>(null);
-  const [genresData, setGenresData] = useState<Genre[]>([]);
-  const [beatsData, setBeatsData] = useState<{ id: number; name: string; description: string; }[]>([]);
-  const [tagsData, setTagsData] = useState<{ id: number; name: string; description: string; }[]>([]);
+  const [genresData, setGenresData] = useState<{ _id: string; name: string; description: string; color: string; isActive: boolean; }[]>([]);
+  const [beatsData, setBeatsData] = useState<{ _id: string; name: string; description: string; color: string; isActive: boolean; }[]>([]);
+  const [tagsData, setTagsData] = useState<{ _id: string; name: string; description: string; color: string; isActive: boolean; }[]>([]);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -44,9 +62,6 @@ export default function AddTrackPage() {
     instrument: '',
     generatedTrackPlatform: '',
     about: '',
-    genreCategory: '',
-    beatCategory: '',
-    trackTags: '',
     seoTitle: '',
     metaKeyword: '',
     metaDescription: ''
@@ -70,13 +85,48 @@ export default function AddTrackPage() {
   });
 
   useEffect(() => {
-    getGenres().then(setGenresData);
-    setBeatsData(initialBeats);
-    setTagsData(initialTags);
+    // Fetch genres from MongoDB
+    const fetchGenres = async () => {
+      try {
+        const response = await genreAPI.getGenres();
+        if (response.success) {
+          setGenresData(response.genres);
+        }
+      } catch (error) {
+        console.error('Error fetching genres:', error);
+      }
+    };
+
+    // Fetch beats from MongoDB
+    const fetchBeats = async () => {
+      try {
+        const response = await beatAPI.getBeats();
+        if (response.success) {
+          setBeatsData(response.beats);
+        }
+      } catch (error) {
+        console.error('Error fetching beats:', error);
+      }
+    };
+
+    // Fetch tags from MongoDB
+    const fetchTags = async () => {
+      try {
+        const response = await tagAPI.getTags();
+        if (response.success) {
+          setTagsData(response.tags);
+        }
+      } catch (error) {
+        console.error('Error fetching tags:', error);
+      }
+    };
+
+    fetchGenres();
+    fetchBeats();
+    fetchTags();
   }, []);
 
-  // Find Electronics1 genre
-  const electronics1Genre = genresData.find(g => g.name === "Electronics1");
+
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -100,6 +150,210 @@ export default function AddTrackPage() {
     }));
   }
 
+  // Handle multi-select with checkboxes
+  const handleGenreToggle = (genreId: string) => {
+    setSelectedGenres(prev => 
+      prev.includes(genreId) 
+        ? prev.filter(id => id !== genreId)
+        : [...prev, genreId]
+    );
+  };
+
+  const handleBeatToggle = (beatId: string) => {
+    setSelectedBeats(prev => 
+      prev.includes(beatId) 
+        ? prev.filter(id => id !== beatId)
+        : [...prev, beatId]
+    );
+  };
+
+  const handleTagToggle = (tagId: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
+  // Filtered data based on search
+  const filteredGenres = genresData.filter(genre =>
+    genre.name.toLowerCase().includes(genreSearch.toLowerCase()) ||
+    genre.description.toLowerCase().includes(genreSearch.toLowerCase())
+  );
+
+  const filteredBeats = beatsData.filter(beat =>
+    beat.name.toLowerCase().includes(beatSearch.toLowerCase()) ||
+    beat.description.toLowerCase().includes(beatSearch.toLowerCase())
+  );
+
+  const filteredTags = tagsData.filter(tag =>
+    tag.name.toLowerCase().includes(tagSearch.toLowerCase()) ||
+    tag.description.toLowerCase().includes(tagSearch.toLowerCase())
+  );
+
+  // Add new item functions
+  const handleAddGenre = async () => {
+    if (!newGenreName.trim() || isAddingGenre) return;
+    
+    setIsAddingGenre(true);
+    try {
+      const response = await genreAPI.createGenre({
+        name: newGenreName.trim(),
+        description: newGenreDescription.trim()
+      });
+      
+      if (response.success) {
+        // Add the new genre to the list and select it
+        const newGenre = response.genre;
+        console.log('New genre created:', newGenre);
+        
+        // Ensure we're using the correct ID field
+        const genreId = newGenre._id || (newGenre as any).id;
+        
+        setGenresData(prev => {
+          // Check if genre already exists to avoid duplicates
+          const exists = prev.find(g => g._id === genreId);
+          if (exists) {
+            console.log('Genre already exists in state:', exists);
+            return prev;
+          }
+          return [...prev, {
+            _id: genreId,
+            name: newGenre.name,
+            description: newGenre.description,
+            color: newGenre.color,
+            isActive: newGenre.isActive
+          }];
+        });
+        
+        setSelectedGenres(prev => {
+          // Check if already selected to avoid duplicates
+          if (prev.includes(genreId)) {
+            return prev;
+          }
+          return [...prev, genreId];
+        });
+        
+        // Reset form
+        setNewGenreName('');
+        setNewGenreDescription('');
+        setShowAddGenre(false);
+      }
+    } catch (error) {
+      console.error('Error adding genre:', error);
+    } finally {
+      setIsAddingGenre(false);
+    }
+  };
+
+  const handleAddBeat = async () => {
+    if (!newBeatName.trim() || isAddingBeat) return;
+    
+    setIsAddingBeat(true);
+    try {
+      const response = await beatAPI.createBeat({
+        name: newBeatName.trim(),
+        description: newBeatDescription.trim()
+      });
+      
+      if (response.success) {
+        // Add the new beat to the list and select it
+        const newBeat = response.beat;
+        console.log('New beat created:', newBeat);
+        
+        // Ensure we're using the correct ID field
+        const beatId = newBeat._id || (newBeat as any).id;
+        
+        setBeatsData(prev => {
+          // Check if beat already exists to avoid duplicates
+          const exists = prev.find(b => b._id === beatId);
+          if (exists) {
+            console.log('Beat already exists in state:', exists);
+            return prev;
+          }
+          return [...prev, {
+            _id: beatId,
+            name: newBeat.name,
+            description: newBeat.description,
+            color: newBeat.color,
+            isActive: newBeat.isActive
+          }];
+        });
+        
+        setSelectedBeats(prev => {
+          // Check if already selected to avoid duplicates
+          if (prev.includes(beatId)) {
+            return prev;
+          }
+          return [...prev, beatId];
+        });
+        
+        // Reset form
+        setNewBeatName('');
+        setNewBeatDescription('');
+        setShowAddBeat(false);
+      }
+    } catch (error) {
+      console.error('Error adding beat:', error);
+    } finally {
+      setIsAddingBeat(false);
+    }
+  };
+
+  const handleAddTag = async () => {
+    if (!newTagName.trim() || isAddingTag) return;
+    
+    setIsAddingTag(true);
+    try {
+      const response = await tagAPI.createTag({
+        name: newTagName.trim(),
+        description: newTagDescription.trim()
+      });
+      
+      if (response.success) {
+        // Add the new tag to the list and select it
+        const newTag = response.tag;
+        console.log('New tag created:', newTag);
+        
+        // Ensure we're using the correct ID field
+        const tagId = newTag._id || (newTag as any).id;
+        
+        setTagsData(prev => {
+          // Check if tag already exists to avoid duplicates
+          const exists = prev.find(t => t._id === tagId);
+          if (exists) {
+            console.log('Tag already exists in state:', exists);
+            return prev;
+          }
+          return [...prev, {
+            _id: tagId,
+            name: newTag.name,
+            description: newTag.description,
+            color: newTag.color,
+            isActive: newTag.isActive
+          }];
+        });
+        
+        setSelectedTags(prev => {
+          // Check if already selected to avoid duplicates
+          if (prev.includes(tagId)) {
+            return prev;
+          }
+          return [...prev, tagId];
+        });
+        
+        // Reset form
+        setNewTagName('');
+        setNewTagDescription('');
+        setShowAddTag(false);
+      }
+    } catch (error) {
+      console.error('Error adding tag:', error);
+    } finally {
+      setIsAddingTag(false);
+    }
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsSubmitting(true);
@@ -119,7 +373,10 @@ export default function AddTrackPage() {
         trackPrice: formData.trackPrice ? parseFloat(formData.trackPrice) : 0,
         trackImage: trackImage || '',
         trackFile: trackFile ? trackFile.name : '',
-        publish: publish
+        publish: publish,
+        genreCategory: selectedGenres,
+        beatCategory: selectedBeats,
+        trackTags: selectedTags
       };
 
       console.log('Sending track data:', trackData);
@@ -142,13 +399,13 @@ export default function AddTrackPage() {
           instrument: '',
           generatedTrackPlatform: '',
           about: '',
-          genreCategory: '',
-          beatCategory: '',
-          trackTags: '',
           seoTitle: '',
           metaKeyword: '',
           metaDescription: ''
         });
+        setSelectedGenres([]);
+        setSelectedBeats([]);
+        setSelectedTags([]);
         setTrackImage(null);
         setTrackFile(null);
         setPublish('Private');
@@ -271,22 +528,40 @@ export default function AddTrackPage() {
             </div>
             <div className="relative">
               <label className="block text-gray-300 mb-2">Mood Type</label>
-              <select className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm">
-                {moodOptions.map(opt => <option key={opt}>{opt}</option>)}
+              <select 
+                name="moodType"
+                value={formData.moodType}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm"
+              >
+                <option value="">Select Mood</option>
+                {moodOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
               <span className="pointer-events-none absolute right-4 top-9 text-gray-400 text-lg">▼</span>
             </div>
             <div className="relative">
               <label className="block text-gray-300 mb-2">Energy Type</label>
-              <select className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm">
-                {energyOptions.map(opt => <option key={opt}>{opt}</option>)}
+              <select 
+                name="energyType"
+                value={formData.energyType}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm"
+              >
+                <option value="">Select Energy</option>
+                {energyOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
               <span className="pointer-events-none absolute right-4 top-9 text-gray-400 text-lg">▼</span>
             </div>
             <div className="relative">
               <label className="block text-gray-300 mb-2">Instrument</label>
-              <select className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm">
-                {instrumentOptions.map(opt => <option key={opt}>{opt}</option>)}
+              <select 
+                name="instrument"
+                value={formData.instrument}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm"
+              >
+                <option value="">Select Instrument</option>
+                {instrumentOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
               <span className="pointer-events-none absolute right-4 top-9 text-gray-400 text-lg">▼</span>
             </div>
@@ -300,8 +575,14 @@ export default function AddTrackPage() {
                   </span>
                 </span>
               </label>
-              <select className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm">
-                {platformOptions.map(opt => <option key={opt}>{opt}</option>)}
+              <select 
+                name="generatedTrackPlatform"
+                value={formData.generatedTrackPlatform}
+                onChange={handleInputChange}
+                className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm"
+              >
+                <option value="">Select Platform</option>
+                {platformOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
             </div>
             <div className="flex flex-col md:flex-row gap-6">
@@ -421,52 +702,349 @@ export default function AddTrackPage() {
           </div>
           {/* Genres Category */}
           <div className="bg-[#101936] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
-            <label className="block text-gray-300 mb-2">Genres Category</label>
-            <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2" placeholder="Enter Category..." />
-            <label className="block text-gray-400 text-xs mb-2">All categories</label>
-            <div className="relative">
-              <select className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm">
-                {genresData.map(genre => (
-                  <option key={genre.id} value={genre.id}>{genre.name}</option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-4 top-3 text-gray-400 text-lg">▼</span>
+            <div className="flex items-center justify-between">
+              <label className="block text-gray-300 mb-2">Genres Category</label>
+              <button
+                type="button"
+                onClick={() => setShowAddGenre(!showAddGenre)}
+                className="text-[#E100FF] text-sm hover:text-[#c800d6] transition-colors"
+              >
+                {showAddGenre ? 'Cancel' : '+ Add New'}
+              </button>
             </div>
+            <input 
+              type="text"
+              value={genreSearch}
+              onChange={(e) => setGenreSearch(e.target.value)}
+              className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2 focus:outline-none focus:ring-1 focus:ring-[#E100FF]" 
+              placeholder="Search genres..." 
+            />
+            <label className="block text-gray-400 text-xs mb-2">All categories</label>
+            
+            {/* Add New Genre Form */}
+            {showAddGenre && (
+              <div className="bg-[#232B43] rounded-lg p-4 mb-4 border border-[#E100FF]/30">
+                <h4 className="text-white text-sm font-medium mb-3">Add New Genre</h4>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Genre Name"
+                    value={newGenreName}
+                    onChange={(e) => setNewGenreName(e.target.value)}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#E100FF]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Description (optional)"
+                    value={newGenreDescription}
+                    onChange={(e) => setNewGenreDescription(e.target.value)}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#E100FF]"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddGenre}
+                      disabled={!newGenreName.trim() || isAddingGenre}
+                      className="flex-1 bg-[#E100FF] text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-[#c800d6] transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isAddingGenre ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Adding...</span>
+                        </>
+                      ) : (
+                        'Add Genre'
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddGenre(false);
+                        setNewGenreName('');
+                        setNewGenreDescription('');
+                      }}
+                      className="px-3 py-2 text-gray-400 text-sm hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div className="max-h-48 overflow-y-auto bg-[#181F36] rounded-lg border border-[#232B43] p-2">
+              {filteredGenres.length === 0 ? (
+                <div className="text-gray-400 text-sm text-center py-4">
+                  {genreSearch ? 'No genres found matching your search' : 'No genres available'}
+                </div>
+              ) : (
+                filteredGenres.map(genre => (
+                <div key={genre._id} className="flex items-center gap-3 p-2 hover:bg-[#232B43] rounded cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id={`genre-${genre._id}`}
+                    checked={selectedGenres.includes(genre._id)}
+                    onChange={() => handleGenreToggle(genre._id)}
+                    className="w-4 h-4 text-[#E100FF] bg-[#232B43] border-[#232B43] rounded focus:ring-[#E100FF] focus:ring-2"
+                  />
+                  <label htmlFor={`genre-${genre._id}`} className="text-white text-sm cursor-pointer flex-1">
+                    {genre.name}
+                  </label>
+                </div>
+                ))
+              )}
+            </div>
+            {selectedGenres.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedGenres.map(genreId => {
+                  const genre = genresData.find(g => g._id === genreId);
+                  return genre ? (
+                    <span key={genreId} className="bg-[#E100FF]/20 text-[#E100FF] px-2 py-1 rounded-full text-xs">
+                      {genre.name}
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            )}
           </div>
           {/* Beat Category */}
           <div className="bg-[#101936] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
-            <label className="block text-gray-300 mb-2">Beat Category</label>
-            <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2" placeholder="Enter Category..." />
-            <label className="block text-gray-400 text-xs mb-2">All categories</label>
-            <div className="relative">
-              <select className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm">
-                {beatsData.map(beat => (
-                  <option key={beat.id} value={beat.id}>{beat.name}</option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-4 top-3 text-gray-400 text-lg">▼</span>
+            <div className="flex items-center justify-between">
+              <label className="block text-gray-300 mb-2">Beat Category</label>
+              <button
+                type="button"
+                onClick={() => setShowAddBeat(!showAddBeat)}
+                className="text-[#E100FF] text-sm hover:text-[#c800d6] transition-colors"
+              >
+                {showAddBeat ? 'Cancel' : '+ Add New'}
+              </button>
             </div>
+            <input 
+              type="text"
+              value={beatSearch}
+              onChange={(e) => setBeatSearch(e.target.value)}
+              className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2 focus:outline-none focus:ring-1 focus:ring-[#E100FF]" 
+              placeholder="Search beats..." 
+            />
+            <label className="block text-gray-400 text-xs mb-2">All categories</label>
+            
+            {/* Add New Beat Form */}
+            {showAddBeat && (
+              <div className="bg-[#232B43] rounded-lg p-4 mb-4 border border-[#E100FF]/30">
+                <h4 className="text-white text-sm font-medium mb-3">Add New Beat Category</h4>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Beat Category Name"
+                    value={newBeatName}
+                    onChange={(e) => setNewBeatName(e.target.value)}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#E100FF]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Description (optional)"
+                    value={newBeatDescription}
+                    onChange={(e) => setNewBeatDescription(e.target.value)}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#E100FF]"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddBeat}
+                      disabled={!newBeatName.trim() || isAddingBeat}
+                      className="flex-1 bg-[#E100FF] text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-[#c800d6] transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isAddingBeat ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Adding...</span>
+                        </>
+                      ) : (
+                        'Add Beat'
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddBeat(false);
+                        setNewBeatName('');
+                        setNewBeatDescription('');
+                      }}
+                      className="px-3 py-2 text-gray-400 text-sm hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div className="max-h-48 overflow-y-auto bg-[#181F36] rounded-lg border border-[#232B43] p-2">
+              {filteredBeats.length === 0 ? (
+                <div className="text-gray-400 text-sm text-center py-4">
+                  {beatSearch ? 'No beats found matching your search' : 'No beats available'}
+                </div>
+              ) : (
+                filteredBeats.map(beat => (
+                <div key={beat._id} className="flex items-center gap-3 p-2 hover:bg-[#232B43] rounded cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id={`beat-${beat._id}`}
+                    checked={selectedBeats.includes(beat._id)}
+                    onChange={() => handleBeatToggle(beat._id)}
+                    className="w-4 h-4 text-[#E100FF] bg-[#232B43] border-[#232B43] rounded focus:ring-[#E100FF] focus:ring-2"
+                  />
+                  <label htmlFor={`beat-${beat._id}`} className="text-white text-sm cursor-pointer flex-1">
+                    {beat.name}
+                  </label>
+                </div>
+                ))
+              )}
+            </div>
+            {selectedBeats.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedBeats.map(beatId => {
+                  const beat = beatsData.find(b => b._id === beatId);
+                  return beat ? (
+                    <span key={beatId} className="bg-[#E100FF]/20 text-[#E100FF] px-2 py-1 rounded-full text-xs">
+                      {beat.name}
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            )}
           </div>
           {/* Track Tags */}
           <div className="bg-[#101936] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
-            <label className="block text-gray-300 mb-2">Track Tags</label>
-            <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2" placeholder="Enter Category..." />
-            <label className="block text-gray-400 text-xs mb-2">All categories</label>
-            <div className="relative">
-              <select className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm">
-                {tagsData.map(tag => (
-                  <option key={tag.id} value={tag.id}>{tag.name}</option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-4 top-3 text-gray-400 text-lg">▼</span>
+            <div className="flex items-center justify-between">
+              <label className="block text-gray-300 mb-2">Track Tags</label>
+              <button
+                type="button"
+                onClick={() => setShowAddTag(!showAddTag)}
+                className="text-[#E100FF] text-sm hover:text-[#c800d6] transition-colors"
+              >
+                {showAddTag ? 'Cancel' : '+ Add New'}
+              </button>
             </div>
+            <input 
+              type="text"
+              value={tagSearch}
+              onChange={(e) => setTagSearch(e.target.value)}
+              className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2 focus:outline-none focus:ring-1 focus:ring-[#E100FF]" 
+              placeholder="Search tags..." 
+            />
+            <label className="block text-gray-400 text-xs mb-2">All categories</label>
+            
+            {/* Add New Tag Form */}
+            {showAddTag && (
+              <div className="bg-[#232B43] rounded-lg p-4 mb-4 border border-[#E100FF]/30">
+                <h4 className="text-white text-sm font-medium mb-3">Add New Tag</h4>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Tag Name"
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#E100FF]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Description (optional)"
+                    value={newTagDescription}
+                    onChange={(e) => setNewTagDescription(e.target.value)}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#E100FF]"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddTag}
+                      disabled={!newTagName.trim() || isAddingTag}
+                      className="flex-1 bg-[#E100FF] text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-[#c800d6] transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isAddingTag ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Adding...</span>
+                        </>
+                      ) : (
+                        'Add Tag'
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddTag(false);
+                        setNewTagName('');
+                        setNewTagDescription('');
+                      }}
+                      className="px-3 py-2 text-gray-400 text-sm hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div className="max-h-48 overflow-y-auto bg-[#181F36] rounded-lg border border-[#232B43] p-2">
+              {filteredTags.length === 0 ? (
+                <div className="text-gray-400 text-sm text-center py-4">
+                  {tagSearch ? 'No tags found matching your search' : 'No tags available'}
+                </div>
+              ) : (
+                filteredTags.map(tag => (
+                <div key={tag._id} className="flex items-center gap-3 p-2 hover:bg-[#232B43] rounded cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id={`tag-${tag._id}`}
+                    checked={selectedTags.includes(tag._id)}
+                    onChange={() => handleTagToggle(tag._id)}
+                    className="w-4 h-4 text-[#E100FF] bg-[#232B43] border-[#232B43] rounded focus:ring-[#E100FF] focus:ring-2"
+                  />
+                  <label htmlFor={`tag-${tag._id}`} className="text-white text-sm cursor-pointer flex-1">
+                    {tag.name}
+                  </label>
+                </div>
+                ))
+              )}
+            </div>
+            {selectedTags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedTags.map(tagId => {
+                  const tag = tagsData.find(t => t._id === tagId);
+                  return tag ? (
+                    <span key={tagId} className="bg-[#E100FF]/20 text-[#E100FF] px-2 py-1 rounded-full text-xs">
+                      {tag.name}
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            )}
           </div>
           {/* SEO Setting */}
           <div className="bg-[#101936] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
             <label className="block text-gray-300 mb-2">Seo Setting</label>
-            <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2" placeholder="Seo Title" />
-            <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2" placeholder="Meta keyword" />
-            <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2" placeholder="Meta description" />
+            <input 
+              name="seoTitle"
+              value={formData.seoTitle}
+              onChange={handleInputChange}
+              className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2" 
+              placeholder="Seo Title" 
+            />
+            <input 
+              name="metaKeyword"
+              value={formData.metaKeyword}
+              onChange={handleInputChange}
+              className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2" 
+              placeholder="Meta keyword" 
+            />
+            <input 
+              name="metaDescription"
+              value={formData.metaDescription}
+              onChange={handleInputChange}
+              className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2" 
+              placeholder="Meta description" 
+            />
           </div>
         </div>
       </form>
