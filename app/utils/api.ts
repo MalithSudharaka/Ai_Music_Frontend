@@ -95,9 +95,9 @@ export const trackAPI = {
     trackFile?: string;
     about?: string;
     publish?: string;
-    genreCategory?: string;
-    beatCategory?: string;
-    trackTags?: string;
+    genreCategory?: string | string[];
+    beatCategory?: string | string[];
+    trackTags?: string | string[];
     seoTitle?: string;
     metaKeyword?: string;
     metaDescription?: string;
