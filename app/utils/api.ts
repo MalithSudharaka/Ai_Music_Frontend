@@ -110,6 +110,38 @@ export const trackAPI = {
     const response = await api.get('/tracks');
     return response.data;
   },
+
+  updateTrack: async (id: string, trackData: {
+    trackName?: string;
+    trackId?: string;
+    bpm?: number;
+    trackKey?: string;
+    trackPrice?: number;
+    musician?: string;
+    trackType?: string;
+    moodType?: string;
+    energyType?: string;
+    instrument?: string;
+    generatedTrackPlatform?: string;
+    trackImage?: string;
+    trackFile?: string;
+    about?: string;
+    publish?: string;
+    genreCategory?: string | string[];
+    beatCategory?: string | string[];
+    trackTags?: string | string[];
+    seoTitle?: string;
+    metaKeyword?: string;
+    metaDescription?: string;
+  }) => {
+    const response = await api.put(`/tracks/${id}`, trackData);
+    return response.data;
+  },
+
+  deleteTrack: async (id: string) => {
+    const response = await api.delete(`/tracks/${id}`);
+    return response.data;
+  },
 };
 
 export const genreAPI = {
@@ -232,6 +264,33 @@ export const soundKitAPI = {
     const response = await api.get('/sound-kits');
     return response.data;
   },
+
+  updateSoundKit: async (id: string, soundKitData: {
+    kitName?: string;
+    kitId?: string;
+    description?: string;
+    category?: string;
+    price?: number;
+    producer?: string;
+    kitType?: string;
+    bpm?: number;
+    key?: string;
+    kitImage?: string;
+    kitFile?: string;
+    tags?: string[];
+    publish?: string;
+    seoTitle?: string;
+    metaKeyword?: string;
+    metaDescription?: string;
+  }) => {
+    const response = await api.put(`/sound-kits/${id}`, soundKitData);
+    return response.data;
+  },
+
+  deleteSoundKit: async (id: string) => {
+    const response = await api.delete(`/sound-kits/${id}`);
+    return response.data;
+  },
 };
 
 export const soundKitCategoryAPI = {
@@ -291,7 +350,10 @@ export const soundKitTagAPI = {
   },
 
   deleteTag: async (id: string) => {
+    console.log('API: Deleting sound kit tag with ID:', id);
+    console.log('API: Making DELETE request to:', `/sound-kit-tags/${id}`);
     const response = await api.delete(`/sound-kit-tags/${id}`);
+    console.log('API: Delete response:', response.data);
     return response.data;
   },
 };

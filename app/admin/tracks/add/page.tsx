@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaCloudUploadAlt, FaFileAudio } from "react-icons/fa";
 import { trackAPI, genreAPI, beatAPI, tagAPI } from '../../../utils/api';
+import { useRouter, useSearchParams } from "next/navigation";
 
 const typeOptions = ["Song", "Beats", "Beats w/hook", "Top lines", "Vocal"];
 const moodOptions = [
@@ -17,6 +18,10 @@ const trackKeyOptions = [
 ];
 
 export default function AddTrackPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isEditMode = searchParams.get('mode') === 'edit';
+  
   const [publish, setPublish] = useState("Private");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedBeats, setSelectedBeats] = useState<string[]>([]);
@@ -70,6 +75,7 @@ export default function AddTrackPage() {
   // Loading and message states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -85,6 +91,62 @@ export default function AddTrackPage() {
   });
 
   useEffect(() => {
+    // Load track data if in edit mode
+    if (isEditMode) {
+      const editTrackData = localStorage.getItem('editTrackData');
+      if (editTrackData) {
+        try {
+          const trackData = JSON.parse(editTrackData);
+          
+          // Populate form data
+          setFormData({
+            trackName: trackData.trackName || '',
+            trackId: trackData.trackId || '',
+            bpm: trackData.bpm?.toString() || '',
+            trackKey: trackData.trackKey || '',
+            trackPrice: trackData.trackPrice?.toString() || '',
+            musician: trackData.musician || '',
+            trackType: trackData.trackType || '',
+            moodType: trackData.moodType || '',
+            energyType: trackData.energyType || '',
+            instrument: trackData.instrument || '',
+            generatedTrackPlatform: trackData.generatedTrackPlatform || '',
+            about: trackData.about || '',
+            seoTitle: trackData.seoTitle || '',
+            metaKeyword: trackData.metaKeyword || '',
+            metaDescription: trackData.metaDescription || ''
+          });
+
+          // Set publish status
+          setPublish(trackData.publish || 'Private');
+
+          // Set track image if available
+          if (trackData.trackImage) {
+            setTrackImage(trackData.trackImage);
+          }
+
+          // Set selected categories
+          if (trackData.genreCategory && Array.isArray(trackData.genreCategory)) {
+            setSelectedGenres(trackData.genreCategory);
+          }
+          if (trackData.beatCategory && Array.isArray(trackData.beatCategory)) {
+            setSelectedBeats(trackData.beatCategory);
+          }
+          if (trackData.trackTags && Array.isArray(trackData.trackTags)) {
+            setSelectedTags(trackData.trackTags);
+          }
+
+          // Store the track ID for updating
+          setEditingTrackId(trackData._id);
+
+          // Clear the localStorage after loading
+          localStorage.removeItem('editTrackData');
+        } catch (error) {
+          console.error('Error parsing track data:', error);
+        }
+      }
+    }
+
     // Fetch genres from MongoDB
     const fetchGenres = async () => {
       try {
@@ -124,7 +186,7 @@ export default function AddTrackPage() {
     fetchGenres();
     fetchBeats();
     fetchTags();
-  }, []);
+  }, [isEditMode]);
 
 
 
@@ -381,34 +443,50 @@ export default function AddTrackPage() {
 
       console.log('Sending track data:', trackData);
 
-      const response = await trackAPI.createTrack(trackData);
+      let response;
+      if (isEditMode && editingTrackId) {
+        // Update existing track
+        response = await trackAPI.updateTrack(editingTrackId, trackData);
+      } else {
+        // Create new track
+        response = await trackAPI.createTrack(trackData);
+      }
       
       if (response.success) {
-        setSubmitMessage('Track created successfully!');
-        // Reset form
-        setFormData({
-          trackName: '',
-          trackId: '',
-          bpm: '',
-          trackKey: '',
-          trackPrice: '',
-          musician: '',
-          trackType: '',
-          moodType: '',
-          energyType: '',
-          instrument: '',
-          generatedTrackPlatform: '',
-          about: '',
-          seoTitle: '',
-          metaKeyword: '',
-          metaDescription: ''
-        });
-        setSelectedGenres([]);
-        setSelectedBeats([]);
-        setSelectedTags([]);
-        setTrackImage(null);
-        setTrackFile(null);
-        setPublish('Private');
+        const message = isEditMode ? 'Track updated successfully!' : 'Track created successfully!';
+        setSubmitMessage(message);
+        
+        if (!isEditMode) {
+          // Reset form only for new tracks
+          setFormData({
+            trackName: '',
+            trackId: '',
+            bpm: '',
+            trackKey: '',
+            trackPrice: '',
+            musician: '',
+            trackType: '',
+            moodType: '',
+            energyType: '',
+            instrument: '',
+            generatedTrackPlatform: '',
+            about: '',
+            seoTitle: '',
+            metaKeyword: '',
+            metaDescription: ''
+          });
+          setSelectedGenres([]);
+          setSelectedBeats([]);
+          setSelectedTags([]);
+          setTrackImage(null);
+          setTrackFile(null);
+          setPublish('Private');
+        }
+        
+        // Redirect back to tracks list after successful operation
+        setTimeout(() => {
+          router.push('/admin/tracks');
+        }, 2000);
       }
     } catch (error: any) {
       console.error('Error creating track:', error);
@@ -425,7 +503,7 @@ export default function AddTrackPage() {
 
   return (
     <div className="min-h-screen p-8 bg-[#081028]">
-      <h1 className="text-3xl font-bold text-white mb-8">Track Management <span className="text-lg font-normal text-gray-400 ml-4">Add Tracks</span></h1>
+              <h1 className="text-3xl font-bold text-white mb-8">Track Management <span className="text-lg font-normal text-gray-400 ml-4">{isEditMode ? 'Edit Track' : 'Add Tracks'}</span></h1>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Main Form */}
         <div className="lg:col-span-2 flex flex-col gap-8">
@@ -695,7 +773,7 @@ export default function AddTrackPage() {
                 </>
               ) : (
                 <>
-                  Add Track <span className="ml-2">→</span>
+                  {isEditMode ? 'Update Track' : 'Add Track'} <span className="ml-2">→</span>
                 </>
               )}
             </button>

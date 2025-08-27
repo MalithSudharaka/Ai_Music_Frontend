@@ -114,16 +114,15 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose, showCloseButton })
         {sidebarConfig.map((item) => (
           <div key={item.label}>
             {item.href ? (
-              <Link href={item.href} legacyBehavior>
-                <a
-                  className={`flex items-center px-4 py-3 font-semibold rounded-lg cursor-pointer transition-colors
-                    ${isActive(item.href) ? 'text-[#E100FF]' : 'text-white'}
-                    hover:bg-[#232B43]`}
-                  onClick={onClose}
-                >
-                  <span className={`text-xl mr-3 ${isActive(item.href) ? 'text-[#E100FF]' : ''}`}>{item.icon}</span>
-                  {item.label}
-                </a>
+              <Link
+                href={item.href}
+                className={`flex items-center px-4 py-3 font-semibold rounded-lg cursor-pointer transition-colors
+                  ${isActive(item.href) ? 'text-[#E100FF]' : 'text-white'}
+                  hover:bg-[#232B43]`}
+                onClick={onClose}
+              >
+                <span className={`text-xl mr-3 ${isActive(item.href) ? 'text-[#E100FF]' : ''}`}>{item.icon}</span>
+                {item.label}
               </Link>
             ) : (
               <div
@@ -145,18 +144,17 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose, showCloseButton })
               <ul className="pl-8 py-1 space-y-1">
                 {item.subpages.map((sub) => (
                   <li key={sub.label}>
-                    <Link href={sub.href} legacyBehavior>
-                      <a
-                        className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors
-                          ${isActive(sub.href)
-                            ? 'bg-[#232B43] text-[#E100FF] border-l-4 border-[#E100FF]'
-                            : 'text-white hover:bg-[#232B43] hover:text-[#E100FF]'}
-                        `}
-                        onClick={onClose}
-                      >
-                        <span className="text-lg">{sub.icon}</span>
-                        {sub.label}
-                      </a>
+                    <Link
+                      href={sub.href}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors
+                        ${isActive(sub.href)
+                          ? 'bg-[#232B43] text-[#E100FF] border-l-4 border-[#E100FF]'
+                          : 'text-white hover:bg-[#232B43] hover:text-[#E100FF]'}
+                      `}
+                      onClick={onClose}
+                    >
+                      <span className="text-lg">{sub.icon}</span>
+                      {sub.label}
                     </Link>
                   </li>
                 ))}

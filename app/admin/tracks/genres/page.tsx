@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { FaEye, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
-import { getGenres, Genre } from "./genres";
+import { genreAPI } from "../../../utils/api";
 
 export default function GenresCategoryPage() {
-  const [genres, setGenres] = useState<Genre[]>([]);
+  const [genres, setGenres] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -13,11 +13,35 @@ export default function GenresCategoryPage() {
   const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
   const [editGenre, setEditGenre] = useState({ name: '', description: '' });
   const [newGenre, setNewGenre] = useState({ name: '', description: '' });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingGenre, setDeletingGenre] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
   const pageSize = 8;
 
   useEffect(() => {
-    getGenres().then(setGenres);
+    loadGenres();
   }, []);
+
+  const loadGenres = async () => {
+    try {
+      setLoading(true);
+      const response = await genreAPI.getGenres();
+      if (response.success) {
+        setGenres(response.genres);
+      } else {
+        // Fallback to empty array if API fails
+        setGenres([]);
+      }
+    } catch (error) {
+      console.error('Error loading genres:', error);
+      // Fallback to empty array if API fails
+      setGenres([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const totalPages = Math.ceil(genres.length / pageSize);
   const paginatedGenres = genres.slice((page - 1) * pageSize, page * pageSize);
@@ -34,52 +58,39 @@ export default function GenresCategoryPage() {
     setNewGenre({ name: '', description: '' });
   }
 
-  function handleViewGenre(genre: Genre) {
-    setSelectedGenre(genre);
-    setShowViewModal(true);
-  }
 
-  function handleCloseViewModal() {
-    setShowViewModal(false);
-    setSelectedGenre(null);
-  }
-
-  function handleEditGenre(genre: Genre) {
-    setSelectedGenre(genre);
-    setEditGenre({ name: genre.name, description: genre.description });
-    setShowEditModal(true);
-  }
-
-  function handleSaveEditGenre() {
-    // Here you would typically update to your backend
-    console.log('Updating genre:', selectedGenre?.id, editGenre);
-    setShowEditModal(false);
-    setSelectedGenre(null);
-    setEditGenre({ name: '', description: '' });
-  }
-
-  function handleCloseEditModal() {
-    setShowEditModal(false);
-    setSelectedGenre(null);
-    setEditGenre({ name: '', description: '' });
-  }
-
-  function handleDeleteGenre(genre: Genre) {
-    setSelectedGenre(genre);
+  const openDeleteModal = (genre: any) => {
+    setDeletingGenre(genre);
     setShowDeleteModal(true);
-  }
+  };
 
-  function handleConfirmDelete() {
-    // Here you would typically delete from your backend
-    console.log('Deleting genre:', selectedGenre?.id);
+  const closeDeleteModal = () => {
     setShowDeleteModal(false);
-    setSelectedGenre(null);
-  }
+    setDeletingGenre(null);
+    setMessage('');
+  };
 
-  function handleCloseDeleteModal() {
-    setShowDeleteModal(false);
-    setSelectedGenre(null);
-  }
+  const handleDeleteGenre = async () => {
+    if (!deletingGenre) return;
+    
+    setIsDeleting(true);
+    try {
+      const response = await genreAPI.deleteGenre(deletingGenre._id);
+      
+      if (response.success) {
+        setMessage('Genre deleted successfully!');
+        // Remove from local state
+        setGenres(prev => prev.filter(genre => genre._id !== deletingGenre._id));
+        closeDeleteModal();
+      }
+    } catch (error) {
+      console.error('Error deleting genre:', error);
+      setMessage('Failed to delete genre');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-[#081028]">
@@ -93,15 +104,35 @@ export default function GenresCategoryPage() {
           />
           <button 
             onClick={() => setShowAddModal(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#101936] text-white border border-[#232B43] hover:bg-[#232B43] transition"
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-secondary text-white hover:bg-secondary/80 transition-colors"
           >
             <span className="text-xl">+</span> Add Category
           </button>
+
         </div>
       </div>
 
+      {/* Message Display */}
+      {message && (
+        <div className={`mb-4 p-3 rounded-lg text-sm ${
+          message.includes('successfully') 
+            ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+        }`}>
+          {message}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-secondary"></div>
+        </div>
+      )}
+
       {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto rounded-2xl shadow-xl bg-[#101936]">
+      {!loading && (
+        <div className="hidden md:block overflow-x-auto rounded-2xl shadow-xl bg-[#101936]">
         <table className="min-w-full text-white">
           <thead>
             <tr className="bg-[#232B43] text-[#C7C7C7] text-left text-sm">
@@ -113,7 +144,7 @@ export default function GenresCategoryPage() {
           <tbody>
             {paginatedGenres.map((genre, idx) => (
               <tr
-                key={genre.id + '-' + idx}
+                key={genre._id + '-' + idx}
                 className={
                   idx % 2 === 0
                     ? "bg-[#181F36] hover:bg-[#232B43] transition-colors"
@@ -123,24 +154,14 @@ export default function GenresCategoryPage() {
                 <td className="px-6 py-4">{genre.name}</td>
                 <td className="px-6 py-4">{genre.description}</td>
                 <td className="px-6 py-4 flex gap-4 text-lg">
+
+                  <button className="text-white hover:text-[#7ED7FF] transition-colors" title="View"><FaEye /></button>
+                  <button className="text-white hover:text-[#E100FF] transition-colors" title="Edit"><FaEdit /></button>
                   <button 
-                    className="text-white hover:text-[#7ED7FF] transition-colors" 
-                    title="View"
-                    onClick={() => handleViewGenre(genre)}
-                  >
-                    <FaEye />
-                  </button>
-                  <button 
-                    className="text-white hover:text-[#E100FF] transition-colors" 
-                    title="Edit"
-                    onClick={() => handleEditGenre(genre)}
-                  >
-                    <FaEdit />
-                  </button>
-                  <button 
+                    onClick={() => openDeleteModal(genre)}
                     className="text-white hover:text-red-500 transition-colors" 
                     title="Delete"
-                    onClick={() => handleDeleteGenre(genre)}
+
                   >
                     <FaTrash />
                   </button>
@@ -149,13 +170,15 @@ export default function GenresCategoryPage() {
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
+      )}
 
       {/* Mobile Cards View */}
-      <div className="md:hidden space-y-4">
+      {!loading && (
+        <div className="md:hidden space-y-4">
         {paginatedGenres.map((genre, idx) => (
           <div
-            key={genre.id + '-' + idx}
+            key={genre._id + '-' + idx}
             className="bg-[#101936] rounded-xl p-4 shadow-lg border border-[#232B43]"
           >
             <div className="flex justify-between items-start mb-3">
@@ -179,9 +202,11 @@ export default function GenresCategoryPage() {
                   <FaEdit />
                 </button>
                 <button 
+
+                  onClick={() => openDeleteModal(genre)}
                   className="text-white hover:text-red-500 transition-colors p-1" 
                   title="Delete"
-                  onClick={() => handleDeleteGenre(genre)}
+
                 >
                   <FaTrash />
                 </button>
@@ -189,7 +214,8 @@ export default function GenresCategoryPage() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row items-center justify-between mt-6 text-white gap-4">
@@ -279,139 +305,54 @@ export default function GenresCategoryPage() {
         </div>
       )}
 
-      {/* View Genre Modal */}
-      {showViewModal && selectedGenre && (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
-          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-md mx-4">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">View Genre Details</h2>
-              <button
-                onClick={handleCloseViewModal}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes className="text-xl" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-300 mb-2 font-semibold">Name</label>
-                <div className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43]">
-                  {selectedGenre.name}
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-gray-300 mb-2 font-semibold">Description</label>
-                <div className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43] min-h-[80px]">
-                  {selectedGenre.description}
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={handleCloseViewModal}
-                className="py-2 px-6 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Edit Genre Modal */}
-      {showEditModal && selectedGenre && (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
-          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-md mx-4">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">Edit Genre Category</h2>
-              <button
-                onClick={handleCloseEditModal}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaTimes className="text-xl" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-300 mb-2">Name</label>
-                <input
-                  type="text"
-                  value={editGenre.name}
-                  onChange={(e) => setEditGenre({ ...editGenre, name: e.target.value })}
-                  className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none border border-[#232B43] focus:border-[#E100FF]"
-                  placeholder="Enter genre name..."
-                />
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && deletingGenre && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#101936] rounded-2xl p-6 w-full max-w-md">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
+                <FaTrash className="text-red-500 text-xl" />
               </div>
-              
               <div>
-                <label className="block text-gray-300 mb-2">Description</label>
-                <textarea
-                  value={editGenre.description}
-                  onChange={(e) => setEditGenre({ ...editGenre, description: e.target.value })}
-                  rows={3}
-                  className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none border border-[#232B43] focus:border-[#E100FF] resize-none"
-                  placeholder="Enter genre description..."
-                />
+                <h3 className="text-xl font-bold text-white">Delete Genre</h3>
+                <p className="text-gray-400 text-sm">This action cannot be undone</p>
               </div>
             </div>
             
-            <div className="flex gap-4 mt-6">
+            <div className="mb-6">
+              <p className="text-gray-300 mb-4">
+                Are you sure you want to delete <span className="text-white font-semibold">"{deletingGenre.name}"</span>?
+              </p>
+              <div className="bg-[#181F36] rounded-lg p-4 border border-[#232B43]">
+                <div>
+                  <p className="text-white font-medium">{deletingGenre.name}</p>
+                  <p className="text-gray-400 text-sm mt-1">{deletingGenre.description}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end">
               <button
-                onClick={handleCloseEditModal}
-                className="flex-1 py-2 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
+                onClick={closeDeleteModal}
+                disabled={isDeleting}
+                className="px-6 py-2 bg-[#232B43] text-white rounded-lg hover:bg-[#2a3447] transition-colors disabled:opacity-50"
+
               >
                 Cancel
               </button>
               <button
-                onClick={handleSaveEditGenre}
-                className="flex-1 py-2 rounded-lg bg-[#E100FF] text-white font-semibold hover:bg-[#c800d6] transition-colors"
-              >
-                Update
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Delete Genre Modal */}
-      {showDeleteModal && selectedGenre && (
-        <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
-          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-md mx-4">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">Delete Genre</h2>
-              <button
-                onClick={handleCloseDeleteModal}
-                className="text-gray-400 hover:text-white transition-colors"
+                onClick={handleDeleteGenre}
+                disabled={isDeleting}
+                className={`px-6 py-2 rounded-lg transition-colors ${
+                  isDeleting
+                    ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                    : 'bg-red-600 text-white hover:bg-red-700'
+                }`}
               >
-                <FaTimes className="text-xl" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
-                  <FaTrash className="text-2xl text-red-500" />
-                </div>
-                <p className="text-white text-lg mb-2">Are you sure you want to delete this genre category?</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-4 mt-6">
-              <button
-                onClick={handleCloseDeleteModal}
-                className="flex-1 py-2 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="flex-1 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors"
-              >
-                Delete
+                {isDeleting ? 'Deleting...' : 'Delete Genre'}
+
               </button>
             </div>
           </div>
@@ -419,4 +360,4 @@ export default function GenresCategoryPage() {
       )}
     </div>
   );
-} 
+}
