@@ -31,6 +31,9 @@ export default function SoundKitCategoriesPage() {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingCategory, setDeletingCategory] = useState<SoundKitCategory | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadCategories();
@@ -112,20 +115,45 @@ export default function SoundKitCategoriesPage() {
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this category?')) {
-      return;
-    }
-
     try {
+      setIsDeleting(true);
+      setMessage('');
+      
+      console.log('Attempting to delete category with ID:', id);
       const response = await soundKitCategoryAPI.deleteCategory(id);
+      console.log('Delete response:', response);
+      
       if (response.success) {
         setMessage('Category deleted successfully!');
+        setShowDeleteModal(false);
+        setDeletingCategory(null);
         loadCategories();
+      } else {
+        setMessage(response.message || 'Failed to delete category');
       }
     } catch (error: any) {
       console.error('Error deleting category:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data
+      });
       setMessage(error.response?.data?.message || 'Failed to delete category');
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const openDeleteModal = (category: SoundKitCategory) => {
+    setDeletingCategory(category);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeletingCategory(null);
+    setMessage('');
   };
 
   const handleEditCategory = (category: SoundKitCategory) => {
@@ -159,7 +187,7 @@ export default function SoundKitCategoriesPage() {
           </h1>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-primary text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-primary/80 transition-colors"
+            className="bg-secondary text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-secondary/80 transition-colors"
           >
             <FaPlus />
             Add Category
@@ -239,7 +267,7 @@ export default function SoundKitCategoriesPage() {
                             <FaEdit />
                           </button>
                           <button
-                            onClick={() => handleDeleteCategory(category._id)}
+                            onClick={() => openDeleteModal(category)}
                             className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                             title="Delete"
                           >
@@ -270,7 +298,7 @@ export default function SoundKitCategoriesPage() {
                       <FaEdit />
                     </button>
                     <button
-                      onClick={() => handleDeleteCategory(category._id)}
+                      onClick={() => openDeleteModal(category)}
                       className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                     >
                       <FaTrash />
@@ -379,7 +407,7 @@ export default function SoundKitCategoriesPage() {
                                          className={`flex-1 py-2 rounded-lg font-semibold transition-colors ${
                        isSubmitting
                          ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                         : 'bg-primary text-white hover:bg-primary/80'
+                         : 'bg-secondary text-white hover:bg-secondary/80'
                      }`}
                   >
                     {isSubmitting ? 'Saving...' : (editingCategory ? 'Update' : 'Save')}
@@ -387,6 +415,61 @@ export default function SoundKitCategoriesPage() {
                   <button
                     onClick={handleCloseModal}
                     className="flex-1 py-2 rounded-lg bg-[#181F36] text-white font-semibold hover:bg-[#232B43] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && deletingCategory && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-[#101936] rounded-2xl p-6 w-full max-w-md">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white">
+                  Delete Category
+                </h2>
+                <button
+                  onClick={closeDeleteModal}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FaTrash className="text-red-400 text-2xl" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Are you sure?
+                  </h3>
+                  <p className="text-gray-300">
+                    You are about to delete the category <span className="font-semibold text-white">"{deletingCategory.name}"</span>. 
+                    This action cannot be undone.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => handleDeleteCategory(deletingCategory._id)}
+                    disabled={isDeleting}
+                    className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
+                      isDeleting
+                        ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                        : 'bg-red-600 text-white hover:bg-red-700'
+                    }`}
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete Category'}
+                  </button>
+                  <button
+                    onClick={closeDeleteModal}
+                    disabled={isDeleting}
+                    className="flex-1 py-3 rounded-lg bg-[#181F36] text-white font-semibold hover:bg-[#232B43] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>

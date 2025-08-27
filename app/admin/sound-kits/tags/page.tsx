@@ -25,12 +25,14 @@ export default function SoundKitTagsPage() {
   const [editingTag, setEditingTag] = useState<SoundKitTag | null>(null);
   const [newTag, setNewTag] = useState({
     name: '',
-    description: '',
-    color: '#FF6B35'
+    description: ''
   });
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingTag, setDeletingTag] = useState<SoundKitTag | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadTags();
@@ -69,7 +71,7 @@ export default function SoundKitTagsPage() {
       
       if (response.success) {
         setMessage('Tag created successfully!');
-        setNewTag({ name: '', description: '', color: '#FF6B35' });
+        setNewTag({ name: '', description: '' });
         setShowModal(false);
         loadTags();
       }
@@ -93,8 +95,7 @@ export default function SoundKitTagsPage() {
 
       const response = await soundKitTagAPI.updateTag(editingTag._id, {
         name: editingTag.name,
-        description: editingTag.description,
-        color: editingTag.color
+        description: editingTag.description
       });
       
       if (response.success) {
@@ -112,20 +113,45 @@ export default function SoundKitTagsPage() {
   };
 
   const handleDeleteTag = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this tag?')) {
-      return;
-    }
-
     try {
+      setIsDeleting(true);
+      setMessage('');
+      
+      console.log('Attempting to delete tag with ID:', id);
       const response = await soundKitTagAPI.deleteTag(id);
+      console.log('Delete response:', response);
+      
       if (response.success) {
         setMessage('Tag deleted successfully!');
+        setShowDeleteModal(false);
+        setDeletingTag(null);
         loadTags();
+      } else {
+        setMessage(response.message || 'Failed to delete tag');
       }
     } catch (error: any) {
       console.error('Error deleting tag:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data
+      });
       setMessage(error.response?.data?.message || 'Failed to delete tag');
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const openDeleteModal = (tag: SoundKitTag) => {
+    setDeletingTag(tag);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeletingTag(null);
+    setMessage('');
   };
 
   const handleEditTag = (tag: SoundKitTag) => {
@@ -136,7 +162,7 @@ export default function SoundKitTagsPage() {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingTag(null);
-    setNewTag({ name: '', description: '', color: '#FF6B35' });
+    setNewTag({ name: '', description: '' });
     setMessage('');
   };
 
@@ -159,7 +185,7 @@ export default function SoundKitTagsPage() {
           </h1>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-[#FF6B35] text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-[#E55A2B] transition-colors"
+            className="bg-secondary text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-secondary/80 transition-colors"
           >
             <FaPlus />
             Add Tag
@@ -239,7 +265,7 @@ export default function SoundKitTagsPage() {
                             <FaEdit />
                           </button>
                           <button
-                            onClick={() => handleDeleteTag(tag._id)}
+                            onClick={() => openDeleteModal(tag)}
                             className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                             title="Delete"
                           >
@@ -270,7 +296,7 @@ export default function SoundKitTagsPage() {
                       <FaEdit />
                     </button>
                     <button
-                      onClick={() => handleDeleteTag(tag._id)}
+                      onClick={() => openDeleteModal(tag)}
                       className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                     >
                       <FaTrash />
@@ -370,36 +396,7 @@ export default function SoundKitTagsPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-gray-300 mb-2">Color</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="color"
-                      value={editingTag ? editingTag.color : newTag.color}
-                      onChange={(e) => {
-                        if (editingTag) {
-                          setEditingTag({ ...editingTag, color: e.target.value });
-                        } else {
-                          setNewTag({ ...newTag, color: e.target.value });
-                        }
-                      }}
-                      className="w-12 h-10 rounded-lg border border-[#232B43] cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={editingTag ? editingTag.color : newTag.color}
-                      onChange={(e) => {
-                        if (editingTag) {
-                          setEditingTag({ ...editingTag, color: e.target.value });
-                        } else {
-                          setNewTag({ ...newTag, color: e.target.value });
-                        }
-                      }}
-                      className="flex-1 bg-[#181F36] text-white rounded-lg px-4 py-2 border border-[#232B43] focus:border-[#FF6B35] focus:outline-none"
-                      placeholder="#FF6B35"
-                    />
-                  </div>
-                </div>
+
 
                 <div className="flex gap-3 pt-4">
                   <button
@@ -408,7 +405,7 @@ export default function SoundKitTagsPage() {
                     className={`flex-1 py-2 rounded-lg font-semibold transition-colors ${
                       isSubmitting
                         ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                        : 'bg-[#FF6B35] text-white hover:bg-[#E55A2B]'
+                        : 'bg-secondary text-white hover:bg-secondary/80'
                     }`}
                   >
                     {isSubmitting ? 'Saving...' : (editingTag ? 'Update' : 'Save')}
@@ -416,6 +413,63 @@ export default function SoundKitTagsPage() {
                   <button
                     onClick={handleCloseModal}
                     className="flex-1 py-2 rounded-lg bg-[#181F36] text-white font-semibold hover:bg-[#232B43] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && deletingTag && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-[#101936] rounded-2xl p-6 w-full max-w-md">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white">
+                  Delete Tag
+                </h2>
+                <button
+                  onClick={closeDeleteModal}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FaTrash className="text-red-400 text-2xl" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Are you sure?
+                  </h3>
+                  <p className="text-gray-300">
+                    You are about to delete the tag <span className="font-semibold text-white">"{deletingTag.name}"</span>. 
+                    This action cannot be undone.
+                  </p>
+                </div>
+
+
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => handleDeleteTag(deletingTag._id)}
+                    disabled={isDeleting}
+                    className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
+                      isDeleting
+                        ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                        : 'bg-red-600 text-white hover:bg-red-700'
+                    }`}
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete Tag'}
+                  </button>
+                  <button
+                    onClick={closeDeleteModal}
+                    disabled={isDeleting}
+                    className="flex-1 py-3 rounded-lg bg-[#181F36] text-white font-semibold hover:bg-[#232B43] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>

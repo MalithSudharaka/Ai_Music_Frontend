@@ -4,7 +4,7 @@ import { FaEye, FaEdit, FaTrash, FaPlus, FaTimes } from "react-icons/fa";
 import { genreAPI } from "../../utils/api";
 
 interface Genre {
-  id: string;
+  _id: string;
   name: string;
   description: string;
   color: string;
@@ -23,6 +23,9 @@ export default function GenresPage() {
   const [newGenre, setNewGenre] = useState({ name: '', description: '', color: '#7ED7FF' });
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingGenre, setDeletingGenre] = useState<Genre | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const pageSize = 8;
 
@@ -83,7 +86,7 @@ export default function GenresPage() {
     setMessage('');
 
     try {
-      const response = await genreAPI.updateGenre(editingGenre.id, {
+      const response = await genreAPI.updateGenre(editingGenre._id, {
         name: editingGenre.name,
         description: editingGenre.description,
         color: editingGenre.color
@@ -102,20 +105,34 @@ export default function GenresPage() {
     }
   }
 
-  async function handleDeleteGenre(genreId: string) {
-    if (!confirm('Are you sure you want to delete this genre?')) {
-      return;
-    }
+  const openDeleteModal = (genre: Genre) => {
+    setDeletingGenre(genre);
+    setShowDeleteModal(true);
+  };
 
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeletingGenre(null);
+    setMessage('');
+  };
+
+  async function handleDeleteGenre() {
+    if (!deletingGenre) return;
+    
+    setIsDeleting(true);
     try {
-      const response = await genreAPI.deleteGenre(genreId);
+      const response = await genreAPI.deleteGenre(deletingGenre._id);
       if (response.success) {
         setMessage('Genre deleted successfully!');
-        loadGenres(); // Reload the list
+        // Remove from local state
+        setGenres(prev => prev.filter(genre => genre._id !== deletingGenre._id));
+        closeDeleteModal();
       }
     } catch (error: any) {
       console.error('Error deleting genre:', error);
-      setMessage(error.response?.data?.message || 'Failed to delete genre');
+      setMessage('Failed to delete genre');
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -144,7 +161,7 @@ export default function GenresPage() {
           />
           <button 
             onClick={() => setShowAddModal(true)} 
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/80 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-secondary text-white hover:bg-secondary/80 transition-colors"
           >
             <FaPlus /> Add Genre
           </button>
@@ -185,7 +202,7 @@ export default function GenresPage() {
             <tbody>
               {paginatedGenres.map((genre, idx) => (
                 <tr
-                  key={genre.id}
+                  key={genre._id}
                   className={
                     idx % 2 === 0
                       ? "bg-[#181F36] hover:bg-[#232B43] transition-colors"
@@ -208,14 +225,7 @@ export default function GenresPage() {
                   </td>
                   <td className="px-6 py-4 flex gap-4 text-lg">
                     <button 
-                      className="text-white hover:text-[#7ED7FF] transition-colors" 
-                      title="View"
-                      onClick={() => handleEditGenre(genre)}
-                    >
-                      <FaEye />
-                    </button>
-                    <button 
-                      className="text-white hover:text-[#E100FF] transition-colors" 
+                      className="text-white hover:text-secondary transition-colors" 
                       title="Edit"
                       onClick={() => handleEditGenre(genre)}
                     >
@@ -224,7 +234,7 @@ export default function GenresPage() {
                     <button 
                       className="text-white hover:text-red-500 transition-colors" 
                       title="Delete"
-                      onClick={() => handleDeleteGenre(genre.id)}
+                      onClick={() => openDeleteModal(genre)}
                     >
                       <FaTrash />
                     </button>
@@ -241,7 +251,7 @@ export default function GenresPage() {
         <div className="md:hidden space-y-4">
           {paginatedGenres.map((genre) => (
             <div
-              key={genre.id}
+              key={genre._id}
               className="bg-[#101936] rounded-xl p-4 shadow-lg border border-[#232B43]"
             >
               <div className="flex justify-between items-start mb-3">
@@ -269,14 +279,7 @@ export default function GenresPage() {
                 </div>
                 <div className="flex gap-3 text-lg ml-4">
                   <button 
-                    className="text-white hover:text-[#7ED7FF] transition-colors p-1" 
-                    title="View"
-                    onClick={() => handleEditGenre(genre)}
-                  >
-                    <FaEye />
-                  </button>
-                  <button 
-                    className="text-white hover:text-[#E100FF] transition-colors p-1" 
+                    className="text-white hover:text-secondary transition-colors p-1" 
                     title="Edit"
                     onClick={() => handleEditGenre(genre)}
                   >
@@ -285,7 +288,7 @@ export default function GenresPage() {
                   <button 
                     className="text-white hover:text-red-500 transition-colors p-1" 
                     title="Delete"
-                    onClick={() => handleDeleteGenre(genre.id)}
+                    onClick={() => openDeleteModal(genre)}
                   >
                     <FaTrash />
                   </button>
@@ -377,7 +380,7 @@ export default function GenresPage() {
               <button
                 onClick={handleSaveGenre}
                 disabled={isSubmitting}
-                className="flex-1 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2 rounded-lg bg-secondary text-white font-semibold hover:bg-secondary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -440,7 +443,7 @@ export default function GenresPage() {
               <button
                 onClick={handleUpdateGenre}
                 disabled={isSubmitting}
-                className="flex-1 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2 rounded-lg bg-secondary text-white font-semibold hover:bg-secondary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -449,6 +452,53 @@ export default function GenresPage() {
                   </>
                 ) : (
                   'Update'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && deletingGenre && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-md mx-4">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
+                <FaTrash className="text-red-500 text-xl" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Delete Genre</h2>
+                <p className="text-gray-400 text-sm">This action cannot be undone.</p>
+              </div>
+            </div>
+            
+            <div className="bg-[#181F36] rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-white mb-2">Genre Details:</h3>
+              <p className="text-gray-300 mb-1"><span className="text-gray-400">Name:</span> {deletingGenre.name}</p>
+              <p className="text-gray-300"><span className="text-gray-400">Description:</span> {deletingGenre.description}</p>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={closeDeleteModal}
+                disabled={isDeleting}
+                className="flex-1 py-3 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteGenre}
+                disabled={isDeleting}
+                className="flex-1 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  'Delete Genre'
                 )}
               </button>
             </div>

@@ -1,15 +1,18 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 import { FaCloudUploadAlt, FaFileAudio, FaPlus } from "react-icons/fa";
-import { getSoundKitCategories, SoundKitCategory } from "../category/categorydata";
-import { getSoundKitTags, SoundKitTag } from "../tags/tag";
-import { soundKitAPI } from "../../../utils/api";
+import { soundKitAPI, soundKitCategoryAPI, soundKitTagAPI } from "../../../utils/api";
+import { useRouter, useSearchParams } from "next/navigation";
 
 
 const musicianOptions = ["Waytoolost", "ProducerX", "DJ Sample"];
 const publishOptions = ["Private", "Public"];
 
 export default function AddSoundKitPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isEditMode = searchParams.get('mode') === 'edit';
+  
   const [publish, setPublish] = useState("Private");
   const [musician, setMusician] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
@@ -22,8 +25,24 @@ export default function AddSoundKitPage() {
   const [seoDescription, setSeoDescription] = useState("");
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [categoryOptions, setCategoryOptions] = useState<SoundKitCategory[]>([]);
-  const [tagOptions, setTagOptions] = useState<SoundKitTag[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
+  const [tagOptions, setTagOptions] = useState<any[]>([]);
+  
+  // Add new item states
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [showAddTag, setShowAddTag] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newTagName, setNewTagName] = useState('');
+  const [newCategoryDescription, setNewCategoryDescription] = useState('');
+  const [newTagDescription, setNewTagDescription] = useState('');
+  
+  // Loading states for add operations
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [isAddingTag, setIsAddingTag] = useState(false);
+  
+  // Search states
+  const [categorySearch, setCategorySearch] = useState('');
+  const [tagSearch, setTagSearch] = useState('');
   
   // Form state
   const [formData, setFormData] = useState({
@@ -38,11 +57,78 @@ export default function AddSoundKitPage() {
   // Loading and message states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  const [editingSoundKitId, setEditingSoundKitId] = useState<string | null>(null);
 
   useEffect(() => {
-    getSoundKitCategories().then(setCategoryOptions);
-    getSoundKitTags().then(setTagOptions);
-  }, []);
+    // Load sound kit data if in edit mode
+    if (isEditMode) {
+      const editSoundKitData = localStorage.getItem('editSoundKitData');
+      if (editSoundKitData) {
+        try {
+          const soundKitData = JSON.parse(editSoundKitData);
+          
+          // Populate form data
+          setFormData({
+            kitName: soundKitData.kitName || '',
+            kitId: soundKitData.kitId || '',
+            price: soundKitData.price?.toString() || '',
+            kitType: soundKitData.kitType || '',
+            bpm: soundKitData.bpm?.toString() || '',
+            key: soundKitData.key || ''
+          });
+
+          // Set other form fields
+          setPublish(soundKitData.publish || 'Private');
+          setMusician(soundKitData.musician || '');
+          setDescription(soundKitData.description || '');
+          setSeoTitle(soundKitData.seoTitle || '');
+          setSeoKeyword(soundKitData.seoKeyword || '');
+          setSeoDescription(soundKitData.seoDescription || '');
+
+          // Set sound kit image if available
+          if (soundKitData.kitImage) {
+            setImage(soundKitData.kitImage);
+          }
+
+          // Set selected categories and tags
+          if (soundKitData.categories && Array.isArray(soundKitData.categories)) {
+            setCategories(soundKitData.categories);
+          }
+          if (soundKitData.tags && Array.isArray(soundKitData.tags)) {
+            setTags(soundKitData.tags);
+          }
+
+          // Store the sound kit ID for updating
+          setEditingSoundKitId(soundKitData._id);
+
+          // Clear the localStorage after loading
+          localStorage.removeItem('editSoundKitData');
+        } catch (error) {
+          console.error('Error parsing sound kit data:', error);
+        }
+      }
+    }
+
+    const loadCategoriesAndTags = async () => {
+      try {
+        // Load categories from MongoDB
+        const categoriesResponse = await soundKitCategoryAPI.getCategories();
+        if (categoriesResponse.success) {
+          setCategoryOptions(categoriesResponse.categories);
+        }
+        
+        // Load tags from MongoDB
+        const tagsResponse = await soundKitTagAPI.getTags();
+        if (tagsResponse.success) {
+          setTagOptions(tagsResponse.tags);
+        }
+      } catch (error) {
+        console.error('Error loading categories and tags:', error);
+      }
+    };
+
+    loadCategoriesAndTags();
+  }, [isEditMode]);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -52,12 +138,142 @@ export default function AddSoundKitPage() {
     const file = e.target.files?.[0];
     if (file) setKitFile(file);
   }
-  function handleCategoryChange(option: string) {
-    setCategories((prev) => prev.includes(option) ? prev.filter(c => c !== option) : [...prev, option]);
-  }
-  function handleTagChange(option: string) {
-    setTags((prev) => prev.includes(option) ? prev.filter(t => t !== option) : [...prev, option]);
-  }
+  // Handle multi-select with checkboxes
+  const handleCategoryToggle = (categoryId: string) => {
+    setCategories(prev => 
+      prev.includes(categoryId) 
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  const handleTagToggle = (tagId: string) => {
+    setTags(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
+  // Filtered data based on search
+  const filteredCategories = categoryOptions.filter(category =>
+    category.name.toLowerCase().includes(categorySearch.toLowerCase()) ||
+    category.description.toLowerCase().includes(categorySearch.toLowerCase())
+  );
+
+  const filteredTags = tagOptions.filter(tag =>
+    tag.name.toLowerCase().includes(tagSearch.toLowerCase()) ||
+    tag.description.toLowerCase().includes(tagSearch.toLowerCase())
+  );
+
+  // Add new item functions
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim() || isAddingCategory) return;
+    
+    setIsAddingCategory(true);
+    try {
+      const response = await soundKitCategoryAPI.createCategory({
+        name: newCategoryName.trim(),
+        description: newCategoryDescription.trim()
+      });
+      
+      if (response.success) {
+        // Add the new category to the list and select it
+        const newCategory = response.category;
+        console.log('New category created:', newCategory);
+        
+        setCategoryOptions(prev => {
+          // Check if category already exists to avoid duplicates
+          const exists = prev.find(c => c._id === newCategory.id);
+          if (exists) {
+            console.log('Category already exists in state:', exists);
+            return prev;
+          }
+          return [...prev, {
+            _id: newCategory.id,
+            name: newCategory.name,
+            description: newCategory.description,
+            color: newCategory.color,
+            isActive: newCategory.isActive
+          }];
+        });
+        
+        // Ensure we're using the correct ID field
+        const categoryId = newCategory._id || (newCategory as any).id;
+        
+        setCategories(prev => {
+          // Check if already selected to avoid duplicates
+          if (prev.includes(categoryId)) {
+            return prev;
+          }
+          return [...prev, categoryId];
+        });
+        
+        // Reset form
+        setNewCategoryName('');
+        setNewCategoryDescription('');
+        setShowAddCategory(false);
+      }
+    } catch (error) {
+      console.error('Error adding category:', error);
+    } finally {
+      setIsAddingCategory(false);
+    }
+  };
+
+  const handleAddTag = async () => {
+    if (!newTagName.trim() || isAddingTag) return;
+    
+    setIsAddingTag(true);
+    try {
+      const response = await soundKitTagAPI.createTag({
+        name: newTagName.trim(),
+        description: newTagDescription.trim()
+      });
+      
+      if (response.success) {
+        // Add the new tag to the list and select it
+        const newTag = response.tag;
+        console.log('New tag created:', newTag);
+        
+        setTagOptions(prev => {
+          // Check if tag already exists to avoid duplicates
+          const exists = prev.find(t => t._id === newTag.id);
+          if (exists) {
+            console.log('Tag already exists in state:', exists);
+            return prev;
+          }
+          return [...prev, {
+            _id: newTag.id,
+            name: newTag.name,
+            description: newTag.description,
+            color: newTag.color,
+            isActive: newTag.isActive
+          }];
+        });
+        
+        // Ensure we're using the correct ID field
+        const tagId = newTag._id || (newTag as any).id;
+        
+        setTags(prev => {
+          // Check if already selected to avoid duplicates
+          if (prev.includes(tagId)) {
+            return prev;
+          }
+          return [...prev, tagId];
+        });
+        
+        // Reset form
+        setNewTagName('');
+        setNewTagDescription('');
+        setShowAddTag(false);
+      }
+    } catch (error) {
+      console.error('Error adding tag:', error);
+    } finally {
+      setIsAddingTag(false);
+    }
+  };
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target;
@@ -98,29 +314,45 @@ export default function AddSoundKitPage() {
 
       console.log('Sending sound kit data:', soundKitData);
 
-      const response = await soundKitAPI.createSoundKit(soundKitData);
+      let response;
+      if (isEditMode && editingSoundKitId) {
+        // Update existing sound kit
+        response = await soundKitAPI.updateSoundKit(editingSoundKitId, soundKitData);
+      } else {
+        // Create new sound kit
+        response = await soundKitAPI.createSoundKit(soundKitData);
+      }
       
       if (response.success) {
-        setSubmitMessage('Sound kit created successfully!');
-        // Reset form
-        setFormData({
-          kitName: '',
-          kitId: '',
-          price: '',
-          kitType: '',
-          bpm: '',
-          key: ''
-        });
-        setDescription('');
-        setMusician('');
-        setCategories([]);
-        setTags([]);
-        setImage(null);
-        setKitFile(null);
-        setPublish('Private');
-        setSeoTitle('');
-        setSeoKeyword('');
-        setSeoDescription('');
+        const message = isEditMode ? 'Sound kit updated successfully!' : 'Sound kit created successfully!';
+        setSubmitMessage(message);
+        
+        if (!isEditMode) {
+          // Reset form only for new sound kits
+          setFormData({
+            kitName: '',
+            kitId: '',
+            price: '',
+            kitType: '',
+            bpm: '',
+            key: ''
+          });
+          setDescription('');
+          setMusician('');
+          setCategories([]);
+          setTags([]);
+          setImage(null);
+          setKitFile(null);
+          setPublish('Private');
+          setSeoTitle('');
+          setSeoKeyword('');
+          setSeoDescription('');
+        }
+        
+        // Redirect back to sound kits list after successful operation
+        setTimeout(() => {
+          router.push('/admin/sound-kits');
+        }, 2000);
       }
     } catch (error: any) {
       console.error('Error creating sound kit:', error);
@@ -137,7 +369,7 @@ export default function AddSoundKitPage() {
 
   return (
     <div className="min-h-screen p-8 bg-[#081028]">
-      <h1 className="text-3xl font-bold text-white mb-8">Sound Kits <span className="text-lg font-normal text-gray-400 ml-4">Add Sound Kits</span></h1>
+              <h1 className="text-3xl font-bold text-white mb-8">Sound Kits <span className="text-lg font-normal text-gray-400 ml-4">{isEditMode ? 'Edit Sound Kit' : 'Add Sound Kits'}</span></h1>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Main Form */}
         <div className="lg:col-span-2 flex flex-col gap-8">
@@ -276,36 +508,226 @@ export default function AddSoundKitPage() {
                 </>
               ) : (
                 <>
-                  Add Sound Kit <span className="ml-2">→</span>
+                  {isEditMode ? 'Update Sound Kit' : 'Add Sound Kit'} <span className="ml-2">→</span>
                 </>
               )}
             </button>
           </div>
           {/* Sound Kit Category */}
           <div className="bg-[#101936] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
-            <label className="block text-gray-300 mb-2">Sound Kit Category</label>
-            <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none mb-2" placeholder="Enter Category..." />
-            <div className="max-h-32 overflow-y-auto border border-[#232B43] rounded-lg bg-[#181F36]">
-              {categoryOptions.map(opt => (
-                <div key={opt.id} className="flex items-center px-3 py-2">
-                  <input type="checkbox" checked={categories.includes(opt.name)} onChange={() => handleCategoryChange(opt.name)} className="accent-[#E100FF] mr-2" />
-                  <span className="text-white text-sm">{opt.name}</span>
-                </div>
-              ))}
+            <div className="flex items-center justify-between">
+              <label className="block text-gray-300 mb-2">Sound Kit Category</label>
+              <button
+                type="button"
+                onClick={() => setShowAddCategory(!showAddCategory)}
+                className="text-[#E100FF] text-sm hover:text-[#c800d6] transition-colors"
+              >
+                {showAddCategory ? 'Cancel' : '+ Add New'}
+              </button>
             </div>
+            
+            {/* Add New Category Form */}
+            {showAddCategory && (
+              <div className="bg-[#232B43] rounded-lg p-4 mb-4 border border-[#E100FF]/30">
+                <h4 className="text-white text-sm font-medium mb-3">Add New Category</h4>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Category Name"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#E100FF]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Description (optional)"
+                    value={newCategoryDescription}
+                    onChange={(e) => setNewCategoryDescription(e.target.value)}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#E100FF]"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddCategory}
+                      disabled={!newCategoryName.trim() || isAddingCategory}
+                      className="flex-1 bg-[#E100FF] text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-[#c800d6] transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isAddingCategory ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Adding...</span>
+                        </>
+                      ) : (
+                        'Add Category'
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddCategory(false);
+                        setNewCategoryName('');
+                        setNewCategoryDescription('');
+                      }}
+                      className="px-3 py-2 text-gray-400 text-sm hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <input 
+              type="text"
+              value={categorySearch}
+              onChange={(e) => setCategorySearch(e.target.value)}
+              className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2 focus:outline-none focus:ring-1 focus:ring-[#E100FF]" 
+              placeholder="Search categories..." 
+            />
+            <label className="block text-gray-400 text-xs mb-2">All categories</label>
+            
+            <div className="max-h-48 overflow-y-auto bg-[#181F36] rounded-lg border border-[#232B43] p-2">
+              {filteredCategories.length === 0 ? (
+                <div className="text-gray-400 text-sm text-center py-4">
+                  {categorySearch ? 'No categories found matching your search' : 'No categories available'}
+                </div>
+              ) : (
+                filteredCategories.map(category => (
+                <div key={category._id} className="flex items-center gap-3 p-2 hover:bg-[#232B43] rounded cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id={`category-${category._id}`}
+                    checked={categories.includes(category._id)}
+                    onChange={() => handleCategoryToggle(category._id)}
+                    className="w-4 h-4 text-[#E100FF] bg-[#232B43] border-[#232B43] rounded focus:ring-[#E100FF] focus:ring-2"
+                  />
+                  <label htmlFor={`category-${category._id}`} className="text-white text-sm cursor-pointer flex-1">
+                    {category.name}
+                  </label>
+                </div>
+                ))
+              )}
+            </div>
+            {categories.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {categories.map(categoryId => {
+                  const category = categoryOptions.find(c => c._id === categoryId);
+                  return category ? (
+                    <span key={categoryId} className="bg-[#E100FF]/20 text-[#E100FF] px-2 py-1 rounded-full text-xs">
+                      {category.name}
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            )}
           </div>
           {/* Sound Kit Tags */}
           <div className="bg-[#101936] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
-            <label className="block text-gray-300 mb-2">Sound Kit Tags</label>
-            <input className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none mb-2" placeholder="Enter Tag..." />
-            <div className="max-h-32 overflow-y-auto border border-[#232B43] rounded-lg bg-[#181F36]">
-              {tagOptions.map(opt => (
-                <div key={opt.id} className="flex items-center px-3 py-2">
-                  <input type="checkbox" checked={tags.includes(opt.name)} onChange={() => handleTagChange(opt.name)} className="accent-[#E100FF] mr-2" />
-                  <span className="text-white text-sm">{opt.name}</span>
-                </div>
-              ))}
+            <div className="flex items-center justify-between">
+              <label className="block text-gray-300 mb-2">Sound Kit Tags</label>
+              <button
+                type="button"
+                onClick={() => setShowAddTag(!showAddTag)}
+                className="text-[#E100FF] text-sm hover:text-[#c800d6] transition-colors"
+              >
+                {showAddTag ? 'Cancel' : '+ Add New'}
+              </button>
             </div>
+            
+            {/* Add New Tag Form */}
+            {showAddTag && (
+              <div className="bg-[#232B43] rounded-lg p-4 mb-4 border border-[#E100FF]/30">
+                <h4 className="text-white text-sm font-medium mb-3">Add New Tag</h4>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Tag Name"
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#E100FF]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Description (optional)"
+                    value={newTagDescription}
+                    onChange={(e) => setNewTagDescription(e.target.value)}
+                    className="w-full bg-[#181F36] text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#E100FF]"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddTag}
+                      disabled={!newTagName.trim() || isAddingTag}
+                      className="flex-1 bg-[#E100FF] text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-[#c800d6] transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isAddingTag ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Adding...</span>
+                        </>
+                      ) : (
+                        'Add Tag'
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddTag(false);
+                        setNewTagName('');
+                        setNewTagDescription('');
+                      }}
+                      className="px-3 py-2 text-gray-400 text-sm hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <input 
+              type="text"
+              value={tagSearch}
+              onChange={(e) => setTagSearch(e.target.value)}
+              className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 mb-2 focus:outline-none focus:ring-1 focus:ring-[#E100FF]" 
+              placeholder="Search tags..." 
+            />
+            <label className="block text-gray-400 text-xs mb-2">All tags</label>
+            
+            <div className="max-h-48 overflow-y-auto bg-[#181F36] rounded-lg border border-[#232B43] p-2">
+              {filteredTags.length === 0 ? (
+                <div className="text-gray-400 text-sm text-center py-4">
+                  {tagSearch ? 'No tags found matching your search' : 'No tags available'}
+                </div>
+              ) : (
+                filteredTags.map(tag => (
+                <div key={tag._id} className="flex items-center gap-3 p-2 hover:bg-[#232B43] rounded cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id={`tag-${tag._id}`}
+                    checked={tags.includes(tag._id)}
+                    onChange={() => handleTagToggle(tag._id)}
+                    className="w-4 h-4 text-[#E100FF] bg-[#232B43] border-[#232B43] rounded focus:ring-[#E100FF] focus:ring-2"
+                  />
+                  <label htmlFor={`tag-${tag._id}`} className="text-white text-sm cursor-pointer flex-1">
+                    {tag.name}
+                  </label>
+                </div>
+                ))
+              )}
+            </div>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {tags.map(tagId => {
+                  const tag = tagOptions.find(t => t._id === tagId);
+                  return tag ? (
+                    <span key={tagId} className="bg-[#E100FF]/20 text-[#E100FF] px-2 py-1 rounded-full text-xs">
+                      {tag.name}
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            )}
           </div>
           {/* SEO Settings */}
           <div className="bg-[#101936] rounded-2xl p-6 shadow-xl flex flex-col gap-4">

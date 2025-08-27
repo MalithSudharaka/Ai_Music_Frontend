@@ -4,7 +4,7 @@ import { FaEye, FaEdit, FaTrash, FaPlus, FaTimes, FaDrum } from "react-icons/fa"
 import { beatAPI } from "../../utils/api";
 
 interface Beat {
-  id: string;
+  _id: string;
   name: string;
   description: string;
   color: string;
@@ -23,6 +23,9 @@ export default function BeatsPage() {
   const [newBeat, setNewBeat] = useState({ name: '', description: '', color: '#E100FF' });
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingBeat, setDeletingBeat] = useState<Beat | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const pageSize = 8;
 
@@ -83,7 +86,7 @@ export default function BeatsPage() {
     setMessage('');
 
     try {
-      const response = await beatAPI.updateBeat(editingBeat.id, {
+      const response = await beatAPI.updateBeat(editingBeat._id, {
         name: editingBeat.name,
         description: editingBeat.description,
         color: editingBeat.color
@@ -102,20 +105,39 @@ export default function BeatsPage() {
     }
   }
 
-  async function handleDeleteBeat(beatId: string) {
-    if (!confirm('Are you sure you want to delete this beat?')) {
-      return;
-    }
+  const openDeleteModal = (beat: Beat) => {
+    setDeletingBeat(beat);
+    setShowDeleteModal(true);
+    setMessage(''); // Clear any existing messages when opening modal
+  };
 
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeletingBeat(null);
+    // Don't clear message here - let it display for success feedback
+  };
+
+  async function handleDeleteBeat() {
+    if (!deletingBeat) return;
+    
+    setIsDeleting(true);
     try {
-      const response = await beatAPI.deleteBeat(beatId);
+      const response = await beatAPI.deleteBeat(deletingBeat._id);
       if (response.success) {
         setMessage('Beat deleted successfully!');
-        loadBeats(); // Reload the list
+        // Remove from local state
+        setBeats(prev => prev.filter(beat => beat._id !== deletingBeat._id));
+        closeDeleteModal();
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setMessage('');
+        }, 3000);
       }
     } catch (error: any) {
       console.error('Error deleting beat:', error);
-      setMessage(error.response?.data?.message || 'Failed to delete beat');
+      setMessage('Failed to delete beat');
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -144,7 +166,7 @@ export default function BeatsPage() {
           />
           <button 
             onClick={() => setShowAddModal(true)} 
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/80 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-secondary text-white hover:bg-secondary/80 transition-colors"
           >
             <FaPlus /> Add Beat
           </button>
@@ -185,7 +207,7 @@ export default function BeatsPage() {
             <tbody>
               {paginatedBeats.map((beat, idx) => (
                 <tr
-                  key={beat.id}
+                  key={beat._id}
                   className={
                     idx % 2 === 0
                       ? "bg-[#181F36] hover:bg-[#232B43] transition-colors"
@@ -211,14 +233,7 @@ export default function BeatsPage() {
                   </td>
                   <td className="px-6 py-4 flex gap-4 text-lg">
                     <button 
-                      className="text-white hover:text-[#7ED7FF] transition-colors" 
-                      title="View"
-                      onClick={() => handleEditBeat(beat)}
-                    >
-                      <FaEye />
-                    </button>
-                    <button 
-                      className="text-white hover:text-[#E100FF] transition-colors" 
+                      className="text-white hover:text-secondary transition-colors" 
                       title="Edit"
                       onClick={() => handleEditBeat(beat)}
                     >
@@ -227,7 +242,7 @@ export default function BeatsPage() {
                     <button 
                       className="text-white hover:text-red-500 transition-colors" 
                       title="Delete"
-                      onClick={() => handleDeleteBeat(beat.id)}
+                      onClick={() => openDeleteModal(beat)}
                     >
                       <FaTrash />
                     </button>
@@ -244,7 +259,7 @@ export default function BeatsPage() {
         <div className="md:hidden space-y-4">
           {paginatedBeats.map((beat) => (
             <div
-              key={beat.id}
+              key={beat._id}
               className="bg-[#101936] rounded-xl p-4 shadow-lg border border-[#232B43]"
             >
               <div className="flex justify-between items-start mb-3">
@@ -273,14 +288,7 @@ export default function BeatsPage() {
                 </div>
                 <div className="flex gap-3 text-lg ml-4">
                   <button 
-                    className="text-white hover:text-[#7ED7FF] transition-colors p-1" 
-                    title="View"
-                    onClick={() => handleEditBeat(beat)}
-                  >
-                    <FaEye />
-                  </button>
-                  <button 
-                    className="text-white hover:text-[#E100FF] transition-colors p-1" 
+                    className="text-white hover:text-secondary transition-colors p-1" 
                     title="Edit"
                     onClick={() => handleEditBeat(beat)}
                   >
@@ -289,7 +297,7 @@ export default function BeatsPage() {
                   <button 
                     className="text-white hover:text-red-500 transition-colors p-1" 
                     title="Delete"
-                    onClick={() => handleDeleteBeat(beat.id)}
+                    onClick={() => openDeleteModal(beat)}
                   >
                     <FaTrash />
                   </button>
@@ -384,7 +392,7 @@ export default function BeatsPage() {
               <button
                 onClick={handleSaveBeat}
                 disabled={isSubmitting}
-                className="flex-1 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2 rounded-lg bg-secondary text-white font-semibold hover:bg-secondary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -450,7 +458,7 @@ export default function BeatsPage() {
               <button
                 onClick={handleUpdateBeat}
                 disabled={isSubmitting}
-                className="flex-1 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2 rounded-lg bg-secondary text-white font-semibold hover:bg-secondary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -459,6 +467,53 @@ export default function BeatsPage() {
                   </>
                 ) : (
                   'Update'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && deletingBeat && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-md mx-4">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
+                <FaTrash className="text-red-500 text-xl" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Delete Beat</h2>
+                <p className="text-gray-400 text-sm">This action cannot be undone.</p>
+              </div>
+            </div>
+            
+            <div className="bg-[#181F36] rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-white mb-2">Beat Details:</h3>
+              <p className="text-gray-300 mb-1"><span className="text-gray-400">Name:</span> {deletingBeat.name}</p>
+              <p className="text-gray-300"><span className="text-gray-400">Description:</span> {deletingBeat.description}</p>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={closeDeleteModal}
+                disabled={isDeleting}
+                className="flex-1 py-3 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteBeat}
+                disabled={isDeleting}
+                className="flex-1 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  'Delete Beat'
                 )}
               </button>
             </div>

@@ -4,7 +4,7 @@ import { FaEye, FaEdit, FaTrash, FaPlus, FaTimes, FaTags } from "react-icons/fa"
 import { tagAPI } from "../../utils/api";
 
 interface Tag {
-  id: string;
+  _id: string;
   name: string;
   description: string;
   color: string;
@@ -23,6 +23,9 @@ export default function TagsPage() {
   const [newTag, setNewTag] = useState({ name: '', description: '', color: '#FF6B35' });
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingTag, setDeletingTag] = useState<Tag | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const pageSize = 8;
 
@@ -83,7 +86,7 @@ export default function TagsPage() {
     setMessage('');
 
     try {
-      const response = await tagAPI.updateTag(editingTag.id, {
+      const response = await tagAPI.updateTag(editingTag._id, {
         name: editingTag.name,
         description: editingTag.description,
         color: editingTag.color
@@ -102,20 +105,39 @@ export default function TagsPage() {
     }
   }
 
-  async function handleDeleteTag(tagId: string) {
-    if (!confirm('Are you sure you want to delete this tag?')) {
-      return;
-    }
+  const openDeleteModal = (tag: Tag) => {
+    setDeletingTag(tag);
+    setShowDeleteModal(true);
+    setMessage(''); // Clear any existing messages when opening modal
+  };
 
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeletingTag(null);
+    // Don't clear message here - let it display for success feedback
+  };
+
+  async function handleDeleteTag() {
+    if (!deletingTag) return;
+    
+    setIsDeleting(true);
     try {
-      const response = await tagAPI.deleteTag(tagId);
+      const response = await tagAPI.deleteTag(deletingTag._id);
       if (response.success) {
         setMessage('Tag deleted successfully!');
-        loadTags(); // Reload the list
+        // Remove from local state
+        setTags(prev => prev.filter(tag => tag._id !== deletingTag._id));
+        closeDeleteModal();
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setMessage('');
+        }, 3000);
       }
     } catch (error: any) {
       console.error('Error deleting tag:', error);
-      setMessage(error.response?.data?.message || 'Failed to delete tag');
+      setMessage('Failed to delete tag');
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -144,7 +166,7 @@ export default function TagsPage() {
           />
           <button 
             onClick={() => setShowAddModal(true)} 
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/80 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-secondary text-white hover:bg-secondary/80 transition-colors"
           >
             <FaPlus /> Add Tag
           </button>
@@ -185,15 +207,14 @@ export default function TagsPage() {
             <tbody>
               {paginatedTags.map((tag, idx) => (
                 <tr
-                  key={tag.id}
+                  key={tag._id}
                   className={
                     idx % 2 === 0
                       ? "bg-[#181F36] hover:bg-[#232B43] transition-colors"
                       : "bg-[#081028] hover:bg-[#232B43] transition-colors"
                   }
                 >
-                  <td className="px-6 py-4 font-medium flex items-center gap-2">
-                    <FaTags className="text-[#FF6B35]" />
+                  <td className="px-6 py-4 font-medium">
                     {tag.name}
                   </td>
                   <td className="px-6 py-4 text-gray-300">{tag.description}</td>
@@ -211,14 +232,7 @@ export default function TagsPage() {
                   </td>
                   <td className="px-6 py-4 flex gap-4 text-lg">
                     <button 
-                      className="text-white hover:text-[#7ED7FF] transition-colors" 
-                      title="View"
-                      onClick={() => handleEditTag(tag)}
-                    >
-                      <FaEye />
-                    </button>
-                    <button 
-                      className="text-white hover:text-[#FF6B35] transition-colors" 
+                      className="text-white hover:text-secondary transition-colors" 
                       title="Edit"
                       onClick={() => handleEditTag(tag)}
                     >
@@ -227,7 +241,7 @@ export default function TagsPage() {
                     <button 
                       className="text-white hover:text-red-500 transition-colors" 
                       title="Delete"
-                      onClick={() => handleDeleteTag(tag.id)}
+                      onClick={() => openDeleteModal(tag)}
                     >
                       <FaTrash />
                     </button>
@@ -244,7 +258,7 @@ export default function TagsPage() {
         <div className="md:hidden space-y-4">
           {paginatedTags.map((tag) => (
             <div
-              key={tag.id}
+              key={tag._id}
               className="bg-[#101936] rounded-xl p-4 shadow-lg border border-[#232B43]"
             >
               <div className="flex justify-between items-start mb-3">
@@ -273,14 +287,7 @@ export default function TagsPage() {
                 </div>
                 <div className="flex gap-3 text-lg ml-4">
                   <button 
-                    className="text-white hover:text-[#7ED7FF] transition-colors p-1" 
-                    title="View"
-                    onClick={() => handleEditTag(tag)}
-                  >
-                    <FaEye />
-                  </button>
-                  <button 
-                    className="text-white hover:text-[#FF6B35] transition-colors p-1" 
+                    className="text-white hover:text-secondary transition-colors p-1" 
                     title="Edit"
                     onClick={() => handleEditTag(tag)}
                   >
@@ -289,7 +296,7 @@ export default function TagsPage() {
                   <button 
                     className="text-white hover:text-red-500 transition-colors p-1" 
                     title="Delete"
-                    onClick={() => handleDeleteTag(tag.id)}
+                    onClick={() => openDeleteModal(tag)}
                   >
                     <FaTrash />
                   </button>
@@ -308,7 +315,7 @@ export default function TagsPage() {
           </span>
           <div className="flex gap-2 items-center">
             <button
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${page === 1 ? 'bg-[#232B43] text-gray-500' : 'bg-[#232B43] hover:bg-[#FF6B35] hover:text-white'} transition-colors`}
+              className={`w-8 h-8 rounded-full flex items-center justify-center ${page === 1 ? 'bg-[#232B43] text-gray-500' : 'bg-[#232B43] hover:bg-secondary hover:text-white'} transition-colors`}
               onClick={() => setPage(page - 1)}
               disabled={page === 1}
             >
@@ -317,14 +324,14 @@ export default function TagsPage() {
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
               <button
                 key={num}
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${page === num ? 'bg-[#FF6B35] text-white' : 'bg-[#232B43] text-gray-300 hover:bg-[#FF6B35] hover:text-white'} transition-colors`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${page === num ? 'bg-secondary text-white' : 'bg-[#232B43] text-gray-300 hover:bg-secondary hover:text-white'} transition-colors`}
                 onClick={() => setPage(num)}
               >
                 {num}
               </button>
             ))}
             <button
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${page === totalPages ? 'bg-[#232B43] text-gray-500' : 'bg-[#232B43] hover:bg-[#FF6B35] hover:text-white'} transition-colors`}
+              className={`w-8 h-8 rounded-full flex items-center justify-center ${page === totalPages ? 'bg-[#232B43] text-gray-500' : 'bg-[#232B43] hover:bg-secondary hover:text-white'} transition-colors`}
               onClick={() => setPage(page + 1)}
               disabled={page === totalPages}
             >
@@ -339,8 +346,7 @@ export default function TagsPage() {
         <div className="fixed inset-0 bg-transparent backdrop-blur-sm bg-[#00000020] flex items-center justify-center z-50 p-4">
           <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-                <FaTags className="text-[#FF6B35]" />
+              <h2 className="text-xl sm:text-2xl font-bold text-white">
                 Add Tag
               </h2>
               <button
@@ -384,7 +390,7 @@ export default function TagsPage() {
               <button
                 onClick={handleSaveTag}
                 disabled={isSubmitting}
-                className="flex-1 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2 rounded-lg bg-secondary text-white font-semibold hover:bg-secondary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -450,7 +456,7 @@ export default function TagsPage() {
               <button
                 onClick={handleUpdateTag}
                 disabled={isSubmitting}
-                className="flex-1 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2 rounded-lg bg-secondary text-white font-semibold hover:bg-secondary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -459,6 +465,53 @@ export default function TagsPage() {
                   </>
                 ) : (
                   'Update'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && deletingTag && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#101936] rounded-2xl p-6 sm:p-8 shadow-xl w-full max-w-md mx-4">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
+                <FaTrash className="text-red-500 text-xl" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Delete Tag</h2>
+                <p className="text-gray-400 text-sm">This action cannot be undone.</p>
+              </div>
+            </div>
+            
+            <div className="bg-[#181F36] rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-white mb-2">Tag Details:</h3>
+              <p className="text-gray-300 mb-1"><span className="text-gray-400">Name:</span> {deletingTag.name}</p>
+              <p className="text-gray-300"><span className="text-gray-400">Description:</span> {deletingTag.description}</p>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={closeDeleteModal}
+                disabled={isDeleting}
+                className="flex-1 py-3 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteTag}
+                disabled={isDeleting}
+                className="flex-1 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  'Delete Tag'
                 )}
               </button>
             </div>
