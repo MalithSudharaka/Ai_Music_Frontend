@@ -7,6 +7,11 @@ export default function GenresCategoryPage() {
   const [genres, setGenres] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
+  const [editGenre, setEditGenre] = useState({ name: '', description: '' });
   const [newGenre, setNewGenre] = useState({ name: '', description: '' });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingGenre, setDeletingGenre] = useState<any>(null);
@@ -53,6 +58,7 @@ export default function GenresCategoryPage() {
     setNewGenre({ name: '', description: '' });
   }
 
+
   const openDeleteModal = (genre: any) => {
     setDeletingGenre(genre);
     setShowDeleteModal(true);
@@ -84,6 +90,7 @@ export default function GenresCategoryPage() {
       setIsDeleting(false);
     }
   };
+
 
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-[#081028]">
@@ -147,12 +154,14 @@ export default function GenresCategoryPage() {
                 <td className="px-6 py-4">{genre.name}</td>
                 <td className="px-6 py-4">{genre.description}</td>
                 <td className="px-6 py-4 flex gap-4 text-lg">
+
                   <button className="text-white hover:text-[#7ED7FF] transition-colors" title="View"><FaEye /></button>
                   <button className="text-white hover:text-[#E100FF] transition-colors" title="Edit"><FaEdit /></button>
                   <button 
                     onClick={() => openDeleteModal(genre)}
                     className="text-white hover:text-red-500 transition-colors" 
                     title="Delete"
+
                   >
                     <FaTrash />
                   </button>
@@ -178,16 +187,26 @@ export default function GenresCategoryPage() {
                 <p className="text-gray-400 text-sm">{genre.description}</p>
               </div>
               <div className="flex gap-3 text-lg ml-4">
-                <button className="text-white hover:text-[#7ED7FF] transition-colors p-1" title="View">
+                <button 
+                  className="text-white hover:text-[#7ED7FF] transition-colors p-1" 
+                  title="View"
+                  onClick={() => handleViewGenre(genre)}
+                >
                   <FaEye />
                 </button>
-                <button className="text-white hover:text-[#E100FF] transition-colors p-1" title="Edit">
+                <button 
+                  className="text-white hover:text-[#E100FF] transition-colors p-1" 
+                  title="Edit"
+                  onClick={() => handleEditGenre(genre)}
+                >
                   <FaEdit />
                 </button>
                 <button 
+
                   onClick={() => openDeleteModal(genre)}
                   className="text-white hover:text-red-500 transition-colors p-1" 
                   title="Delete"
+
                 >
                   <FaTrash />
                 </button>
@@ -286,6 +305,7 @@ export default function GenresCategoryPage() {
         </div>
       )}
 
+
       {/* Delete Confirmation Modal */}
       {showDeleteModal && deletingGenre && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -317,10 +337,12 @@ export default function GenresCategoryPage() {
                 onClick={closeDeleteModal}
                 disabled={isDeleting}
                 className="px-6 py-2 bg-[#232B43] text-white rounded-lg hover:bg-[#2a3447] transition-colors disabled:opacity-50"
+
               >
                 Cancel
               </button>
               <button
+
                 onClick={handleDeleteGenre}
                 disabled={isDeleting}
                 className={`px-6 py-2 rounded-lg transition-colors ${
@@ -330,6 +352,7 @@ export default function GenresCategoryPage() {
                 }`}
               >
                 {isDeleting ? 'Deleting...' : 'Delete Genre'}
+
               </button>
             </div>
           </div>

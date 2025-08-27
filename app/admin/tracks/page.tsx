@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+
 import { trackAPI } from "../../utils/api";
 import { FaEye, FaEdit, FaTrash, FaTimes, FaPlus } from "react-icons/fa";
 import { useRouter } from "next/navigation";
@@ -32,10 +33,12 @@ interface Track {
   updatedAt?: string;
 }
 
+
 export default function TracksPage() {
   const router = useRouter();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [page, setPage] = useState(1);
+
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [showViewModal, setShowViewModal] = useState(false);
@@ -43,6 +46,7 @@ export default function TracksPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingTrack, setDeletingTrack] = useState<Track | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
   const pageSize = 8;
 
   useEffect(() => {
@@ -69,6 +73,7 @@ export default function TracksPage() {
   const totalPages = Math.ceil(tracks.length / pageSize);
 
   const paginatedTracks = tracks.slice((page - 1) * pageSize, page * pageSize);
+
 
   const handleViewTrack = (track: Track) => {
     setSelectedTrack(track);
@@ -122,6 +127,7 @@ export default function TracksPage() {
       setIsDeleting(false);
     }
   };
+
 
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-[#081028]">
@@ -211,7 +217,9 @@ export default function TracksPage() {
                   <button 
                     className="text-white hover:text-red-500 transition-colors" 
                     title="Delete"
+
                     onClick={() => openDeleteModal(track)}
+
                   >
                     <FaTrash />
                   </button>
@@ -252,7 +260,9 @@ export default function TracksPage() {
                 <button 
                   className="text-white hover:text-red-500 transition-colors" 
                   title="Delete"
+
                   onClick={() => openDeleteModal(track)}
+
                 >
                   <FaTrash />
                 </button>
@@ -295,6 +305,7 @@ export default function TracksPage() {
           </button>
         </div>
       </div>
+
       )}
 
       {/* View Track Modal */}
@@ -305,12 +316,14 @@ export default function TracksPage() {
               <h2 className="text-xl sm:text-2xl font-bold text-white">Track Details</h2>
               <button
                 onClick={closeViewModal}
+
                 className="text-gray-400 hover:text-white transition-colors"
               >
                 <FaTimes className="text-xl" />
               </button>
             </div>
             
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Track Image */}
               <div className="flex justify-center">
@@ -421,10 +434,12 @@ export default function TracksPage() {
                   Created: {new Date(selectedTrack.createdAt).toLocaleDateString()}
                 </div>
               </div>
+
             </div>
           </div>
         </div>
       )}
+
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && deletingTrack && (
@@ -452,10 +467,12 @@ export default function TracksPage() {
                 onClick={closeDeleteModal}
                 disabled={isDeleting}
                 className="flex-1 py-3 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors disabled:opacity-50"
+
               >
                 Cancel
               </button>
               <button
+
                 onClick={handleDeleteTrack}
                 disabled={isDeleting}
                 className="flex-1 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
@@ -468,6 +485,7 @@ export default function TracksPage() {
                 ) : (
                   'Delete Track'
                 )}
+
               </button>
             </div>
           </div>

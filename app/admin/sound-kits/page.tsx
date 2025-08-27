@@ -1,14 +1,17 @@
 "use client";
 import React, { useEffect, useState } from "react";
+
 import { soundKitAPI } from "../../utils/api";
 import { FaEye, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+
 export default function SoundKitsPage() {
   const router = useRouter();
   const [soundKits, setSoundKits] = useState<any[]>([]);
   const [page, setPage] = useState(1);
+
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showViewModal, setShowViewModal] = useState(false);
@@ -19,6 +22,7 @@ export default function SoundKitsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingKit, setDeletingKit] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
   const pageSize = 8;
 
   useEffect(() => {
@@ -142,6 +146,67 @@ export default function SoundKitsPage() {
   const totalPages = Math.ceil(filteredKits.length / pageSize);
   const paginatedKits = filteredKits.slice((page - 1) * pageSize, page * pageSize);
 
+  function handleViewSoundKit(soundKit: SoundKit) {
+    setSelectedSoundKit(soundKit);
+    setShowViewModal(true);
+  }
+
+  function handleCloseViewModal() {
+    setShowViewModal(false);
+    setSelectedSoundKit(null);
+  }
+
+  function handleEditSoundKit(soundKit: SoundKit) {
+    setSelectedSoundKit(soundKit);
+    setEditSoundKit({ 
+      soundKitName: soundKit.soundKitName, 
+      musician: soundKit.musician, 
+      price: soundKit.price 
+    });
+    setShowEditModal(true);
+  }
+
+  function handleSaveEditSoundKit() {
+    // Here you would typically update to your backend
+    console.log('Updating sound kit:', selectedSoundKit?.id, editSoundKit);
+    // Update the sound kit in the local state (simulate backend update)
+    setSoundKits(soundKits.map(kit => 
+      kit.id === selectedSoundKit?.id 
+        ? { ...kit, soundKitName: editSoundKit.soundKitName, musician: editSoundKit.musician, price: editSoundKit.price }
+        : kit
+    ));
+    setShowEditModal(false);
+    setSelectedSoundKit(null);
+    setEditSoundKit({ soundKitName: '', musician: '', price: '' });
+  }
+
+  function handleCloseEditModal() {
+    setShowEditModal(false);
+    setSelectedSoundKit(null);
+    setEditSoundKit({ soundKitName: '', musician: '', price: '' });
+  }
+
+  function handleDeleteSoundKit(soundKit: SoundKit) {
+    setSelectedSoundKit(soundKit);
+    setShowDeleteModal(true);
+  }
+
+  function handleConfirmDelete() {
+    if (selectedSoundKit) {
+      // Here you would typically delete from your backend
+      console.log('Deleting sound kit:', selectedSoundKit.id);
+      // Remove the sound kit from the local state (simulate backend deletion)
+      setSoundKits(soundKits.filter(kit => kit.id !== selectedSoundKit.id));
+      setShowDeleteModal(false);
+      setSelectedSoundKit(null);
+    }
+  }
+
+  function handleCloseDeleteModal() {
+    setShowDeleteModal(false);
+    setSelectedSoundKit(null);
+  }
+
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-[#081028]">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
@@ -186,10 +251,12 @@ export default function SoundKitsPage() {
             </tr>
           </thead>
           <tbody>
+
             {paginatedKits.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
                   {searchTerm ? 'No sound kits found matching your search' : 'No sound kits available'}
+
                 </td>
               </tr>
             ) : (
@@ -245,6 +312,7 @@ export default function SoundKitsPage() {
       )}
 
       {/* Mobile Cards View */}
+
       {!loading && (
         <div className="md:hidden space-y-4">
           {paginatedKits.length === 0 ? (
@@ -252,6 +320,7 @@ export default function SoundKitsPage() {
               <p className="text-gray-400">
                 {searchTerm ? 'No sound kits found matching your search' : 'No sound kits available'}
               </p>
+
             </div>
           ) : (
             paginatedKits.map((kit, idx) => (
@@ -334,6 +403,7 @@ export default function SoundKitsPage() {
       </div>
 
       {/* View Sound Kit Modal */}
+
       {showViewModal && selectedKit && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-[#101936] rounded-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -615,6 +685,7 @@ export default function SoundKitsPage() {
                   Close
                 </button>
               )}
+
             </div>
           </div>
         </div>
@@ -659,10 +730,12 @@ export default function SoundKitsPage() {
                 onClick={closeDeleteModal}
                 disabled={isDeleting}
                 className="px-6 py-2 bg-[#232B43] text-white rounded-lg hover:bg-[#2a3447] transition-colors disabled:opacity-50"
+
               >
                 Cancel
               </button>
               <button
+
                 onClick={handleDeleteKit}
                 disabled={isDeleting}
                 className={`px-6 py-2 rounded-lg transition-colors ${
@@ -672,6 +745,7 @@ export default function SoundKitsPage() {
                 }`}
               >
                 {isDeleting ? 'Deleting...' : 'Delete Sound Kit'}
+
               </button>
             </div>
           </div>
