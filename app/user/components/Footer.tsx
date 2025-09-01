@@ -2,7 +2,7 @@ import React from 'react'
 import Logo from '../images/logo/logo.png'
 function Footer() {
   return (
-    <footer className="bg-black/10 backdrop-blur-sm border-t border-white/20 mt-20">
+    <footer className="bg-white/10 backdrop-blur-md border-t border-white/30 mt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-10 xl:px-20 2xl:px-20 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           
@@ -40,11 +40,10 @@ function Footer() {
           <div className="space-y-4">
             <h4 className="text-white font-roboto font-semibold text-lg">Quick Links</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors font-roboto font-light-300 text-sm">Home</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors font-roboto font-light-300 text-sm">Top Charts</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors font-roboto font-light-300 text-sm">Sound Kits</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors font-roboto font-light-300 text-sm">Musicians</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors font-roboto font-light-300 text-sm">Genres</a></li>
+              <li><a href="/user/pages/home" className="text-gray-400 hover:text-white transition-colors font-roboto font-light-300 text-sm">Home</a></li>
+              <li><a href="/user/pages/topcharts" className="text-gray-400 hover:text-white transition-colors font-roboto font-light-300 text-sm">Top Charts</a></li>
+              <li><a href="/user/pages/SoundsKit" className="text-gray-400 hover:text-white transition-colors font-roboto font-light-300 text-sm">Sound Kits</a></li>
+              <li><a href="/user/pages/Musicians" className="text-gray-400 hover:text-white transition-colors font-roboto font-light-300 text-sm">Musicians</a></li>
             </ul>
           </div>
 

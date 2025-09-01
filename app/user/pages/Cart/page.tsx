@@ -1,169 +1,116 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      title: "Summer Vibes Beat",
-      artist: "DJ Producer",
-      price: 29.99,
-      image: "/api/placeholder/100/100",
-      category: "Beat"
-    },
-    {
-      id: 2,
-      title: "Urban Sound Kit",
-      artist: "Sound Master",
-      price: 49.99,
-      image: "/api/placeholder/100/100",
-      category: "Sound Kit"
-    },
-    {
-      id: 3,
-      title: "Chill Lo-Fi Track",
-      artist: "Lo-Fi Artist",
-      price: 19.99,
-      image: "/api/placeholder/100/100",
-      category: "Track"
-    }
-  ]);
-
-  const removeItem = (id: number) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-  };
-
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    setCartItems(cartItems.map(item => 
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    ));
-  };
-
-  const total = cartItems.reduce((sum, item) => sum + item.price, 0);
-
   return (
-    <div className="min-h-screen  text-white">
+    <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#1A1A2E] to-[#16213E] text-white">
       <Navbar />
       
       {/* Background Effects */}
       <div className='containerpaddin container mx-auto pt-34 sm:pt-28 md:pt-32 lg:pt-50 xl:pt-50'>
-      
-
-      <div className="relative z-10 container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Shopping Cart</h1>
-            <p className="text-gray-400 text-lg">
-              {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
-            </p>
-          </div>
-
-          {cartItems.length === 0 ? (
-            /* Empty Cart */
-            <div className="text-center py-16">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gray-800 rounded-full flex items-center justify-center">
-                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+        <div className="relative z-10 container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto text-center">
+            
+            {/* Under Construction Section */}
+            <div className="bg-black/30 backdrop-blur-sm rounded-2xl border border-white/20 p-8 md:p-12">
+              
+              {/* Construction Icon */}
+              <div className="w-24 h-24 mx-auto mb-8 bg-gradient-to-br from-[#E100FF] to-[#7C3AED] rounded-full flex items-center justify-center">
+                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 8.172V5L8 4z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold mb-4">Your cart is empty</h2>
-              <p className="text-gray-400 mb-8">Looks like you haven't added any items to your cart yet.</p>
-              <a 
-                href="/user/pages/home" 
-                className="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                Continue Shopping
-              </a>
-            </div>
-          ) : (
-            /* Cart Items */
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Cart Items List */}
-              <div className="lg:col-span-2">
-                <div className="bg-black/50 backdrop-blur-sm rounded-lg border border-white/20 p-6">
-                  <h2 className="text-xl font-semibold mb-6">Cart Items</h2>
-                  
-                  <div className="space-y-4">
-                    {cartItems.map((item) => (
-                      <div key={item.id} className="flex items-center space-x-4 p-4 bg-black/30 rounded-lg border border-white/10">
-                        {/* Item Image */}
-                        <div className="w-16 h-16 bg-gray-700 rounded-lg flex-shrink-0 flex items-center justify-center">
-                          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                          </svg>
-                        </div>
-                        
-                        {/* Item Details */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-white truncate">{item.title}</h3>
-                          <p className="text-gray-400 text-sm">{item.artist}</p>
-                          <span className="inline-block px-2 py-1 bg-primary/20 text-primary text-xs rounded-full mt-1">
-                            {item.category}
-                          </span>
-                        </div>
-                        
-                        {/* Price */}
-                        <div className="text-right">
-                          <p className="font-semibold text-white">${item.price}</p>
-                        </div>
-                        
-                        {/* Remove Button */}
-                        <button
-                          onClick={() => removeItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+              
+              {/* Main Heading */}
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-[#E100FF] to-[#7C3AED] bg-clip-text text-transparent">
+                Under Construction
+              </h1>
+              
+              {/* Description */}
+              <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed">
+                We're building something amazing for you!
+              </p>
+              
+              <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto">
+                Our shopping cart feature is currently under development. We're working hard to bring you the best music shopping experience. Please check back soon!
+              </p>
+              
+              {/* Progress Bar */}
+              <div className="mb-12">
+                <div className="flex justify-between text-sm text-gray-400 mb-2">
+                  <span>Progress</span>
+                  <span>65%</span>
+                </div>
+                <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-[#E100FF] to-[#7C3AED] h-2 rounded-full transition-all duration-1000"
+                    style={{ width: '65%' }}
+                  ></div>
                 </div>
               </div>
               
-              {/* Order Summary */}
-              <div className="lg:col-span-1">
-                <div className="bg-black/50 backdrop-blur-sm rounded-lg border border-white/20 p-6 sticky top-8">
-                  <h2 className="text-xl font-semibold mb-6">Order Summary</h2>
-                  
-                  <div className="space-y-4 mb-6">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Subtotal</span>
-                      <span className="text-white">${total.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Tax</span>
-                      <span className="text-white">${(total * 0.1).toFixed(2)}</span>
-                    </div>
-                    <div className="border-t border-white/20 pt-4">
-                      <div className="flex justify-between">
-                        <span className="font-semibold text-lg">Total</span>
-                        <span className="font-semibold text-lg text-primary">
-                          ${(total * 1.1).toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
+              {/* Features Coming Soon */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div className="bg-black/20 rounded-lg p-6 border border-white/10">
+                  <div className="w-12 h-12 mx-auto mb-4 bg-[#E100FF]/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-[#E100FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                    </svg>
                   </div>
-                  
-                  <button className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold mb-4">
-                    Proceed to Checkout
-                  </button>
-                  
-                  <button className="w-full bg-transparent border border-white/20 text-white py-3 rounded-lg hover:bg-white/10 transition-colors">
-                    Continue Shopping
-                  </button>
+                  <h3 className="font-semibold text-white mb-2">Smart Cart</h3>
+                  <p className="text-gray-400 text-sm">Intelligent cart management with recommendations</p>
+                </div>
+                
+                <div className="bg-black/20 rounded-lg p-6 border border-white/10">
+                  <div className="w-12 h-12 mx-auto mb-4 bg-[#E100FF]/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-[#E100FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-white mb-2">Secure Payment</h3>
+                  <p className="text-gray-400 text-sm">Multiple payment options with top security</p>
+                </div>
+                
+                <div className="bg-black/20 rounded-lg p-6 border border-white/10">
+                  <div className="w-12 h-12 mx-auto mb-4 bg-[#E100FF]/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-[#E100FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-white mb-2">Instant Access</h3>
+                  <p className="text-gray-400 text-sm">Immediate download after purchase</p>
                 </div>
               </div>
+              
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <a 
+                  href="/user/pages/home" 
+                  className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#E100FF] to-[#7C3AED] text-white rounded-lg hover:from-[#E100FF]/90 hover:to-[#7C3AED]/90 transition-all duration-300 font-semibold"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  Back to Home
+                </a>
+                
+                <a 
+                  href="/user/pages/topcharts" 
+                  className="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-white/20 text-white rounded-lg hover:bg-white/10 hover:border-white/40 transition-all duration-300 font-semibold"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                  </svg>
+                  Browse Music
+                </a>
+              </div>
+              
             </div>
-          )}
+          </div>
         </div>
-      </div>
       </div>
       <Footer />
     </div>
