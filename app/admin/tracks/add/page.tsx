@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { FaCloudUploadAlt, FaFileAudio } from "react-icons/fa";
-import { trackAPI, genreAPI, beatAPI, tagAPI } from '../../../utils/api';
+import { trackAPI, genreAPI, beatAPI, tagAPI, imageAPI } from '../../../utils/api';
 import { useRouter, useSearchParams } from "next/navigation";
 
 const typeOptions = ["Song", "Beats", "Beats w/hook", "Top lines", "Vocal"];
@@ -48,6 +48,8 @@ export default function AddTrackPage() {
   const [beatSearch, setBeatSearch] = useState('');
   const [tagSearch, setTagSearch] = useState('');
   const [trackImage, setTrackImage] = useState<string | null>(null);
+  const [imageFileId, setImageFileId] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [trackFile, setTrackFile] = useState<File | null>(null);
   const [genresData, setGenresData] = useState<{ _id: string; name: string; description: string; color: string; isActive: boolean; }[]>([]);
   const [beatsData, setBeatsData] = useState<{ _id: string; name: string; description: string; color: string; isActive: boolean; }[]>([]);
@@ -76,6 +78,7 @@ export default function AddTrackPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -190,10 +193,52 @@ export default function AddTrackPage() {
 
 
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setSubmitMessage('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      setSubmitMessage('Image file size must be less than 10MB');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    setSubmitMessage('');
+
+    try {
+      // Show preview immediately
       setTrackImage(URL.createObjectURL(file));
+      setImageFile(file);
+
+      // Upload to GridFS
+      const response = await imageAPI.uploadImage(file);
+      
+      if (response.success) {
+        setImageFileId(response.fileId);
+        setSubmitMessage('Image uploaded successfully!');
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSubmitMessage('');
+        }, 3000);
+      }
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      setSubmitMessage(error.response?.data?.message || 'Failed to upload image');
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setSubmitMessage('');
+      }, 5000);
+    } finally {
+      setIsUploadingImage(false);
     }
   }
 
@@ -429,11 +474,14 @@ export default function AddTrackPage() {
         return;
       }
 
+      // Use GridFS image URL if available, otherwise use the image state
+      const imageUrl = imageFileId ? imageAPI.getImage(imageFileId) : trackImage || '';
+
       const trackData = {
         ...formData,
         bpm: formData.bpm ? parseInt(formData.bpm) : undefined,
         trackPrice: formData.trackPrice ? parseFloat(formData.trackPrice) : 0,
-        trackImage: trackImage || '',
+        trackImage: imageUrl,
         trackFile: trackFile ? trackFile.name : '',
         publish: publish,
         genreCategory: selectedGenres,
@@ -479,6 +527,8 @@ export default function AddTrackPage() {
           setSelectedBeats([]);
           setSelectedTags([]);
           setTrackImage(null);
+          setImageFileId(null);
+          setImageFile(null);
           setTrackFile(null);
           setPublish('Private');
         }
@@ -669,20 +719,28 @@ export default function AddTrackPage() {
                 <label className="block text-gray-300 mb-2">Track Image</label>
                 <div
                   className="flex flex-col items-center justify-center border-2 border-dashed border-[#232B43] rounded-xl bg-[#181F36] p-4 cursor-pointer hover:border-[#E100FF] transition"
-                  onClick={() => imageInputRef.current?.click()}
+                  onClick={() => !isUploadingImage && imageInputRef.current?.click()}
                 >
-                  {trackImage ? (
+                  {isUploadingImage ? (
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 border-2 border-[#E100FF] border-t-transparent rounded-full animate-spin mb-2"></div>
+                      <span className="text-xs text-gray-400">Uploading to GridFS...</span>
+                    </div>
+                  ) : trackImage ? (
                     <img src={trackImage} alt="Track" className="w-20 h-20 object-cover rounded-lg mb-2" />
                   ) : (
                     <FaCloudUploadAlt className="text-4xl text-[#7ED7FF] mb-2" />
                   )}
-                  <span className="text-xs text-gray-400">Click or drag to upload image</span>
+                  <span className="text-xs text-gray-400">
+                    {isUploadingImage ? 'Uploading...' : 'Click or drag to upload image'}
+                  </span>
                   <input
                     ref={imageInputRef}
                     type="file"
                     accept="image/*"
                     className="hidden"
                     onChange={handleImageChange}
+                    disabled={isUploadingImage}
                   />
                 </div>
               </div>

@@ -78,6 +78,43 @@ export const profileAPI = {
   },
 };
 
+export const userAPI = {
+  getUsers: async () => {
+    const response = await api.get('/users');
+    return response.data;
+  },
+
+  createUser: async (userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    username?: string;
+    password: string;
+    phone?: string;
+  }) => {
+    const response = await api.post('/users', userData);
+    return response.data;
+  },
+
+  updateUser: async (id: string, userData: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    displayName?: string;
+    location?: string;
+    country?: string;
+    biography?: string;
+  }) => {
+    const response = await api.put(`/users/${id}`, userData);
+    return response.data;
+  },
+
+  deleteUser: async (id: string) => {
+    const response = await api.delete(`/users/${id}`);
+    return response.data;
+  },
+};
+
 export const trackAPI = {
   createTrack: async (trackData: {
     trackName: string;
@@ -354,6 +391,34 @@ export const soundKitTagAPI = {
     console.log('API: Making DELETE request to:', `/sound-kit-tags/${id}`);
     const response = await api.delete(`/sound-kit-tags/${id}`);
     console.log('API: Delete response:', response.data);
+    return response.data;
+  },
+};
+
+export const imageAPI = {
+  uploadImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const response = await api.post('/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  getImage: (fileId: string) => {
+    return `${API_BASE_URL}/image/${fileId}`;
+  },
+
+  deleteImage: async (fileId: string) => {
+    const response = await api.delete(`/image/${fileId}`);
+    return response.data;
+  },
+
+  listImages: async () => {
+    const response = await api.get('/images');
     return response.data;
   },
 };

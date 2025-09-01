@@ -1,8 +1,8 @@
 import React from 'react';
 
 const user = {
-  name: 'John Carter',
-  email: 'john.carter@gmail.com',
+  name: 'Museedle Admin',
+  email: 'museedleadmin@gmail.com',
   image: 'https://randomuser.me/api/portraits/men/32.jpg',
 };
 
@@ -34,11 +34,9 @@ const AdminNavbar = ({ onMenuClick }: AdminNavbarProps) => {
             <div className="font-medium text-white truncate">{user.name}</div>
             <div className="text-xs text-gray-400 truncate">{user.email}</div>
           </div>
-          <img
-            src={user.image}
-            alt="User profile"
-            className="w-10 h-10 rounded-full object-cover border-2 border-[#E100FF] flex-shrink-0"
-          />
+          <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center border-2 border-[#E100FF] flex-shrink-0">
+            <span className="text-white font-bold text-lg">M</span>
+          </div>
         </div>
       </div>
     </nav>

@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-import { soundKitAPI } from "../../utils/api";
+import { soundKitAPI, imageAPI } from "../../utils/api";
+
 import { FaEye, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,6 +26,30 @@ export default function SoundKitsPage() {
 
   const pageSize = 8;
 
+  // Helper function to get proper image URL
+  const getImageUrl = (kitImage: string | null | undefined) => {
+    console.log('Getting image URL for:', kitImage);
+    
+    if (!kitImage) return "/vercel.svg";
+    
+    // If it's already a full URL, return it
+    if (kitImage.startsWith('http://') || kitImage.startsWith('https://')) {
+      console.log('Returning full URL:', kitImage);
+      return kitImage;
+    }
+    
+    // If it's a GridFS file ID, construct the URL
+    if (kitImage.length === 24) { // MongoDB ObjectId length
+      const gridfsUrl = imageAPI.getImage(kitImage);
+      console.log('Constructed GridFS URL:', gridfsUrl);
+      return gridfsUrl;
+    }
+    
+    // If it's a relative path or other format, return as is
+    console.log('Returning as-is:', kitImage);
+    return kitImage;
+  };
+
   useEffect(() => {
     loadSoundKits();
   }, []);
@@ -34,6 +59,7 @@ export default function SoundKitsPage() {
       setLoading(true);
       const response = await soundKitAPI.getSoundKits();
       if (response.success) {
+        console.log('Loaded sound kits:', response.soundKits);
         setSoundKits(response.soundKits);
       }
     } catch (error) {
@@ -271,9 +297,12 @@ export default function SoundKitsPage() {
                 >
                   <td className="px-6 py-4">
                     <img 
-                      src={kit.kitImage || "/vercel.svg"} 
+                      src={getImageUrl(kit.kitImage)} 
                       alt={kit.kitName} 
                       className="w-10 h-10 rounded-full object-cover" 
+                      onError={(e) => {
+                        e.currentTarget.src = "/vercel.svg";
+                      }}
                     />
                   </td>
                   <td className="px-6 py-4">{kit.kitId}</td>
@@ -330,9 +359,12 @@ export default function SoundKitsPage() {
               >
                 <div className="flex items-start gap-4 mb-3">
                   <img 
-                    src={kit.kitImage || "/vercel.svg"} 
+                    src={getImageUrl(kit.kitImage)} 
                     alt={kit.kitName} 
                     className="w-16 h-16 rounded-full object-cover flex-shrink-0" 
+                    onError={(e) => {
+                      e.currentTarget.src = "/vercel.svg";
+                    }}
                   />
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-semibold text-white mb-1 truncate">{kit.kitName}</h3>
@@ -427,9 +459,12 @@ export default function SoundKitsPage() {
                 {/* Kit Image */}
                 <div>
                   <img 
-                    src={selectedKit.kitImage || "/vercel.svg"} 
+                    src={getImageUrl(selectedKit.kitImage)} 
                     alt={selectedKit.kitName} 
                     className="w-48 h-48 object-cover rounded-xl border-2 border-[#232B43]"
+                    onError={(e) => {
+                      e.currentTarget.src = "/vercel.svg";
+                    }}
                   />
                 </div>
 

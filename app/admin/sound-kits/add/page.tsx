@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 import { FaCloudUploadAlt, FaFileAudio, FaPlus } from "react-icons/fa";
-import { soundKitAPI, soundKitCategoryAPI, soundKitTagAPI } from "../../../utils/api";
+import { soundKitAPI, soundKitCategoryAPI, soundKitTagAPI, imageAPI } from "../../../utils/api";
 import { useRouter, useSearchParams } from "next/navigation";
 
 
@@ -18,6 +18,8 @@ export default function AddSoundKitPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [image, setImage] = useState<string | null>(null);
+  const [imageFileId, setImageFileId] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [kitFile, setKitFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
   const [seoTitle, setSeoTitle] = useState("");
@@ -58,6 +60,7 @@ export default function AddSoundKitPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [editingSoundKitId, setEditingSoundKitId] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   useEffect(() => {
     // Load sound kit data if in edit mode
@@ -88,6 +91,13 @@ export default function AddSoundKitPage() {
           // Set sound kit image if available
           if (soundKitData.kitImage) {
             setImage(soundKitData.kitImage);
+            // If it's a GridFS file ID, set it
+            if (soundKitData.kitImage.startsWith('http://localhost:3001/api/image/')) {
+              const fileId = soundKitData.kitImage.split('/').pop();
+              if (fileId) {
+                setImageFileId(fileId);
+              }
+            }
           }
 
           // Set selected categories and tags
@@ -130,9 +140,53 @@ export default function AddSoundKitPage() {
     loadCategoriesAndTags();
   }, [isEditMode]);
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) setImage(URL.createObjectURL(file));
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setSubmitMessage('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      setSubmitMessage('Image file size must be less than 10MB');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    setSubmitMessage('');
+
+    try {
+      // Show preview immediately
+      setImage(URL.createObjectURL(file));
+      setImageFile(file);
+
+      // Upload to GridFS
+      const response = await imageAPI.uploadImage(file);
+      
+      if (response.success) {
+        setImageFileId(response.fileId);
+        setSubmitMessage('Image uploaded successfully!');
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSubmitMessage('');
+        }, 3000);
+      }
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      setSubmitMessage(error.response?.data?.message || 'Failed to upload image');
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setSubmitMessage('');
+      }, 5000);
+    } finally {
+      setIsUploadingImage(false);
+    }
   }
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -296,6 +350,9 @@ export default function AddSoundKitPage() {
         return;
       }
 
+      // Use GridFS image URL if available, otherwise use the image state
+      const imageUrl = imageFileId ? imageAPI.getImage(imageFileId) : image || '';
+
       const soundKitData = {
         ...formData,
         description: description,
@@ -303,7 +360,7 @@ export default function AddSoundKitPage() {
         price: formData.price ? parseFloat(formData.price) : 0,
         producer: musician,
         bpm: formData.bpm ? parseInt(formData.bpm) : undefined,
-        kitImage: image || '',
+        kitImage: imageUrl,
         kitFile: kitFile ? kitFile.name : '',
         tags: tags,
         publish: publish,
@@ -329,24 +386,26 @@ export default function AddSoundKitPage() {
         
         if (!isEditMode) {
           // Reset form only for new sound kits
-          setFormData({
-            kitName: '',
-            kitId: '',
-            price: '',
-            kitType: '',
-            bpm: '',
-            key: ''
-          });
-          setDescription('');
-          setMusician('');
-          setCategories([]);
+        setFormData({
+          kitName: '',
+          kitId: '',
+          price: '',
+          kitType: '',
+          bpm: '',
+          key: ''
+        });
+        setDescription('');
+        setMusician('');
+                  setCategories([]);
           setTags([]);
           setImage(null);
+          setImageFileId(null);
+          setImageFile(null);
           setKitFile(null);
-          setPublish('Private');
-          setSeoTitle('');
-          setSeoKeyword('');
-          setSeoDescription('');
+        setPublish('Private');
+        setSeoTitle('');
+        setSeoKeyword('');
+        setSeoDescription('');
         }
         
         // Redirect back to sound kits list after successful operation
@@ -445,14 +504,28 @@ export default function AddSoundKitPage() {
             {/* Sound Kit Image Upload */}
             <div>
               <label className="block text-gray-300 mb-2">Sound Kit Image</label>
-              <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#232B43] rounded-xl bg-[#181F36] p-4 cursor-pointer hover:border-[#E100FF] transition" onClick={() => imageInputRef.current?.click()}>
-                {image ? (
+              <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#232B43] rounded-xl bg-[#181F36] p-4 cursor-pointer hover:border-[#E100FF] transition" onClick={() => !isUploadingImage && imageInputRef.current?.click()}>
+                {isUploadingImage ? (
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 border-2 border-[#E100FF] border-t-transparent rounded-full animate-spin mb-2"></div>
+                    <span className="text-xs text-gray-400">Uploading to GridFS...</span>
+                  </div>
+                ) : image ? (
                   <img src={image} alt="Sound Kit" className="w-20 h-20 object-cover rounded-lg mb-2" />
                 ) : (
                   <FaCloudUploadAlt className="text-4xl text-[#7ED7FF] mb-2" />
                 )}
-                <span className="text-xs text-gray-400">Click or drag to upload image</span>
-                <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                <span className="text-xs text-gray-400">
+                  {isUploadingImage ? 'Uploading...' : 'Click or drag to upload image'}
+                </span>
+                <input 
+                  ref={imageInputRef} 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleImageChange}
+                  disabled={isUploadingImage}
+                />
               </div>
             </div>
             {/* Sound Kit Upload */}
@@ -516,7 +589,7 @@ export default function AddSoundKitPage() {
           {/* Sound Kit Category */}
           <div className="bg-[#101936] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <label className="block text-gray-300 mb-2">Sound Kit Category</label>
+            <label className="block text-gray-300 mb-2">Sound Kit Category</label>
               <button
                 type="button"
                 onClick={() => setShowAddCategory(!showAddCategory)}
@@ -624,7 +697,7 @@ export default function AddSoundKitPage() {
           {/* Sound Kit Tags */}
           <div className="bg-[#101936] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <label className="block text-gray-300 mb-2">Sound Kit Tags</label>
+            <label className="block text-gray-300 mb-2">Sound Kit Tags</label>
               <button
                 type="button"
                 onClick={() => setShowAddTag(!showAddTag)}

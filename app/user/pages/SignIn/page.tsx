@@ -34,11 +34,9 @@ function SignIn() {
     // Validate individual field on blur
     if (name === 'email') {
       if (!value.trim()) {
-        setErrors(prev => ({ ...prev, email: 'Email is required' }));
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-        setErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+        setErrors(prev => ({ ...prev, email: 'Email or username is required' }));
       } else if (value.length > 100) {
-        setErrors(prev => ({ ...prev, email: 'Email is too long (max 100 characters)' }));
+        setErrors(prev => ({ ...prev, email: 'Email or username is too long (max 100 characters)' }));
       }
     }
     
@@ -56,13 +54,11 @@ function SignIn() {
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
 
-    // Email validation
+    // Email/Username validation
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = 'Email or username is required';
     } else if (formData.email.length > 100) {
-      newErrors.email = 'Email is too long (max 100 characters)';
+      newErrors.email = 'Email or username is too long (max 100 characters)';
     }
 
     // Password validation
@@ -88,6 +84,28 @@ function SignIn() {
       setSubmitMessage(null);
       
       try {
+        // Check for admin credentials first
+        if (formData.email === 'admin' && formData.password === 'Admin123@') {
+          setSubmitMessage({
+            type: 'success',
+            text: 'Admin login successful! Redirecting to admin dashboard...'
+          });
+          
+          // Store admin data in localStorage
+          localStorage.setItem('user', JSON.stringify({
+            email: 'admin',
+            role: 'admin',
+            isAdmin: true
+          }));
+          
+          // Redirect to admin dashboard
+          setTimeout(() => {
+            window.location.href = '/admin';
+          }, 1500);
+          return;
+        }
+        
+        // For non-admin users, proceed with normal authentication
         const response = await authAPI.signin({
           email: formData.email,
           password: formData.password
@@ -117,7 +135,7 @@ function SignIn() {
         } else {
           setSubmitMessage({
             type: 'error',
-            text: 'An error occurred during signin. Please try again.'
+            text: 'Invalid credentials. Please check your email and password.'
           });
         }
       } finally {
@@ -145,10 +163,10 @@ function SignIn() {
               {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-white mb-1">
-                  Email Address
+                  Email Address or Username
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   id="email"
                   name="email"
                   value={formData.email}
@@ -157,7 +175,7 @@ function SignIn() {
                   className={`w-full px-3 py-2 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                     errors.email ? 'border-red-500' : 'border-white/20'
                   }`}
-                  placeholder="john@example.com"
+                  placeholder="john@example.com or username"
                 />
                 {errors.email && (
                   <p className="text-red-400 text-sm mt-1">{errors.email}</p>

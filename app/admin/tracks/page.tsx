@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-import { trackAPI } from "../../utils/api";
+import { trackAPI, imageAPI } from "../../utils/api";
+
 import { FaEye, FaEdit, FaTrash, FaTimes, FaPlus } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -48,6 +49,30 @@ export default function TracksPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const pageSize = 8;
+
+  // Helper function to get proper image URL
+  const getImageUrl = (trackImage: string | null | undefined) => {
+    console.log('Getting track image URL for:', trackImage);
+    
+    if (!trackImage) return "/vercel.svg";
+    
+    // If it's already a full URL, return it
+    if (trackImage.startsWith('http://') || trackImage.startsWith('https://')) {
+      console.log('Returning full URL:', trackImage);
+      return trackImage;
+    }
+    
+    // If it's a GridFS file ID, construct the URL
+    if (trackImage.length === 24) { // MongoDB ObjectId length
+      const gridfsUrl = imageAPI.getImage(trackImage);
+      console.log('Constructed GridFS URL:', gridfsUrl);
+      return gridfsUrl;
+    }
+    
+    // If it's a relative path or other format, return as is
+    console.log('Returning as-is:', trackImage);
+    return trackImage;
+  };
 
   useEffect(() => {
     loadTracks();
@@ -192,7 +217,14 @@ export default function TracksPage() {
                 }
               >
                 <td className="px-6 py-4">
-                  <img src={track.trackImage} alt="Track" className="w-10 h-10 rounded-full border-2 border-[#E100FF] bg-white object-cover" />
+                  <img 
+                    src={getImageUrl(track.trackImage)} 
+                    alt="Track" 
+                    className="w-10 h-10 rounded-full border-2 border-[#E100FF] bg-white object-cover" 
+                    onError={(e) => {
+                      e.currentTarget.src = "/vercel.svg";
+                    }}
+                  />
                 </td>
                 <td className="px-6 py-4 font-mono">{track.trackId}</td>
                 <td className="px-6 py-4">{track.trackName}</td>
@@ -233,7 +265,14 @@ export default function TracksPage() {
           {paginatedTracks.map((track, idx) => (
             <div key={track._id} className="bg-[#101936] rounded-2xl shadow-xl p-4 flex flex-col gap-2">
               <div className="flex items-center gap-4 mb-2">
-                <img src={track.trackImage} alt="Track" className="w-14 h-14 rounded-full border-2 border-[#E100FF] bg-white object-cover" />
+                <img 
+                  src={getImageUrl(track.trackImage)} 
+                  alt="Track" 
+                  className="w-14 h-14 rounded-full border-2 border-[#E100FF] bg-white object-cover" 
+                  onError={(e) => {
+                    e.currentTarget.src = "/vercel.svg";
+                  }}
+                />
                 <div>
                   <div className="font-bold text-white">{track.trackName}</div>
                   <div className="text-xs text-[#7ED7FF]">{track.musician}</div>
@@ -328,9 +367,12 @@ export default function TracksPage() {
               {/* Track Image */}
               <div className="flex justify-center">
                 <img 
-                  src={selectedTrack.trackImage} 
+                  src={getImageUrl(selectedTrack.trackImage)} 
                   alt="Track" 
                   className="w-48 h-48 rounded-lg border-2 border-[#E100FF] bg-white object-cover" 
+                  onError={(e) => {
+                    e.currentTarget.src = "/vercel.svg";
+                  }}
                 />
               </div>
 
