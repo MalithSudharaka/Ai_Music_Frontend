@@ -39,33 +39,33 @@ const sidebarConfig = [
       { label: 'Sound Kit Tags', icon: <FaTags />, href: '/admin/sound-kits/tags' },
     ],
   },
-  {
-    label: 'Customers',
-    icon: <FaUsers />,
-    subpages: [
-      { label: 'All Customers', icon: <FaUsers />, href: '/admin/customers' },
-      { label: 'Add Customers', icon: <FaUserPlus />, href: '/admin/customers/add' },
-    ],
-  },
+  // {
+  //   label: 'Customers',
+  //   icon: <FaUsers />,
+  //   subpages: [
+  //     { label: 'All Customers', icon: <FaUsers />, href: '/admin/customers' },
+  //     { label: 'Add Customers', icon: <FaUserPlus />, href: '/admin/customers/add' },
+  //   ],
+  // },
   {
     label: 'Users',
     icon: <FaUser />,
     subpages: [
       { label: 'All Users', icon: <FaUser />, href: '/admin/users' },
       { label: 'Add user', icon: <FaUserPlus />, href: '/admin/users/add' },
-      { label: 'User Roles', icon: <FaUserCog />, href: '/admin/users/roles' },
+      // { label: 'User Roles', icon: <FaUserCog />, href: '/admin/users/roles' },
     ],
   },
-  {
-    label: 'Orders',
-    icon: <FaClipboardList />,
-    href: '/admin/orders',
-  },
-  {
-    label: 'Subscription',
-    icon: <FaCreditCard />,
-    href: '/admin/subscription',
-  },
+  // {
+  //   label: 'Orders',
+  //   icon: <FaClipboardList />,
+  //   href: '/admin/orders',
+  // },
+  // {
+  //   label: 'Subscription',
+  //   icon: <FaCreditCard />,
+  //   href: '/admin/subscription',
+  // },
 ];
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose, showCloseButton }) => {
@@ -73,7 +73,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose, showCloseButton })
   const [open, setOpen] = useState<{ [key: string]: boolean }>({
     'Track Management': false,
     'Sound Kits': false,
-    'Customers': false,
+    // 'Customers': false,
     'Users': false,
   });
   const pathname = usePathname();
@@ -167,14 +167,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ onClose, showCloseButton })
       {/* Fixed Footer Section */}
       <div className="flex-shrink-0 px-6 py-4 border-t border-[#232B43]">
         <div className="flex items-center gap-3">
-          <img
-            src="https://randomuser.me/api/portraits/men/32.jpg"
-            alt="User"
-            className="w-10 h-10 rounded-full object-cover"
-          />
+          <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+            <span className="text-white font-bold text-lg">M</span>
+          </div>
           <div>
-            <div className="font-semibold text-white">John Carter</div>
-            <div className="text-xs text-gray-400">Account settings</div>
+            <div className="font-semibold text-white">Museedle Admin</div>
+            <div className="text-xs text-gray-400">museedleadmin@gmail.com</div>
           </div>
         </div>
       </div>
