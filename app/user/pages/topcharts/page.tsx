@@ -9,12 +9,18 @@ import Downloadicon from '../../images/icon/Download.svg'
 import Image from '../../images/songimage/song.png'
 import First_carousel from '../../components/First_carousel'
 import Footer from '../../components/Footer'
-import data from '../../data.json'
+import { trackAPI, imageAPI, genreAPI, tagAPI } from '../../../utils/api'
 
 export default function TopChartsPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+
+  // Data state
+  const [data, setData] = useState<any[]>([]);
+  const [genres, setGenres] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -59,6 +65,81 @@ export default function TopChartsPage() {
 
   const cardsPerPage = getCardsPerPage();
 
+  // Helper function to get proper image URL
+  const getImageUrl = (trackImage: string | null | undefined) => {
+    if (!trackImage) return "/vercel.svg";
+    
+    // If it's already a full URL, return it
+    if (trackImage.startsWith('http://') || trackImage.startsWith('https://')) {
+      return trackImage;
+    }
+    
+    // If it's a GridFS file ID, construct the URL
+    if (trackImage.length === 24) { // MongoDB ObjectId length
+      return imageAPI.getImage(trackImage);
+    }
+    
+    // If it's a relative path or other format, return as is
+    return trackImage;
+  };
+
+  // Helper function to get genre name by ID
+  const getGenreName = (genreId: string) => {
+    const genre = genres.find(g => g._id === genreId);
+    return genre ? genre.name : genreId;
+  };
+
+  // Helper function to get genre ID by name
+  const getGenreId = (genreName: string) => {
+    const genre = genres.find(g => g.name === genreName);
+    return genre ? genre._id : genreName;
+  };
+
+  // Helper function to get tag name by ID
+  const getTagName = (tagId: string) => {
+    const tag = tags.find(t => t._id === tagId);
+    return tag ? tag.name : tagId;
+  };
+
+  // Helper function to get tag ID by name
+  const getTagId = (tagName: string) => {
+    const tag = tags.find(t => t.name === tagName);
+    return tag ? tag._id : tagName;
+  };
+
+  // Load tracks, genres, and tags from MongoDB
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Load tracks
+        const tracksResponse = await trackAPI.getTracks();
+        if (tracksResponse.success) {
+          setData(tracksResponse.tracks);
+        }
+        
+        // Load genres
+        const genresResponse = await genreAPI.getGenres();
+        if (genresResponse.success) {
+          setGenres(genresResponse.genres);
+        }
+        
+        // Load tags
+        const tagsResponse = await tagAPI.getTags();
+        if (tagsResponse.success) {
+          setTags(tagsResponse.tags);
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
     setStartX(e.pageX - e.currentTarget.offsetLeft);
@@ -85,30 +166,41 @@ export default function TopChartsPage() {
   const filteredData = data.filter(track => {
     // Carousel filter (highest priority)
     if (carouselFilter && carouselFilteredData.length > 0) {
-      const isInCarouselFilter = carouselFilteredData.some(filteredTrack => filteredTrack.id === track.id);
+      const isInCarouselFilter = carouselFilteredData.some(filteredTrack => filteredTrack._id === track._id);
       if (!isInCarouselFilter) return false;
     }
     
     // Tag filtering (if selectedTag is set)
     if (selectedTag) {
-      const tags = Array.isArray(track.track_tags) 
-        ? track.track_tags 
-        : typeof track.track_tags === 'string' 
-          ? track.track_tags.split(',').map(tag => tag.trim())
+      const trackTags = Array.isArray(track.trackTags) 
+        ? track.trackTags 
+        : typeof track.trackTags === 'string' 
+          ? track.trackTags.split(',').map((tag: string) => tag.trim())
           : [];
       
-      const hasSelectedTag = tags.some(tag => tag.toLowerCase() === selectedTag.toLowerCase());
+      const selectedTagId = getTagId(selectedTag);
+      const hasSelectedTag = trackTags.some((tagId: string) => tagId === selectedTagId);
       if (!hasSelectedTag) return false;
     }
     
     // Dropdown filters
-    if (selectedGenre && track.genres_category !== selectedGenre) return false;
-    if (selectedTrackType && track.track_type !== selectedTrackType) return false;
-    if (selectedPrice && track.track_price !== selectedPrice) return false;
-    if (selectedMood && track.mood_type !== selectedMood) return false;
-    if (selectedBPM && track.BPM !== selectedBPM) return false;
-    if (selectedInstrument && track.instrument_type !== selectedInstrument) return false;
-    if (selectedKey && track.track_key !== selectedKey) return false;
+    if (selectedGenre) {
+      const trackGenres = Array.isArray(track.genreCategory) 
+        ? track.genreCategory 
+        : typeof track.genreCategory === 'string' 
+          ? track.genreCategory.split(',').map((id: string) => id.trim())
+          : [];
+      
+      const selectedGenreId = getGenreId(selectedGenre);
+      const hasSelectedGenre = trackGenres.some((genreId: string) => genreId === selectedGenreId);
+      if (!hasSelectedGenre) return false;
+    }
+    if (selectedTrackType && track.trackType !== selectedTrackType) return false;
+    if (selectedPrice && track.trackPrice !== selectedPrice) return false;
+    if (selectedMood && track.moodType !== selectedMood) return false;
+    if (selectedBPM && track.bpm !== selectedBPM) return false;
+    if (selectedInstrument && track.instrument !== selectedInstrument) return false;
+    if (selectedKey && track.trackKey !== selectedKey) return false;
     if (selectedDuration && track.duration !== selectedDuration) return false;
     
     return true;
@@ -400,13 +492,13 @@ export default function TopChartsPage() {
                 const allTags = new Set<string>();
                 
                 data.forEach(track => {
-                  const tags = Array.isArray(track.track_tags) 
-                    ? track.track_tags 
-                    : typeof track.track_tags === 'string' 
-                      ? track.track_tags.split(',').map(tag => tag.trim())
+                  const trackTags = Array.isArray(track.trackTags) 
+                    ? track.trackTags 
+                    : typeof track.trackTags === 'string' 
+                      ? track.trackTags.split(',').map((tag: string) => tag.trim())
                       : [];
                   
-                  tags.forEach(tag => allTags.add(tag));
+                  trackTags.forEach((tagId: string) => allTags.add(getTagName(tagId)));
                 });
                 
                 // Filter tags based on search query
@@ -455,18 +547,31 @@ export default function TopChartsPage() {
           <div className="flex items-center justify-center gap-4">
             {/* Dynamic dropdown buttons mapped from data.json */}
             {(() => {
-              // Extract unique values from data.json for each category
-              const genres = [...new Set(data.map(track => track.genres_category).filter(Boolean))];
-              const trackTypes = [...new Set(data.map(track => track.track_type).filter(Boolean))];
-              const prices = [...new Set(data.map(track => track.track_price).filter(Boolean))];
-              const moods = [...new Set(data.map(track => track.mood_type).filter(Boolean))];
-              const bpms = [...new Set(data.map(track => track.BPM).filter(Boolean))];
-              const instruments = [...new Set(data.map(track => track.instrument_type).filter(Boolean))];
-              const keys = [...new Set(data.map(track => track.track_key).filter(Boolean))];
+              // Extract unique values from MongoDB data for each category
+              const allGenreIds = new Set<string>();
+              
+              // Collect all genre IDs from all tracks
+              data.forEach(track => {
+                const trackGenres = Array.isArray(track.genreCategory) 
+                  ? track.genreCategory 
+                  : typeof track.genreCategory === 'string' 
+                    ? track.genreCategory.split(',').map((id: string) => id.trim())
+                    : [];
+                
+                trackGenres.forEach((genreId: string) => allGenreIds.add(genreId));
+              });
+              
+              const genreNames = Array.from(allGenreIds).map(id => getGenreName(id));
+              const trackTypes = [...new Set(data.map(track => track.trackType).filter(Boolean))];
+              const prices = [...new Set(data.map(track => track.trackPrice).filter(Boolean))];
+              const moods = [...new Set(data.map(track => track.moodType).filter(Boolean))];
+              const bpms = [...new Set(data.map(track => track.bpm).filter(Boolean))];
+              const instruments = [...new Set(data.map(track => track.instrument).filter(Boolean))];
+              const keys = [...new Set(data.map(track => track.trackKey).filter(Boolean))];
               const durations = [...new Set(data.map(track => track.duration).filter(Boolean))];
 
               const dropdowns = [
-                { id: 1, category: "Genre", options: genres },
+                { id: 1, category: "Genre", options: genreNames },
                 { id: 2, category: "Track Type", options: trackTypes },
                 { id: 3, category: "Price", options: prices },
                 { id: 4, category: "Mood", options: moods },
@@ -609,27 +714,44 @@ export default function TopChartsPage() {
           </div>
         )}
 
-        <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 scrollbar-hide mt-9 transition-opacity duration-300 ${isRefreshing ? 'opacity-50' : 'opacity-100'}`}>
+        {/* Loading State */}
+        {loading && (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        )}
 
-          {
-            currentCards.map(musicdata => (
-              <div key={musicdata.id} className='flex-shrink-0'>
-                <div className="">
-                  <img src={musicdata.track_image} className="rounded-sm w-full h-full hover:brightness-125 hover:shadow-lg hover:shadow-white/20 transition-all duration-200 cursor-pointer" alt="Description" />
-                  <h1 className="text-white text-md font-roboto font-bold   mt-2">{musicdata.track_name}</h1>
-                  <h1 className="text-white text-sm font-roboto  ">{musicdata.musician}</h1>
-                  <div className="grid grid-cols-8 gap-2 mt-2">
-
-                    <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-bold text-white justify-center items-center rounded-sm hover:bg-white/30 transition-colors duration-200">$ {musicdata.track_price}</button>
+        {/* Tracks Grid */}
+        {!loading && (
+          <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 items-stretch scrollbar-hide mt-9 transition-opacity duration-300 ${isRefreshing ? 'opacity-50' : 'opacity-100'}`}>
+            {currentCards.map(track => (
+              <div key={track._id} className='h-full'>
+                <div className="flex flex-col h-full">
+                  <div className="w-full aspect-square sm:aspect-[4/5] md:aspect-square lg:aspect-[4/5] overflow-hidden rounded-sm bg-black/20">
+                    <img 
+                      src={getImageUrl(track.trackImage)} 
+                      className="w-full h-full object-cover hover:brightness-110 transition-all duration-200 cursor-pointer" 
+                      alt={track.trackName}
+                      onError={(e) => {
+                        e.currentTarget.src = "/vercel.svg";
+                      }}
+                    />
+                  </div>
+                  <h1 className="text-white text-md font-roboto font-bold mt-2 line-clamp-2">{track.trackName}</h1>
+                  <h1 className="text-white text-sm font-roboto">{track.musician}</h1>
+                  <div className="grid grid-cols-8 gap-2 mt-auto">
+                    <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-bold text-white justify-center items-center rounded-sm hover:bg-white/30 transition-colors duration-200">
+                      $ {track.trackPrice || 0}
+                    </button>
                     <button className="grid col-span-2 bg-primary text-black px-2 py-2 md:px-2 md:py-2 xl:px-4 xl:py-1 rounded-sm hover:bg-primary/70 transition-colors duration-200">
                       <img src={Downloadicon.src} alt="Download" className="" />
                     </button>
-
                   </div>
                 </div>
               </div>
             ))}
-        </div>
+          </div>
+        )}
 
         {/* Pagination Controls */}
         {totalPages > 1 && (

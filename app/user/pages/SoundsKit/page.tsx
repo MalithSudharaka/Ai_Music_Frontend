@@ -10,6 +10,7 @@ import Image from '../../images/songimage/song.png'
 import SoundskitCarousel from '../../components/SoundskitCarousel'
 import Footer from '../../components/Footer'
 import data from '../../data.json'
+import { soundKitAPI, imageAPI } from '../../../utils/api'
 
 export default function TopChartsPage() {
   const [isDragging, setIsDragging] = useState(false);
@@ -58,6 +59,32 @@ export default function TopChartsPage() {
   };
 
   const cardsPerPage = getCardsPerPage();
+
+  // Load sound kits from DB
+  const [kits, setKits] = useState<any[]>([]);
+  const [kitsLoading, setKitsLoading] = useState(true);
+
+  const getImageUrl = (img?: string | null) => {
+    if (!img) return '/vercel.svg';
+    if (img.startsWith('http://') || img.startsWith('https://')) return img;
+    if (img.length === 24) return imageAPI.getImage(img);
+    return img;
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setKitsLoading(true);
+        const res = await soundKitAPI.getSoundKits();
+        if (res?.success) setKits(res.soundKits || []);
+      } catch (e) {
+        console.error('Load sound kits error:', e);
+      } finally {
+        setKitsLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
@@ -529,30 +556,43 @@ export default function TopChartsPage() {
           </div>
         )}
 
-        <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 scrollbar-hide mt-9 transition-opacity duration-300 ${isRefreshing ? 'opacity-50' : 'opacity-100'}`}>
+        {kitsLoading && (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        )}
 
-          {
-            currentCards.map(musicdata => (
-              <div key={musicdata.id} className='flex-shrink-0'>
-                <div className="">
-                  <img src={musicdata.track_image} className="rounded-sm w-full h-full hover:brightness-125 hover:shadow-lg hover:shadow-white/20 transition-all duration-200 cursor-pointer" alt="Description" />
-                  <h1 className="text-white text-md font-roboto font-bold   mt-2">{musicdata.track_name}</h1>
-                  <h1 className="text-white text-sm font-roboto  ">{musicdata.musician}</h1>
-                  <div className="grid grid-cols-8 gap-2 mt-2">
-
-                    <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-bold text-white justify-center items-center rounded-sm hover:bg-white/30 transition-colors duration-200">$ {musicdata.track_price}</button>
-                    <button className="grid col-span-2 bg-primary text-black px-2 py-2 md:px-2 md:py-2 xl:px-4 xl:py-1 rounded-sm hover:bg-primary/70 transition-colors duration-200">
-                      <img src={Downloadicon.src} alt="Download" className="" />
+        {!kitsLoading && (
+          <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 items-stretch scrollbar-hide mt-9 transition-opacity duration-300 ${isRefreshing ? 'opacity-50' : 'opacity-100'}`}>
+            {kits.slice((currentPage - 1) * cardsPerPage, currentPage * cardsPerPage).map((kit: any) => (
+              <div key={kit._id} className='h-full'>
+                <div className="flex flex-col h-full">
+                  <div className="w-full aspect-square sm:aspect-[4/5] md:aspect-square lg:aspect-[4/5] overflow-hidden rounded-sm bg-black/20">
+                    <img 
+                      src={getImageUrl(kit.kitImage)} 
+                      className="w-full h-full object-cover hover:brightness-110 transition-all duration-200 cursor-pointer" 
+                      alt={kit.kitName || 'Sound Kit'} 
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/vercel.svg'; }}
+                    />
+                  </div>
+                  <h1 className="text-white text-md font-roboto font-bold mt-2 line-clamp-2">{kit.kitName}</h1>
+                  <h1 className="text-white text-sm font-roboto">{kit.producer}</h1>
+                  <div className="grid grid-cols-8 gap-2 mt-auto">
+                    <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-bold text-white justify-center items-center rounded-sm hover:bg-white/30 transition-colors duration-200">
+                      $ {kit.price || 0}
                     </button>
-
+                    <button className="grid col-span-2 bg-primary text-black px-2 py-2 md:px-2 md:py-2 xl:px-4 xl:py-1 rounded-sm hover:bg-primary/70 transition-colors duration-200">
+                      <img src={Downloadicon.src} alt="Download" />
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
-        </div>
+          </div>
+        )}
 
         {/* Pagination Controls */}
-        {totalPages > 1 && (
+        {Math.ceil((kits || []).length / cardsPerPage) > 1 && (
           <div className="flex justify-center items-center space-x-2 mt-8 mb-8">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
@@ -563,7 +603,7 @@ export default function TopChartsPage() {
             </button>
 
             <div className="flex space-x-1">
-              {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+              {Array.from({ length: Math.ceil((kits || []).length / cardsPerPage) }, (_, index) => index + 1).map((page) => (
                 <button
                   key={page}
                   onClick={() => handlePageChange(page)}
@@ -579,7 +619,7 @@ export default function TopChartsPage() {
 
             <button
               onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === Math.ceil((kits || []).length / cardsPerPage)}
               className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/20 text-white hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-roboto font-medium"
             >
               Next
