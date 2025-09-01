@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { FaEye, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 import { userAPI } from "../../utils/api";
@@ -22,13 +23,100 @@ interface User {
   };
   createdAt: string;
 }
+=======
+import React, { useState } from "react";
+import { FaEye, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
+
+const mockUsers = [
+  {
+    id: 1,
+    image: "/vercel.svg",
+    name: "Lahiru Rathnayake",
+    email: "Example@gmail.com",
+    username: "apex1212",
+    role: "Admin",
+  },
+  {
+    id: 2,
+    image: "/vercel.svg",
+    name: "Lahiru Rathnayake",
+    email: "Example@gmail.com",
+    username: "apex1212",
+    role: "User",
+  },
+  {
+    id: 3,
+    image: "/vercel.svg",
+    name: "Lahiru Rathnayake",
+    email: "Example@gmail.com",
+    username: "apex1212",
+    role: "User",
+  },
+  {
+    id: 4,
+    image: "/vercel.svg",
+    name: "Lahiru Rathnayake",
+    email: "Example@gmail.com",
+    username: "apex1212",
+    role: "User",
+  },
+  {
+    id: 5,
+    image: "/vercel.svg",
+    name: "Lahiru Rathnayake",
+    email: "Example@gmail.com",
+    username: "apex1212",
+    role: "User",
+  },
+  {
+    id: 6,
+    image: "/vercel.svg",
+    name: "Lahiru Rathnayake",
+    email: "Example@gmail.com",
+    username: "apex1212",
+    role: "User",
+  },
+  {
+    id: 7,
+    image: "/vercel.svg",
+    name: "Lahiru Rathnayake",
+    email: "Example@gmail.com",
+    username: "apex1212",
+    role: "User",
+  },
+  {
+    id: 8,
+    image: "/vercel.svg",
+    name: "Lahiru Rathnayake",
+    email: "Example@gmail.com",
+    username: "apex1212",
+    role: "User",
+  },
+  {
+    id: 9,
+    image: "/vercel.svg",
+    name: "Lahiru Rathnayake",
+    email: "Example@gmail.com",
+    username: "apex1212",
+    role: "User",
+  },
+  {
+    id: 10,
+    image: "/vercel.svg",
+    name: "Lahiru Rathnayake",
+    email: "Example@gmail.com",
+    username: "apex1212",
+    role: "User",
+  },
+];
+
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
+
   const pageSize = 8;
 
   // Modal states
@@ -216,6 +304,95 @@ export default function UsersPage() {
     );
   }
 
+  function handleViewUser(user: typeof mockUsers[0]) {
+    setSelectedUser(user);
+    setShowViewModal(true);
+  }
+
+  function handleCloseViewModal() {
+    setShowViewModal(false);
+    setSelectedUser(null);
+  }
+
+  function handleEditUser(user: typeof mockUsers[0]) {
+    setSelectedUser(user);
+    setEditUser({
+      name: user.name,
+      email: user.email,
+      username: user.username,
+      role: user.role
+    });
+    setShowEditModal(true);
+  }
+
+  function handleSaveEditUser() {
+    if (!selectedUser) return;
+    
+    console.log('Updating user:', selectedUser.id, editUser);
+    
+    // Update the user in the local state (simulate backend update)
+    const updatedUsers = users.map(user => 
+      user.id === selectedUser.id 
+        ? { 
+            ...user, 
+            name: editUser.name,
+            email: editUser.email,
+            username: editUser.username,
+            role: editUser.role
+          }
+        : user
+    );
+    
+    paginatedUsers.forEach((user, idx) => {
+      if (user.id === selectedUser.id) {
+        paginatedUsers[idx] = {
+          ...user,
+          name: editUser.name,
+          email: editUser.email,
+          username: editUser.username,
+          role: editUser.role
+        };
+      }
+    });
+    
+    setShowEditModal(false);
+    setSelectedUser(null);
+    setEditUser({ name: '', email: '', username: '', role: '' });
+  }
+
+  function handleCloseEditModal() {
+    setShowEditModal(false);
+    setSelectedUser(null);
+    setEditUser({ name: '', email: '', username: '', role: '' });
+  }
+
+  function handleDeleteUser(user: typeof mockUsers[0]) {
+    setSelectedUser(user);
+    setShowDeleteModal(true);
+  }
+
+  function handleConfirmDelete() {
+    if (!selectedUser) return;
+    
+    console.log('Deleting user:', selectedUser.id);
+    
+    const filteredUsers = users.filter(user => user.id !== selectedUser.id);
+    
+    const updatedPage = page;
+    
+    setShowDeleteModal(false);
+    setSelectedUser(null);
+    
+    if (paginatedUsers.length === 1 && page > 1) {
+      setPage(page - 1);
+    }
+  }
+
+  function handleCloseDeleteModal() {
+    setShowDeleteModal(false);
+    setSelectedUser(null);
+  }
+
   return (
     <div className="min-h-screen bg-[#081028]">
       <div className="mx-4 md:mx-8 pt-6 md:pt-8">
@@ -244,10 +421,12 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody>
+
               {paginatedUsers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
                     {searchTerm ? 'No users found matching your search.' : 'No users found.'}
+
                   </td>
                 </tr>
               ) : (
@@ -351,6 +530,7 @@ export default function UsersPage() {
                     <p className="text-white font-medium">{getUserRole(user)}</p>
                   </div>
                 </div>
+
               </div>
             ))
           )}
@@ -408,6 +588,7 @@ export default function UsersPage() {
                 <div>
                   <h3 className="text-white font-semibold text-lg">{getUserName(selectedUser)}</h3>
                   <p className="text-gray-400">{selectedUser.email}</p>
+
                 </div>
               </div>
               
@@ -570,6 +751,7 @@ export default function UsersPage() {
             </div>
           </div>
         </div>
+
       )}
 
       {/* Delete User Modal */}
@@ -605,11 +787,13 @@ export default function UsersPage() {
             <div className="flex gap-3">
               <button
                 onClick={closeDeleteModal}
+
                 className="flex-1 py-2 rounded-lg bg-[#232B43] text-white font-semibold hover:bg-[#181F36] transition-colors"
               >
                 Cancel
               </button>
               <button
+
                 onClick={confirmDelete}
                 disabled={isDeleting}
                 className={`flex-1 py-2 rounded-lg font-semibold transition-colors ${
@@ -619,6 +803,7 @@ export default function UsersPage() {
                 }`}
               >
                 {isDeleting ? 'Deleting...' : 'Delete User'}
+
               </button>
             </div>
           </div>
