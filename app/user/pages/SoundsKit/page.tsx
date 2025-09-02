@@ -10,7 +10,7 @@ import Image from '../../images/songimage/song.png'
 import SoundskitCarousel from '../../components/SoundskitCarousel'
 import Footer from '../../components/Footer'
 import data from '../../data.json'
-import { soundKitAPI, imageAPI } from '../../../utils/api'
+import { soundKitAPI, imageAPI, tagAPI, soundKitCategoryAPI } from '../../../utils/api'
 
 export default function TopChartsPage() {
   const [isDragging, setIsDragging] = useState(false);
@@ -25,22 +25,21 @@ export default function TopChartsPage() {
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   
-  // Tag filtering state
+  // Tag and category filtering state
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedCategoryTag, setSelectedCategoryTag] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Search state for track_tags
   const [searchQuery, setSearchQuery] = useState<string>('');
   
   // Dropdown filter states
-  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
-  const [selectedTrackType, setSelectedTrackType] = useState<string | null>(null);
   const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
-  const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [selectedBPM, setSelectedBPM] = useState<string | null>(null);
-  const [selectedInstrument, setSelectedInstrument] = useState<string | null>(null);
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
+  const [selectedKitType, setSelectedKitType] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedMusician, setSelectedMusician] = useState<string | null>(null);
   
   // Carousel filter state
   const [carouselFilter, setCarouselFilter] = useState<string | null>(null);
@@ -60,9 +59,13 @@ export default function TopChartsPage() {
 
   const cardsPerPage = getCardsPerPage();
 
-  // Load sound kits from DB
+  // Load sound kits, tags, and categories from DB
   const [kits, setKits] = useState<any[]>([]);
   const [kitsLoading, setKitsLoading] = useState(true);
+  const [tags, setTags] = useState<any[]>([]);
+  const [tagsLoading, setTagsLoading] = useState(true);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   const getImageUrl = (img?: string | null) => {
     if (!img) return '/vercel.svg';
@@ -71,16 +74,123 @@ export default function TopChartsPage() {
     return img;
   };
 
+  // Helper function to get tag name by ID
+  const getTagName = (tagId: string) => {
+    if (!tagId || !tags || tags.length === 0) return tagId;
+    
+    const tag = tags.find(t => t._id === tagId);
+    console.log(`Looking for tag ID: ${tagId}, found:`, tag);
+    
+    if (tag && tag.name) {
+      return tag.name;
+    }
+    
+    // If no tag found, return the ID as fallback
+    return tagId;
+  };
+
+  // Helper function to get tag ID by name
+  const getTagId = (tagName: string) => {
+    if (!tagName || !tags || tags.length === 0) return tagName;
+    
+    const tag = tags.find(t => t.name === tagName);
+    console.log(`Looking for tag name: ${tagName}, found:`, tag);
+    
+    if (tag && tag._id) {
+      return tag._id;
+    }
+    
+    // If no tag found, return the name as fallback
+    return tagName;
+  };
+
+  // Helper function to get category name by ID
+  const getCategoryName = (categoryId: string) => {
+    if (!categoryId || !categories || categories.length === 0) return categoryId;
+    
+    const category = categories.find(c => c._id === categoryId);
+    console.log(`Looking for category ID: ${categoryId}, found:`, category);
+    
+    if (category && category.name) {
+      return category.name;
+    }
+    
+    // If no category found, return the ID as fallback
+    return categoryId;
+  };
+
+  // Helper function to get category ID by name
+  const getCategoryId = (categoryName: string) => {
+    if (!categoryName || !categories || categories.length === 0) return categoryName;
+    
+    const category = categories.find(c => c.name === categoryName);
+    console.log(`Looking for category name: ${categoryName}, found:`, category);
+    
+    if (category && category._id) {
+      return category._id;
+    }
+    
+    // If no category found, return the name as fallback
+    return categoryName;
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
         setKitsLoading(true);
-        const res = await soundKitAPI.getSoundKits();
-        if (res?.success) setKits(res.soundKits || []);
+        setTagsLoading(true);
+        setCategoriesLoading(true);
+        
+        // Load sound kits
+        const kitsRes = await soundKitAPI.getSoundKits();
+        if (kitsRes?.success) {
+          setKits(kitsRes.soundKits || []);
+          console.log('Loaded sound kits:', kitsRes.soundKits);
+        }
+        
+        // Load tags
+        console.log('Calling tagAPI.getTags()...');
+        const tagsRes = await tagAPI.getTags();
+        console.log('Tags API response:', tagsRes);
+        console.log('Tags API response type:', typeof tagsRes);
+        console.log('Tags API response keys:', tagsRes ? Object.keys(tagsRes) : 'No response');
+        
+        if (tagsRes?.success) {
+          setTags(tagsRes.tags || []);
+          console.log('Loaded tags successfully:', tagsRes.tags);
+          console.log('Tags array length:', tagsRes.tags?.length || 0);
+          if (tagsRes.tags && tagsRes.tags.length > 0) {
+            console.log('First tag sample:', tagsRes.tags[0]);
+            console.log('First tag structure:', Object.keys(tagsRes.tags[0]));
+          }
+        } else {
+          console.error('Failed to load tags:', tagsRes);
+          console.error('Tags response error:', tagsRes?.error || 'Unknown error');
+        }
+        
+        // Load categories
+        console.log('Calling soundKitCategoryAPI.getCategories()...');
+        const categoriesRes = await soundKitCategoryAPI.getCategories();
+        console.log('Categories API response:', categoriesRes);
+        
+        if (categoriesRes?.success) {
+          setCategories(categoriesRes.categories || []);
+          console.log('Loaded categories successfully:', categoriesRes.categories);
+          console.log('Categories array length:', categoriesRes.categories?.length || 0);
+          if (categoriesRes.categories && categoriesRes.categories.length > 0) {
+            console.log('First category sample:', categoriesRes.categories[0]);
+            console.log('First category structure:', Object.keys(categoriesRes.categories[0]));
+          }
+        } else {
+          console.error('Failed to load categories:', categoriesRes);
+          console.error('Categories response error:', categoriesRes?.error || 'Unknown error');
+        }
       } catch (e) {
-        console.error('Load sound kits error:', e);
+        console.error('Load data error:', e);
       } finally {
         setKitsLoading(false);
+        setTagsLoading(false);
+        setCategoriesLoading(false);
       }
     };
     load();
@@ -108,56 +218,69 @@ export default function TopChartsPage() {
     e.currentTarget.scrollLeft = scrollLeft - walk;
   };
 
-  // Filter data based on selected tag, dropdown filters, and carousel filter
-  const filteredData = data.filter(track => {
-    // SoundsKit filter (highest priority - only show tracks with soundsKit: "true")
-    if (track.soundsKit !== "true") return false;
-    
-    // Carousel filter (second priority)
+  // Filter sound kits based on selected tag, dropdown filters, and carousel filter
+  const filteredKits = kits.filter(kit => {
+    // Carousel filter (highest priority)
     if (carouselFilter && carouselFilteredData.length > 0) {
-      const isInCarouselFilter = carouselFilteredData.some(filteredTrack => filteredTrack.id === track.id);
+      const isInCarouselFilter = carouselFilteredData.some(filteredTrack => filteredTrack.id === kit._id);
       if (!isInCarouselFilter) return false;
     }
     
     // Tag filtering (if selectedTag is set)
     if (selectedTag) {
-      const tags = Array.isArray(track.track_tags) 
-        ? track.track_tags 
-        : typeof track.track_tags === 'string' 
-          ? track.track_tags.split(',').map(tag => tag.trim())
-          : [];
+      // Try different possible field names for tags
+      let kitTags: string[] = [];
+      if (kit.tags) {
+        kitTags = Array.isArray(kit.tags) 
+          ? kit.tags 
+          : typeof kit.tags === 'string' 
+            ? kit.tags.split(',').map((tagId: string) => tagId.trim())
+            : [];
+      } else if (kit.trackTags) {
+        kitTags = Array.isArray(kit.trackTags) 
+          ? kit.trackTags 
+          : typeof kit.trackTags === 'string' 
+            ? kit.trackTags.split(',').map((tagId: string) => tagId.trim())
+            : [];
+      }
       
-      const hasSelectedTag = tags.some(tag => tag.toLowerCase() === selectedTag.toLowerCase());
+      // Convert the selected tag name to ID and check if it exists in the kit's tags
+      const selectedTagId = getTagId(selectedTag);
+      const hasSelectedTag = kitTags.some((tagId: string) => 
+        tagId === selectedTagId
+      );
       if (!hasSelectedTag) return false;
     }
     
+    // Category tag filtering (if selectedCategoryTag is set)
+    if (selectedCategoryTag) {
+      const kitCategoryName = getCategoryName(kit.category);
+      if (kitCategoryName !== selectedCategoryTag) return false;
+    }
+    
     // Dropdown filters
-    if (selectedGenre && track.genres_category !== selectedGenre) return false;
-    if (selectedTrackType && track.track_type !== selectedTrackType) return false;
-    if (selectedPrice && track.track_price !== selectedPrice) return false;
-    if (selectedMood && track.mood_type !== selectedMood) return false;
-    if (selectedBPM && track.BPM !== selectedBPM) return false;
-    if (selectedInstrument && track.instrument_type !== selectedInstrument) return false;
-    if (selectedKey && track.track_key !== selectedKey) return false;
-    if (selectedDuration && track.duration !== selectedDuration) return false;
+    if (selectedKitType && kit.kitType !== selectedKitType) return false;
+    if (selectedCategory && getCategoryName(kit.category) !== selectedCategory) return false;
+    if (selectedPrice && kit.price !== selectedPrice) return false;
+    if (selectedBPM && kit.bpm !== selectedBPM) return false;
+    if (selectedDuration && kit.duration !== selectedDuration) return false;
+    if (selectedMusician && kit.producer !== selectedMusician) return false;
     
     return true;
   });
 
   // Pagination logic
-  const totalCards = filteredData.length;
+  const totalCards = filteredKits.length;
   const totalPages = Math.ceil(totalCards / cardsPerPage);
   const startIndex = (currentPage - 1) * cardsPerPage;
   const endIndex = startIndex + cardsPerPage;
-  const currentCards = filteredData.slice(startIndex, endIndex);
+  const currentCards = filteredKits.slice(startIndex, endIndex);
 
   // Log filtering summary
-  const soundKitCount = data.filter(track => track.soundsKit === "true").length;
   console.log(`=== SOUND KITS PAGE ===`);
-  console.log(`Total tracks in data: ${data.length}`);
-  console.log(`Sound kits available (soundsKit: "true"): ${soundKitCount}`);
-  console.log(`Currently filtered sound kits: ${filteredData.length}`);
-  console.log(`Tracks being displayed: ${currentCards.length}`);
+  console.log(`Total sound kits in database: ${kits.length}`);
+  console.log(`Currently filtered sound kits: ${filteredKits.length}`);
+  console.log(`Sound kits being displayed: ${currentCards.length}`);
   console.log(`Current page: ${currentPage} of ${totalPages}`);
   
   if (selectedTag) {
@@ -192,6 +315,29 @@ export default function TopChartsPage() {
     }, 300); // 300ms refresh delay
   };
 
+  // Handle category tag selection
+  const handleCategoryTagClick = (categoryName: string) => {
+    console.log('Category tag clicked:', categoryName, 'Previous selected:', selectedCategoryTag);
+    
+    // Add refresh effect
+    setIsRefreshing(true);
+    
+    setTimeout(() => {
+      if (selectedCategoryTag === categoryName) {
+        // If clicking the same category tag, deselect it
+        setSelectedCategoryTag(null);
+        console.log('Deselecting category tag, showing all data');
+      } else {
+        // Always select the new category tag (deselect previous one)
+        setSelectedCategoryTag(categoryName);
+        console.log('Selecting new category tag:', categoryName, 'Previous category tag deselected');
+      }
+      // Reset to first page when filtering
+      setCurrentPage(1);
+      setIsRefreshing(false);
+    }, 300); // 300ms refresh delay
+  };
+
   // Handle search input for track_tags
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -200,35 +346,44 @@ export default function TopChartsPage() {
     console.log('Searching for tags containing:', query);
   };
 
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedTag(null);
+    setSelectedCategoryTag(null);
+    setSearchQuery('');
+    setSelectedKitType(null);
+    setSelectedCategory(null);
+    setSelectedPrice(null);
+    setSelectedBPM(null);
+    setSelectedDuration(null);
+    setSelectedMusician(null);
+    setCurrentPage(1);
+    console.log('All filters cleared');
+  };
+
   // Handle dropdown option selection
   const handleDropdownOption = (category: string, value: string) => {
     console.log('Dropdown option selected:', category, value);
     
     // Update the appropriate state based on category
     switch (category) {
-      case 'Genre':
-        setSelectedGenre(selectedGenre === value ? null : value);
+      case 'Kit Type':
+        setSelectedKitType(selectedKitType === value ? null : value);
         break;
-      case 'Track Type':
-        setSelectedTrackType(selectedTrackType === value ? null : value);
+      case 'Category':
+        setSelectedCategory(selectedCategory === value ? null : value);
         break;
       case 'Price':
         setSelectedPrice(selectedPrice === value ? null : value);
         break;
-      case 'Mood':
-        setSelectedMood(selectedMood === value ? null : value);
-        break;
       case 'BPM':
         setSelectedBPM(selectedBPM === value ? null : value);
         break;
-      case 'Instruments':
-        setSelectedInstrument(selectedInstrument === value ? null : value);
-        break;
-      case 'Key':
-        setSelectedKey(selectedKey === value ? null : value);
-        break;
       case 'Duration':
         setSelectedDuration(selectedDuration === value ? null : value);
+        break;
+      case 'Musician':
+        setSelectedMusician(selectedMusician === value ? null : value);
         break;
     }
     
@@ -407,7 +562,7 @@ export default function TopChartsPage() {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search for tags..."
+                  placeholder="Search for sound kit tags..."
                   value={searchQuery}
                   onChange={handleSearchChange}
                   className="bg-transparent text-white placeholder-gray-400 outline-none flex-1 font-roboto font-light-300 min-w-0"
@@ -427,63 +582,372 @@ export default function TopChartsPage() {
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
           >
-            {
-              // Collect all unique tags from all tracks and filter by search query
-              (() => {
-                const allTags = new Set<string>();
-                
-                data.forEach(track => {
-                  const tags = Array.isArray(track.track_tags) 
-                    ? track.track_tags 
-                    : typeof track.track_tags === 'string' 
-                      ? track.track_tags.split(',').map(tag => tag.trim())
-                      : [];
+            {tagsLoading ? (
+              <div className="flex items-center gap-2 text-gray-400">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                <span className="text-sm">Loading tags...</span>
+              </div>
+            ) : (
+              <>
+                {/* Collect all unique tags from sound kits and filter by search query */}
+                {(() => {
+                  const allTagNames = new Set<string>();
                   
-                  tags.forEach(tag => allTags.add(tag));
-                });
-                
-                // Filter tags based on search query
-                const filteredTags = searchQuery.trim() 
-                  ? Array.from(allTags).filter(tag => 
-                      tag.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                  : Array.from(allTags);
-                
-                return filteredTags.map((tag: string, index: number) => (
-                  <div key={`tag-${index}`} className='flex-shrink-0'>
-                    <div 
-                      className={`backdrop-blur-sm rounded-full border flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                        selectedTag === tag 
-                          ? 'bg-white/60 border-white/80 text-black' 
-                          : 'bg-black/40 border-white/50 text-white hover:bg-black/60'
-                      }`}
-                      onClick={() => handleTagClick(tag)}
-                    >
-                      <div className="py-1 px-1 flex items-center justify-center w-full">
-                        <p className={`font-roboto font-light-300 px-4 ${
-                          selectedTag === tag ? 'text-black' : 'text-white'
-                        }`}>
-                          {tag}
-                          {selectedTag === tag && <span className="ml-1">✓</span>}
-                        </p>
+                  console.log('Processing kits for tags:', kits);
+                  console.log('Available tags from database:', tags);
+                  console.log('Tags array length:', tags.length);
+                  console.log('Sample tag from database:', tags[0]);
+                  console.log('Tags structure:', tags.map(t => ({ id: t._id, name: t.name })));
+                  
+                  // If tags are not loaded from database, show a message
+                  if (!tags || tags.length === 0) {
+                    return (
+                      <div className="text-red-400 text-sm p-2 bg-red-900/20 rounded">
+                        ⚠️ Tags not loaded from database. Please check the API connection.
+                        <br />
+                        <div className="mt-2 text-xs">
+                          Expected endpoint: GET /api/tags
+                          <br />
+                          Current tags state: {tags ? `Array with ${tags.length} items` : 'undefined'}
+                          <br />
+                          <button 
+                            onClick={() => {
+                              // Test with sample tags that match your actual IDs
+                              const sampleTags = [
+                                { _id: '68aeba4db980a3ac6ba443a3', name: 'Hip Hop' },
+                                { _id: '68b6079432bd3b3be2f886c0', name: 'Electronic' },
+                                { _id: '68b6079432bd3b3be2f886c1', name: 'Jazz' }
+                              ];
+                              setTags(sampleTags);
+                              console.log('Set sample tags:', sampleTags);
+                            }} 
+                            className="mt-2 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 mr-2"
+                          >
+                            Test with Sample Tags
+                          </button>
+                          <button 
+                            onClick={async () => {
+                              try {
+                                console.log('Testing API call manually...');
+                                const response = await fetch('http://localhost:3001/api/tags');
+                                const data = await response.json();
+                                console.log('Manual API test result:', data);
+                                if (data.success) {
+                                  setTags(data.tags);
+                                }
+                              } catch (error) {
+                                console.error('Manual API test failed:', error);
+                              }
+                            }} 
+                            className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 mr-2"
+                          >
+                            Test API Manually
+                          </button>
+                        </div>
+                        <button 
+                          onClick={() => window.location.reload()} 
+                          className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                        >
+                          Reload Page
+                        </button>
+                      </div>
+                    );
+                  }
+                  
+                  kits.forEach(kit => {
+                    console.log('Kit:', kit.kitName, 'Tags field:', kit.tags, 'Tags field type:', typeof kit.tags);
+                    
+                    // Try different possible field names for tags
+                    let kitTags: string[] = [];
+                    if (kit.tags) {
+                      kitTags = Array.isArray(kit.tags) 
+                        ? kit.tags 
+                        : typeof kit.tags === 'string' 
+                          ? kit.tags.split(',').map((tagId: string) => tagId.trim())
+                          : [];
+                    } else if (kit.trackTags) {
+                      kitTags = Array.isArray(kit.trackTags) 
+                        ? kit.trackTags 
+                        : typeof kit.trackTags === 'string' 
+                          ? kit.trackTags.split(',').map((tagId: string) => tagId.trim())
+                          : [];
+                    }
+                    
+                    console.log('Processed kit tags:', kitTags);
+                    
+                    // Convert tag IDs to readable names using the tags from database
+                    kitTags.forEach((tagId: string) => {
+                      if (tagId && tagId.trim()) {
+                        console.log(`Processing tag ID: ${tagId}`);
+                        
+                        // Find the tag in the database
+                        const foundTag = tags.find(t => t._id === tagId);
+                        console.log(`Found tag for ID ${tagId}:`, foundTag);
+                        
+                        if (foundTag && foundTag.name) {
+                          // Successfully found tag name
+                          allTagNames.add(foundTag.name);
+                          console.log(`Added tag name: ${foundTag.name}`);
+                        } else {
+                          // Tag not found in database - skip it instead of showing "Unknown Tag"
+                          console.warn(`Tag ID ${tagId} not found in database - skipping`);
+                          // Don't add unknown tags to the display
+                        }
+                      }
+                    });
+                  });
+                  
+                  console.log('All collected tag names:', Array.from(allTagNames));
+                  
+                  // Filter out any "Unknown Tag" entries and filter by search query
+                  const validTags = Array.from(allTagNames).filter(tagName => 
+                    !tagName.startsWith('Unknown Tag (') && tagName.trim() !== ''
+                  );
+                  
+                  const filteredTags = searchQuery.trim() 
+                    ? validTags.filter(tagName => 
+                        tagName.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                    : validTags;
+                  
+                  console.log('All collected tags (before filtering):', Array.from(allTagNames));
+                  console.log('Valid tags (after removing Unknown Tags):', validTags);
+                  console.log('Filtered tags for display:', filteredTags);
+                  
+                  // Show what was filtered out
+                  const removedTags = Array.from(allTagNames).filter(tagName => 
+                    tagName.startsWith('Unknown Tag (') || tagName.trim() === ''
+                  );
+                  if (removedTags.length > 0) {
+                    console.log('Removed Unknown Tags:', removedTags);
+                  }
+                  
+                  // If no tags found, don't show anything
+                  if (filteredTags.length === 0) {
+                    return null;
+                  }
+                  
+                  return filteredTags.map((tagName: string, index: number) => (
+                    <div key={`tag-${index}`} className='flex-shrink-0'>
+                      <div 
+                        className={`backdrop-blur-sm rounded-full border flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                          selectedTag === tagName 
+                            ? 'bg-white/60 border-white/80 text-black' 
+                            : 'bg-black/40 border-white/50 text-white hover:bg-black/60'
+                        }`}
+                        onClick={() => handleTagClick(tagName)}
+                      >
+                        <div className="py-1 px-1 flex items-center justify-center w-full">
+                          <p className={`font-roboto font-light-300 px-4 ${
+                            selectedTag === tagName ? 'text-black' : 'text-white'
+                          }`}>
+                            {tagName}
+                            {selectedTag === tagName && <span className="ml-1">✓</span>}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ));
-              })()
-            }
+                  ));
+                })()}
+              </>
+            )}
+            
+            {/* Category Tags Section */}
+            {!categoriesLoading && categories && categories.length > 0 && (
+              <>
+                {/* Separator */}
+                
+                
+                {/* Category Tags */}
+                <div className="flex items-center gap-2">
+                  
+                  {categories.map((category: any, index: number) => (
+                    <div key={`category-tag-${index}`} className='flex-shrink-0'>
+                      <div 
+                        className={`backdrop-blur-sm rounded-full border flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                          selectedCategoryTag === category.name
+                            ? 'bg-primary/80 border-primary text-black' 
+                            : 'bg-black/40 border-white/50 text-white hover:bg-black/60'
+                        }`}
+                        onClick={() => handleCategoryTagClick(category.name)}
+                      >
+                        <div className="py-1 px-1 flex items-center justify-center w-full">
+                          <p className={`font-roboto font-light-300 px-3 text-sm ${
+                            selectedCategoryTag === category.name ? 'text-black font-semibold' : 'text-white'
+                          }`}>
+                            {category.name}
+                            {selectedCategoryTag === category.name && <span className="ml-1">✓</span>}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
+        {/* Dropdown Filters Row - Similar to tracks page */}
+        <div
+          className='flex items-center justify-between gap-2 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing py-2 mt-4'
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+        >
+          <div className="flex items-center justify-center gap-4">
+            {/* Show loading state if categories are still loading */}
+            {categoriesLoading && (
+              <div className="flex items-center gap-2 text-gray-400">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                <span className="text-sm">Loading categories...</span>
+              </div>
+            )}
+            
 
-       
+            
+            {/* Dynamic dropdown buttons for sound kit filters */}
+            {(() => {
+              // Extract unique values from sound kits for each category
+              const prices = [...new Set(kits.map(kit => kit.price).filter(Boolean))];
+              const bpms = [...new Set(kits.map(kit => kit.bpm).filter(Boolean))];
+              const durations = [...new Set(kits.map(kit => kit.duration).filter(Boolean))];
+              const kitTypes = [...new Set(kits.map(kit => kit.kitType).filter(Boolean))];
+              
+              // Use categories directly from database instead of extracting from kits
+              let categoryOptions: string[] = [];
+              if (categories && categories.length > 0) {
+                // Use the actual category names from the database
+                categoryOptions = categories.map(cat => cat.name).filter(Boolean);
+                console.log('Using category names from database:', categoryOptions);
+              } else {
+                // Fallback: show raw category IDs if categories aren't loaded yet
+                categoryOptions = [...new Set(kits.map(kit => kit.category).filter(Boolean))];
+                console.log('Using raw category IDs (categories not loaded yet):', categoryOptions);
+              }
+              
+              const musicians = [...new Set(kits.map(kit => kit.producer).filter(Boolean))];
+              
+              // Sort arrays for better user experience
+              prices.sort();
+              bpms.sort();
+              durations.sort();
+              kitTypes.sort();
+              categories.sort();
+              musicians.sort();
+              
+              // Build dropdowns array, only including Category if categories are loaded
+              const allDropdowns = [
+                { id: 1, category: "Kit Type", options: kitTypes },
+                { id: 2, category: "Category", options: categoryOptions, show: categoryOptions && categoryOptions.length > 0 },
+                { id: 3, category: "Price", options: prices },
+                { id: 4, category: "BPM", options: bpms },
+                { id: 5, category: "Duration", options: durations },
+                { id: 6, category: "Musician", options: musicians }
+              ];
+              
+              // Filter out empty arrays and categories that aren't loaded
+              const validDropdowns = allDropdowns.filter(dropdown => 
+                dropdown.options.length > 0 && 
+                (dropdown.category !== "Category" || (dropdown as any).show !== false)
+              );
+              
+              // Additional debug for dropdown filtering
+              console.log('All dropdowns:', allDropdowns.map(d => ({ category: d.category, optionsCount: d.options.length, show: (d as any).show })));
+              console.log('Valid dropdowns:', validDropdowns.map(d => ({ category: d.category, optionsCount: d.options.length })));
+              
+              // Debug logging for dropdown data
+              console.log('Dropdown data extracted:', {
+                kitTypes: kitTypes.length,
+                categoryOptions: categoryOptions.length,
+                prices: prices.length,
+                bpms: bpms.length,
+                durations: durations.length,
+                musicians: musicians.length,
+                validDropdowns: validDropdowns.length
+              });
+              
+              // Debug logging for categories specifically
+              console.log('Categories from database:', categories);
+              console.log('Categories state:', categories);
+              console.log('Category options for dropdown:', categoryOptions);
+              console.log('Sample kit categories:', kits.slice(0, 3).map(kit => ({
+                kitId: kit._id,
+                categoryId: kit.category,
+                categoryName: getCategoryName(kit.category)
+              })));
+              
+              // Additional debugging for category conversion
+              if (kits.length > 0) {
+                console.log('First kit category field:', kits[0].category);
+                console.log('First kit category type:', typeof kits[0].category);
+                console.log('Categories array structure:', categories.map(c => ({ id: c._id, name: c.name })));
+              }
+              
+              // Debug display for category dropdown options
+              console.log('=== CATEGORY DROPDOWN DEBUG ===');
+              console.log('Categories loaded from DB:', categories.length);
+              console.log('Category options for dropdown:', categoryOptions);
+              console.log('Category dropdown will show:', categoryOptions.length > 0 ? categoryOptions : 'NO OPTIONS');
+              console.log('================================');
 
+              return validDropdowns.map((dropdown) => (
+                <div key={dropdown.id} className="relative">
+                  {/* Dropdown Button */}
+                  <button
+                    className="flex items-center gap-2 text-white hover:text-primary transition-colors duration-200"
+                    data-dropdown-id={dropdown.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('Clicking dropdown:', dropdown.id, 'Current open:', openDropdown);
+                      toggleDropdown(dropdown.id, e);
+                    }}
+                  >
+                    <span className="font-roboto font-light-300">{dropdown.category}</span>
+                    <IoMdArrowDropdown
+                      className={`transition-transform duration-200 ${openDropdown === dropdown.id ? "rotate-180" : ""}`}
+                    />
+                  </button>
 
-
-        {/* Debug info */}
+                  {/* Dropdown Menu */}
+                  {openDropdown === dropdown.id && (
+                    <div className="fixed bg-black/80 scrollbar-hide backdrop-blur-sm border-2 border-white/30 rounded-lg shadow-xl min-w-56 max-h-96 overflow-y-auto mx-4 md:mx-0" style={{ 
+                      zIndex: 10, 
+                      top: `${dropdownPosition.top}px`, 
+                      left: `${dropdownPosition.left}px`,
+                      right: window.innerWidth < 768 ? '16px' : 'auto',
+                      maxWidth: window.innerWidth < 768 ? 'calc(100vw - 32px)' : 'none',
+                      scrollbarWidth: 'none',
+                      msOverflowStyle: 'none'
+                    }}>
+                      <div className="p-3 border-b border-white/20 bg-black/60 sticky top-0 z-10">
+                        <h3 className="text-white font-bold text-sm">{dropdown.category} Options</h3>
+                      </div>
+                      <div className="py-2 overflow-y-auto scrollbar-hide max-h-80">
+                        {/* Dynamic options mapped from sound kits data */}
+                        {dropdown.options.map((item: string, index: number) => (
+                          <div
+                            key={index}
+                            className="px-4 py-3 text-white hover:bg-white/20 cursor-pointer transition-colors duration-150 border-l-2 border-transparent hover:border-white/30"
+                            onClick={() => handleDropdownOption(dropdown.category, item)}
+                          >
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ));
+            })()}
+          </div>
+          
+          
+        </div>
         
 
-        {(carouselFilter || selectedTag || searchQuery || selectedGenre || selectedTrackType || selectedPrice || selectedMood || selectedBPM || selectedInstrument || selectedKey || selectedDuration) && (
+        {(carouselFilter || selectedTag || selectedCategoryTag || searchQuery || selectedKitType || selectedCategory || selectedPrice || selectedBPM || selectedDuration || selectedMusician) && (
           <div className="mt-4 mb-4 p-3 bg-black/20 rounded-lg">
             <p className="text-white text-sm">
               {carouselFilter && (
@@ -500,49 +964,45 @@ export default function TopChartsPage() {
               {selectedTag && (
                 <span><strong>Tag:</strong> <span className="text-primary font-bold">{selectedTag}</span> | </span>
               )}
+              {selectedCategoryTag && (
+                <span><strong>Category Tag:</strong> <span className="text-primary font-bold">{selectedCategoryTag}</span> | </span>
+              )}
               {searchQuery && (
                 <span><strong>Search:</strong> <span className="text-primary font-bold">"{searchQuery}"</span> | </span>
               )}
-              {selectedGenre && (
-                <span><strong>Genre:</strong> <span className="text-primary font-bold">{selectedGenre}</span> | </span>
+              {selectedKitType && (
+                <span><strong>Kit Type:</strong> <span className="text-primary font-bold">{selectedKitType}</span> | </span>
               )}
-              {selectedTrackType && (
-                <span><strong>Type:</strong> <span className="text-primary font-bold">{selectedTrackType}</span> | </span>
+              {selectedCategory && (
+                <span><strong>Category:</strong> <span className="text-primary font-bold">{selectedCategory}</span> | </span>
               )}
               {selectedPrice && (
                 <span><strong>Price:</strong> <span className="text-primary font-bold">{selectedPrice}</span> | </span>
               )}
-              {selectedMood && (
-                <span><strong>Mood:</strong> <span className="text-primary font-bold">{selectedMood}</span> | </span>
-              )}
               {selectedBPM && (
                 <span><strong>BPM:</strong> <span className="text-primary font-bold">{selectedBPM}</span> | </span>
-              )}
-              {selectedInstrument && (
-                <span><strong>Instrument:</strong> <span className="text-primary font-bold">{selectedInstrument}</span> | </span>
-              )}
-              {selectedKey && (
-                <span><strong>Key:</strong> <span className="text-primary font-bold">{selectedKey}</span> | </span>
               )}
               {selectedDuration && (
                 <span><strong>Duration:</strong> <span className="text-primary font-bold">{selectedDuration}</span> | </span>
               )}
-              <strong>Showing:</strong> {filteredData.length} tracks | 
-              <strong>Total:</strong> {data.length} tracks
+              {selectedMusician && (
+                <span><strong>Musician:</strong> <span className="text-primary font-bold">{selectedMusician}</span> | </span>
+              )}
+              <strong>Showing:</strong> {filteredKits.length} sound kits | 
+              <strong>Total:</strong> {kits.length} sound kits
             </p>
             <p className="text-white text-xs mt-1">
               <strong>Active Filters:</strong> {[
                 carouselFilter && 'Carousel',
                 selectedTag && 'Tag',
+                selectedCategoryTag && 'Category Tag',
                 searchQuery && 'Search',
-                selectedGenre && 'Genre',
-                selectedTrackType && 'Track Type',
+                selectedKitType && 'Kit Type',
+                selectedCategory && 'Category',
                 selectedPrice && 'Price',
-                selectedMood && 'Mood',
                 selectedBPM && 'BPM',
-                selectedInstrument && 'Instrument',
-                selectedKey && 'Key',
-                selectedDuration && 'Duration'
+                selectedDuration && 'Duration',
+                selectedMusician && 'Musician'
               ].filter(Boolean).join(', ')}
             </p>
           </div>
@@ -564,7 +1024,7 @@ export default function TopChartsPage() {
 
         {!kitsLoading && (
           <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 items-stretch scrollbar-hide mt-9 transition-opacity duration-300 ${isRefreshing ? 'opacity-50' : 'opacity-100'}`}>
-            {kits.slice((currentPage - 1) * cardsPerPage, currentPage * cardsPerPage).map((kit: any) => (
+            {currentCards.map((kit: any) => (
               <div key={kit._id} className='h-full'>
                 <div className="flex flex-col h-full">
                   <div className="w-full aspect-square sm:aspect-[4/5] md:aspect-square lg:aspect-[4/5] overflow-hidden rounded-sm bg-black/20">
@@ -592,7 +1052,7 @@ export default function TopChartsPage() {
         )}
 
         {/* Pagination Controls */}
-        {Math.ceil((kits || []).length / cardsPerPage) > 1 && (
+        {totalPages > 1 && (
           <div className="flex justify-center items-center space-x-2 mt-8 mb-8">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
@@ -603,7 +1063,7 @@ export default function TopChartsPage() {
             </button>
 
             <div className="flex space-x-1">
-              {Array.from({ length: Math.ceil((kits || []).length / cardsPerPage) }, (_, index) => index + 1).map((page) => (
+              {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
                 <button
                   key={page}
                   onClick={() => handlePageChange(page)}
@@ -619,7 +1079,7 @@ export default function TopChartsPage() {
 
             <button
               onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === Math.ceil((kits || []).length / cardsPerPage)}
+              disabled={currentPage === totalPages}
               className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/20 text-white hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-roboto font-medium"
             >
               Next

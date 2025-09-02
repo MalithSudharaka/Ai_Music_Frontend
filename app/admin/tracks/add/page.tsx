@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { FaCloudUploadAlt, FaFileAudio } from "react-icons/fa";
-import { trackAPI, genreAPI, beatAPI, tagAPI, imageAPI } from '../../../utils/api';
+import { trackAPI, genreAPI, beatAPI, tagAPI, imageAPI, musicianAPI } from '../../../utils/api';
 import { useRouter, useSearchParams } from "next/navigation";
 
 const typeOptions = ["Song", "Beats", "Beats w/hook", "Top lines", "Vocal"];
@@ -54,6 +54,11 @@ export default function AddTrackPage() {
   const [genresData, setGenresData] = useState<{ _id: string; name: string; description: string; color: string; isActive: boolean; }[]>([]);
   const [beatsData, setBeatsData] = useState<{ _id: string; name: string; description: string; color: string; isActive: boolean; }[]>([]);
   const [tagsData, setTagsData] = useState<{ _id: string; name: string; description: string; color: string; isActive: boolean; }[]>([]);
+  const [musiciansData, setMusiciansData] = useState<string[]>([]);
+  const [musiciansLoading, setMusiciansLoading] = useState(false);
+  const [musicianProfiles, setMusicianProfiles] = useState<{ [key: string]: string }>({});
+  const [newMusicianImage, setNewMusicianImage] = useState<File | null>(null);
+  const [newMusicianImagePreview, setNewMusicianImagePreview] = useState<string | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -82,6 +87,7 @@ export default function AddTrackPage() {
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const musicianImageInputRef = useRef<HTMLInputElement>(null);
 
   const [dropdowns, setDropdowns] = useState<{
     genreOptions: string[];
@@ -138,6 +144,14 @@ export default function AddTrackPage() {
           if (trackData.trackTags && Array.isArray(trackData.trackTags)) {
             setSelectedTags(trackData.trackTags);
           }
+          
+          // Set musician profile picture if available
+          if (trackData.musician && trackData.musicianProfilePicture) {
+            setMusicianProfiles(prev => ({
+              ...prev,
+              [trackData.musician]: trackData.musicianProfilePicture
+            }));
+          }
 
           // Store the track ID for updating
           setEditingTrackId(trackData._id);
@@ -186,9 +200,25 @@ export default function AddTrackPage() {
       }
     };
 
+    // Fetch musicians from MongoDB
+    const fetchMusicians = async () => {
+      try {
+        setMusiciansLoading(true);
+        const response = await musicianAPI.getMusicians();
+        if (response.success) {
+          setMusiciansData(response.musicians.map((m: any) => m.name));
+        }
+      } catch (error) {
+        console.error('Error fetching musicians:', error);
+      } finally {
+        setMusiciansLoading(false);
+      }
+    };
+
     fetchGenres();
     fetchBeats();
     fetchTags();
+    fetchMusicians();
   }, [isEditMode]);
 
 
@@ -248,6 +278,33 @@ export default function AddTrackPage() {
       setTrackFile(file);
     }
   }
+
+  // Handle musician image change
+  const handleMusicianImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setSubmitMessage('Please select a valid image file for musician profile');
+      return;
+    }
+
+    // Validate file size (5MB limit for profile pictures)
+    if (file.size > 5 * 1024 * 1024) {
+      setSubmitMessage('Musician profile image must be less than 5MB');
+      return;
+    }
+
+    setNewMusicianImage(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setNewMusicianImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target;
@@ -473,9 +530,114 @@ export default function AddTrackPage() {
         setIsSubmitting(false);
         return;
       }
+      
+      // Validate musician field with debugging
+      console.log('Validating musician field:');
+      console.log('- formData.musician:', formData.musician);
+      console.log('- formData.musician type:', typeof formData.musician);
+      console.log('- formData.musician length:', formData.musician?.length);
+      console.log('- formData.musician trimmed:', formData.musician?.trim());
+      console.log('- musicianProfiles keys:', Object.keys(musicianProfiles));
+      console.log('- musiciansData:', musiciansData);
+      
+      // Check if there's a musician in profiles that should be in formData
+      const hasMusicianInProfiles = Object.keys(musicianProfiles).length > 0;
+      const hasMusicianInData = musiciansData.length > 0;
+      
+      if (!formData.musician || formData.musician.trim() === '') {
+        if (hasMusicianInProfiles || hasMusicianInData) {
+          // There are musicians available but none selected - suggest selection
+          setSubmitMessage('Please select a musician from the dropdown or create a new one');
+        } else {
+          setSubmitMessage('Please select or enter a musician name');
+        }
+        setIsSubmitting(false);
+        return;
+      }
 
       // Use GridFS image URL if available, otherwise use the image state
       const imageUrl = imageFileId ? imageAPI.getImage(imageFileId) : trackImage || '';
+
+      // Get musician profile picture URL if available
+      console.log('Extracting musician profile picture:');
+      console.log('- formData.musician:', formData.musician);
+      console.log('- musicianProfiles:', musicianProfiles);
+      console.log('- Available keys in musicianProfiles:', Object.keys(musicianProfiles));
+      console.log('- Looking for key:', formData.musician);
+      console.log('- Found value:', musicianProfiles[formData.musician]);
+      
+      // Try to get profile picture from multiple sources
+      let musicianProfilePicture = '';
+      
+      // First, try to get from musicianProfiles state
+      if (formData.musician && musicianProfiles[formData.musician]) {
+        musicianProfilePicture = musicianProfiles[formData.musician];
+        console.log('- Found in musicianProfiles state:', musicianProfilePicture);
+      }
+      
+      // If not found in state, try to get from musiciansData (might have profile pictures)
+      if (!musicianProfilePicture && formData.musician) {
+        // Check if we can find the musician in the current data
+        const musicianData = musiciansData.find(m => m === formData.musician);
+        if (musicianData) {
+          console.log('- Found musician in musiciansData:', musicianData);
+          // If we have profile picture data, use it
+          if (musicianProfiles[musicianData]) {
+            musicianProfilePicture = musicianProfiles[musicianData];
+            console.log('- Found profile picture from musiciansData:', musicianProfilePicture);
+          }
+        }
+      }
+      
+      // If still no profile picture, check if there's a newMusicianImage that was uploaded
+      if (!musicianProfilePicture && newMusicianImage) {
+        console.log('- No profile picture found, but newMusicianImage exists');
+        // Try to upload it now if it wasn't uploaded before
+        try {
+          const imageResponse = await imageAPI.uploadImage(newMusicianImage);
+          if (imageResponse.success) {
+            musicianProfilePicture = imageResponse.imageUrl;
+            console.log('- Uploaded newMusicianImage and got URL:', musicianProfilePicture);
+            
+            // Update the musicianProfiles state for future use
+            setMusicianProfiles(prev => ({
+              ...prev,
+              [formData.musician]: musicianProfilePicture
+            }));
+          }
+        } catch (error) {
+          console.error('Error uploading newMusicianImage:', error);
+        }
+      }
+      
+      console.log('- Final musicianProfilePicture:', musicianProfilePicture);
+      
+      // Final fallback: If we still don't have a profile picture but have a musician,
+      // try to fetch it from the API
+      if (!musicianProfilePicture && formData.musician) {
+        console.log('- No profile picture found, trying to fetch from API...');
+        try {
+          // Get all musicians to find the one we need
+          const musiciansResponse = await musicianAPI.getMusicians();
+          if (musiciansResponse.success && musiciansResponse.musicians) {
+            const musician = musiciansResponse.musicians.find((m: any) => m.name === formData.musician);
+            if (musician && musician.profilePicture) {
+              musicianProfilePicture = musician.profilePicture;
+              console.log('- Found profile picture from API:', musicianProfilePicture);
+              
+              // Update local state for future use
+              setMusicianProfiles(prev => ({
+                ...prev,
+                [formData.musician]: musicianProfilePicture
+              }));
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching musician profile from API:', error);
+        }
+      }
+      
+      console.log('- Final musicianProfilePicture after API check:', musicianProfilePicture);
 
       const trackData = {
         ...formData,
@@ -486,9 +648,12 @@ export default function AddTrackPage() {
         publish: publish,
         genreCategory: selectedGenres,
         beatCategory: selectedBeats,
-        trackTags: selectedTags
+        trackTags: selectedTags,
+        musicianProfilePicture: musicianProfilePicture
       };
 
+      console.log('Form data musician:', formData.musician);
+      console.log('Musician profiles:', musicianProfiles);
       console.log('Sending track data:', trackData);
 
       let response;
@@ -531,6 +696,11 @@ export default function AddTrackPage() {
           setImageFile(null);
           setTrackFile(null);
           setPublish('Private');
+          
+          // Clear musician profile picture states
+          setNewMusicianImage(null);
+          setNewMusicianImagePreview(null);
+          setMusicianProfiles({});
         }
         
         // Redirect back to tracks list after successful operation
@@ -631,14 +801,221 @@ export default function AddTrackPage() {
                 className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
               />
             </div>
-            <div>
+            <div className="relative">
               <label className="block text-gray-300 mb-2">Musician</label>
-              <input 
+              <select 
                 name="musician"
                 value={formData.musician}
                 onChange={handleInputChange}
-                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
-              />
+                className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm"
+                disabled={musiciansLoading}
+              >
+                <option value="">
+                  {musiciansLoading ? 'Loading musicians...' : 'Select Musician'}
+                </option>
+                {musiciansData.map((musician, index) => (
+                  <option key={index} value={musician}>
+                    {musician} {musicianProfiles[musician] ? '📷' : ''}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-4 top-9 text-gray-400 text-lg">▼</span>
+              
+              {/* Current Musician Selection Display */}
+              {formData.musician && (
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-xs text-green-400">✓ Selected: {formData.musician}</span>
+                  {musicianProfiles[formData.musician] && (
+                    <>
+                      <img 
+                        src={musicianProfiles[formData.musician]} 
+                        alt={`${formData.musician} profile`} 
+                        className="w-8 h-8 rounded-full object-cover border border-[#E100FF]" 
+                      />
+                      <span className="text-xs text-gray-400">Profile picture available</span>
+                    </>
+                  )}
+                </div>
+              )}
+              
+              {/* Debug/Refresh Button for Musician Selection */}
+              {Object.keys(musicianProfiles).length > 0 && !formData.musician && (
+                <div className="mt-2 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded">
+                  <p className="text-xs text-yellow-400 mb-2">
+                    Musicians available but none selected. Click to refresh:
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const availableMusicians = Object.keys(musicianProfiles);
+                      if (availableMusicians.length > 0) {
+                        setFormData(prev => ({ ...prev, musician: availableMusicians[0] }));
+                        setSubmitMessage('Musician selection refreshed!');
+                        setTimeout(() => setSubmitMessage(''), 2000);
+                      }
+                    }}
+                    className="text-xs bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700"
+                  >
+                    Refresh Selection
+                  </button>
+                </div>
+              )}
+              
+
+
+              
+              {/* Option to add new musician */}
+              <div className="mt-2">
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-gray-400 text-xs">Or add new musician:</label>
+                  <span className="text-gray-500 text-xs">
+                    {musiciansLoading ? 'Loading...' : `${musiciansData.length} musicians available`}
+                  </span>
+                </div>
+                <input 
+                  type="text"
+                  placeholder="Enter new musician name"
+                  className="w-full bg-[#232B43] text-white rounded-lg px-3 py-1 text-sm border border-[#232B43] focus:border-[#E100FF] focus:outline-none mb-2"
+                  onKeyDown={async (e) => {
+                    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                      const newMusician = e.currentTarget.value.trim();
+                      if (!musiciansData.includes(newMusician)) {
+                        try {
+                          console.log('Creating new musician:', newMusician);
+                          
+                          let profilePictureUrl = '';
+                          
+                          // If there's a profile picture, upload it to GridFS first
+                          if (newMusicianImage) {
+                            console.log('Uploading profile picture...');
+                            const imageResponse = await imageAPI.uploadImage(newMusicianImage);
+                            if (imageResponse.success) {
+                              profilePictureUrl = imageResponse.imageUrl;
+                              console.log('Profile picture uploaded:', profilePictureUrl);
+                            }
+                          }
+                          
+                          // Create musician profile in MongoDB
+                          console.log('Creating musician profile in MongoDB...');
+                          const musicianResponse = await musicianAPI.createMusician({
+                            name: newMusician,
+                            profilePicture: profilePictureUrl,
+                            bio: '',
+                            country: '',
+                            genre: '',
+                            socialLinks: {},
+                            isActive: true
+                          });
+                          
+                          console.log('Musician API response:', musicianResponse);
+                          
+                          if (musicianResponse.success) {
+                            console.log('Musician created successfully, updating states...');
+                            
+                            // Add musician to the local list
+                            setMusiciansData(prev => {
+                              const newList = [...prev, newMusician].sort();
+                              console.log('Updated musiciansData:', newList);
+                              return newList;
+                            });
+                            
+                            // Update form data with new musician
+                            setFormData(prev => {
+                              const updated = { ...prev, musician: newMusician };
+                              console.log('Updated formData.musician:', updated.musician);
+                              return updated;
+                            });
+                            
+                            // Store the musician profile picture mapping
+                            if (profilePictureUrl) {
+                              setMusicianProfiles(prev => {
+                                const updated = { ...prev, [newMusician]: profilePictureUrl };
+                                console.log('Updated musicianProfiles:', updated);
+                                return updated;
+                              });
+                            }
+                            
+                            // Clear the image states
+                            setNewMusicianImage(null);
+                            setNewMusicianImagePreview(null);
+                            
+                            // Show success message
+                            setSubmitMessage('Musician profile created successfully!');
+                            setTimeout(() => setSubmitMessage(''), 3000);
+                            
+                            // Small delay to ensure state is updated
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                            
+                            console.log('Musician creation completed successfully');
+                          } else {
+                            console.error('Musician API failed:', musicianResponse);
+                            setSubmitMessage('Failed to create musician profile: ' + (musicianResponse.message || 'Unknown error'));
+                            
+                            // Fallback: Add to local state even if API fails
+                            console.log('Adding musician to local state as fallback...');
+                            setMusiciansData(prev => [...prev, newMusician].sort());
+                            setFormData(prev => ({ ...prev, musician: newMusician }));
+                            setSubmitMessage('Musician added locally (API failed). You can still use it.');
+                          }
+                        } catch (error) {
+                          console.error('Error creating musician profile:', error);
+                          setSubmitMessage('Error creating musician profile. Please try again.');
+                          
+                          // Fallback: Add to local state even if there's an error
+                          console.log('Adding musician to local state as fallback due to error...');
+                          setMusiciansData(prev => [...prev, newMusician].sort());
+                          setFormData(prev => ({ ...prev, musician: newMusician }));
+                          setSubmitMessage('Musician added locally (error occurred). You can still use it.');
+                        }
+                      }
+                      e.currentTarget.value = '';
+                    }
+                  }}
+                />
+
+                {/* Musician Profile Picture Upload */}
+                <div className="mt-2">
+                  <label className="block text-gray-400 text-xs mb-1">Profile Picture (Optional):</label>
+                  <div 
+                    className="flex flex-col items-center justify-center border border-[#232B43] rounded-lg bg-[#232B43] p-2 cursor-pointer hover:border-[#E100FF] transition"
+                    onClick={() => musicianImageInputRef.current?.click()}
+                  >
+                    {newMusicianImagePreview ? (
+                      <img 
+                        src={newMusicianImagePreview} 
+                        alt="Musician Profile Preview" 
+                        className="w-12 h-12 object-cover rounded-lg mb-1" 
+                      />
+                    ) : (
+                      <FaCloudUploadAlt className="text-2xl text-[#7ED7FF] mb-1" />
+                    )}
+                    <span className="text-xs text-gray-400 text-center">
+                      {newMusicianImagePreview ? 'Click to change' : 'Click to upload profile pic'}
+                    </span>
+                    <input 
+                      ref={musicianImageInputRef} 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleMusicianImageChange}
+                    />
+                  </div>
+                  
+                  {/* Remove image button */}
+                  {newMusicianImagePreview && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewMusicianImage(null);
+                        setNewMusicianImagePreview(null);
+                      }}
+                      className="mt-1 w-full px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
+                    >
+                      Remove Profile Picture
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="relative">
               <label className="block text-gray-300 mb-2">Track Type *</label>

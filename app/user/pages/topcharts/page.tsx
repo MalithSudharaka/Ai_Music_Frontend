@@ -47,6 +47,27 @@ export default function TopChartsPage() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
   
+  // Price range state
+  const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 100 });
+  const [showPriceRange, setShowPriceRange] = useState(false);
+  
+  // Calculate price range from data
+  const allPrices = data.map(track => parseFloat(track.trackPrice) || 0).filter(price => price > 0);
+  const minPrice = allPrices.length > 0 ? Math.floor(Math.min(...allPrices)) : 0;
+  const maxPrice = allPrices.length > 0 ? Math.ceil(Math.max(...allPrices)) : 100;
+  
+  // Update price range when data changes
+  useEffect(() => {
+    if (allPrices.length > 0) {
+      setPriceRange({ min: minPrice, max: maxPrice });
+    }
+  }, [data, minPrice, maxPrice]);
+  
+  // Reset to first page when price range changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [priceRange]);
+  
   // Carousel filter state
   const [carouselFilter, setCarouselFilter] = useState<string | null>(null);
   const [carouselFilteredData, setCarouselFilteredData] = useState<any[]>([]);
@@ -196,7 +217,11 @@ export default function TopChartsPage() {
       if (!hasSelectedGenre) return false;
     }
     if (selectedTrackType && track.trackType !== selectedTrackType) return false;
-    if (selectedPrice && track.trackPrice !== selectedPrice) return false;
+    // Price range filtering - only apply if user has set a custom range
+    if (priceRange.min > minPrice || priceRange.max < maxPrice) {
+      const trackPrice = parseFloat(track.trackPrice) || 0;
+      if (trackPrice < priceRange.min || trackPrice > priceRange.max) return false;
+    }
     if (selectedMood && track.moodType !== selectedMood) return false;
     if (selectedBPM && track.bpm !== selectedBPM) return false;
     if (selectedInstrument && track.instrument !== selectedInstrument) return false;
@@ -272,7 +297,7 @@ export default function TopChartsPage() {
         setSelectedTrackType(selectedTrackType === value ? null : value);
         break;
       case 'Price':
-        setSelectedPrice(selectedPrice === value ? null : value);
+        // Price is now handled by range selector, not dropdown
         break;
       case 'Mood':
         setSelectedMood(selectedMood === value ? null : value);
@@ -563,7 +588,7 @@ export default function TopChartsPage() {
               
               const genreNames = Array.from(allGenreIds).map(id => getGenreName(id));
               const trackTypes = [...new Set(data.map(track => track.trackType).filter(Boolean))];
-              const prices = [...new Set(data.map(track => track.trackPrice).filter(Boolean))];
+
               const moods = [...new Set(data.map(track => track.moodType).filter(Boolean))];
               const bpms = [...new Set(data.map(track => track.bpm).filter(Boolean))];
               const instruments = [...new Set(data.map(track => track.instrument).filter(Boolean))];
@@ -573,7 +598,6 @@ export default function TopChartsPage() {
               const dropdowns = [
                 { id: 1, category: "Genre", options: genreNames },
                 { id: 2, category: "Track Type", options: trackTypes },
-                { id: 3, category: "Price", options: prices },
                 { id: 4, category: "Mood", options: moods },
                 { id: 5, category: "BPM", options: bpms },
                 { id: 6, category: "Instruments", options: instruments },
@@ -632,11 +656,120 @@ export default function TopChartsPage() {
              ));
             })()}
 
+            {/* Price Range Selector */}
+            <div className="flex items-center gap-4 ml-4">
+              <button
+                className="flex items-center gap-2 text-white hover:text-primary transition-colors duration-200"
+                onClick={() => setShowPriceRange(!showPriceRange)}
+              >
+                <span className="font-roboto font-light-300">Price Range</span>
+                <IoMdArrowDropdown
+                  className={`transition-transform duration-200 ${showPriceRange ? "rotate-180" : ""}`}
+                />
+              </button>
+              
+              {/* Price Range Display */}
+              <div className="text-white text-sm">
+                ${priceRange.min} - ${priceRange.max}
+              </div>
+            </div>
+
             </div>
           <div className="text-white items-end justify-end">
 
           </div>
         </div>
+
+        {/* Price Range Slider */}
+        {showPriceRange && (
+          <div className="mt-4 p-4 bg-black/40 backdrop-blur-sm rounded-lg border border-white/20">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-semibold">Price Range</h3>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setPriceRange({ min: minPrice, max: maxPrice })}
+                  className="text-primary hover:text-primary/80 text-sm underline"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={() => setShowPriceRange(false)}
+                  className="text-gray-400 hover:text-white text-sm p-1 hover:bg-white/10 rounded transition-colors"
+                  title="Close price range selector"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <label className="block text-white text-sm mb-2">Min Price: ${priceRange.min}</label>
+                  <input
+                    type="range"
+                    min={minPrice}
+                    max={maxPrice}
+                    value={priceRange.min}
+                    onChange={(e) => setPriceRange(prev => ({ ...prev, min: parseInt(e.target.value) }))}
+                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-white text-sm mb-2">Max Price: ${priceRange.max}</label>
+                  <input
+                    type="range"
+                    min={minPrice}
+                    max={maxPrice}
+                    value={priceRange.max}
+                    onChange={(e) => setPriceRange(prev => ({ ...prev, max: parseInt(e.target.value) }))}
+                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    min={minPrice}
+                    max={maxPrice}
+                    value={priceRange.min}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0;
+                      setPriceRange(prev => ({ 
+                        ...prev, 
+                        min: Math.min(value, prev.max - 1) 
+                      }));
+                    }}
+                    className="w-full px-3 py-2 bg-black/50 border border-white/20 rounded-lg text-white text-center"
+                    placeholder="Min"
+                  />
+                </div>
+                <div className="text-white">to</div>
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    min={minPrice}
+                    max={maxPrice}
+                    value={priceRange.max}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0;
+                      setPriceRange(prev => ({ 
+                        ...prev, 
+                        max: Math.max(value, prev.min + 1) 
+                      }));
+                    }}
+                    className="w-full px-3 py-2 bg-black/50 border border-white/20 rounded-lg text-center"
+                    placeholder="Max"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
 
 
@@ -667,8 +800,8 @@ export default function TopChartsPage() {
               {selectedTrackType && (
                 <span><strong>Type:</strong> <span className="text-primary font-bold">{selectedTrackType}</span> | </span>
               )}
-              {selectedPrice && (
-                <span><strong>Price:</strong> <span className="text-primary font-bold">{selectedPrice}</span> | </span>
+              {(priceRange.min > minPrice || priceRange.max < maxPrice) && (
+                <span><strong>Price Range:</strong> <span className="text-primary font-bold">${priceRange.min} - ${priceRange.max}</span> | </span>
               )}
               {selectedMood && (
                 <span><strong>Mood:</strong> <span className="text-primary font-bold">{selectedMood}</span> | </span>
@@ -695,7 +828,7 @@ export default function TopChartsPage() {
                 searchQuery && 'Search',
                 selectedGenre && 'Genre',
                 selectedTrackType && 'Track Type',
-                selectedPrice && 'Price',
+                (priceRange.min > minPrice || priceRange.max < maxPrice) && 'Price Range',
                 selectedMood && 'Mood',
                 selectedBPM && 'BPM',
                 selectedInstrument && 'Instrument',

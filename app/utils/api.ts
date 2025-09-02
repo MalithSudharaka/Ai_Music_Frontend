@@ -179,6 +179,27 @@ export const trackAPI = {
     const response = await api.delete(`/tracks/${id}`);
     return response.data;
   },
+
+  getUniqueMusicians: async () => {
+    const response = await api.get('/tracks');
+    if (response.data?.success && response.data.tracks) {
+      const musicians = response.data.tracks
+        .map((track: any) => track.musician)
+        .filter((musician: string) => musician && musician.trim() !== '')
+        .filter((musician: string, index: number, arr: string[]) => arr.indexOf(musician) === index)
+        .sort();
+      return { success: true, musicians };
+    }
+    return { success: false, musicians: [] };
+  },
+
+  getMusiciansWithProfiles: async () => {
+    const response = await api.get('/musicians');
+    if (response.data?.success) {
+      return { success: true, musicians: response.data.musicians };
+    }
+    return { success: false, musicians: [] };
+  },
 };
 
 export const genreAPI = {
@@ -419,6 +440,59 @@ export const imageAPI = {
 
   listImages: async () => {
     const response = await api.get('/images');
+    return response.data;
+  },
+};
+
+export const musicianAPI = {
+  getMusicians: async () => {
+    const response = await api.get('/musicians');
+    return response.data;
+  },
+
+  getMusician: async (id: string) => {
+    const response = await api.get(`/musicians/${id}`);
+    return response.data;
+  },
+
+  createMusician: async (musicianData: {
+    name: string;
+    profilePicture?: string;
+    bio?: string;
+    country?: string;
+    genre?: string;
+    socialLinks?: Record<string, string>;
+    isActive?: boolean;
+  }) => {
+    const response = await api.post('/musicians', musicianData);
+    return response.data;
+  },
+
+  updateMusician: async (id: string, musicianData: {
+    name?: string;
+    profilePicture?: string;
+    bio?: string;
+    country?: string;
+    genre?: string;
+    socialLinks?: Record<string, string>;
+    isActive?: boolean;
+  }) => {
+    const response = await api.put(`/musicians/${id}`, musicianData);
+    return response.data;
+  },
+
+  deleteMusician: async (id: string) => {
+    const response = await api.delete(`/musicians/${id}`);
+    return response.data;
+  },
+
+  searchMusicians: async (query: string) => {
+    const response = await api.get(`/musicians/search/${query}`);
+    return response.data;
+  },
+
+  syncMusicians: async () => {
+    const response = await api.post('/musicians/sync');
     return response.data;
   },
 };
