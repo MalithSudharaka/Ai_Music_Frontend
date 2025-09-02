@@ -1,11 +1,10 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 import { FaCloudUploadAlt, FaFileAudio, FaPlus } from "react-icons/fa";
-import { soundKitAPI, soundKitCategoryAPI, soundKitTagAPI, imageAPI } from "../../../utils/api";
+import { soundKitAPI, soundKitCategoryAPI, soundKitTagAPI, imageAPI, trackAPI, musicianAPI } from "../../../utils/api";
 import { useRouter, useSearchParams } from "next/navigation";
 
 
-const musicianOptions = ["Waytoolost", "ProducerX", "DJ Sample"];
 const publishOptions = ["Private", "Public"];
 
 export default function AddSoundKitPage() {
@@ -27,8 +26,14 @@ export default function AddSoundKitPage() {
   const [seoDescription, setSeoDescription] = useState("");
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const musicianImageInputRef = useRef<HTMLInputElement>(null);
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
   const [tagOptions, setTagOptions] = useState<any[]>([]);
+  const [musiciansData, setMusiciansData] = useState<string[]>([]);
+  const [musiciansLoading, setMusiciansLoading] = useState(false);
+  const [musicianProfiles, setMusicianProfiles] = useState<{ [key: string]: string }>({});
+  const [newMusicianImage, setNewMusicianImage] = useState<File | null>(null);
+  const [newMusicianImagePreview, setNewMusicianImagePreview] = useState<string | null>(null);
   
   // Add new item states
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -87,6 +92,14 @@ export default function AddSoundKitPage() {
           setSeoTitle(soundKitData.seoTitle || '');
           setSeoKeyword(soundKitData.seoKeyword || '');
           setSeoDescription(soundKitData.seoDescription || '');
+          
+          // Set musician profile picture if available
+          if (soundKitData.musician && soundKitData.musicianProfilePicture) {
+            setMusicianProfiles(prev => ({
+              ...prev,
+              [soundKitData.musician]: soundKitData.musicianProfilePicture
+            }));
+          }
 
           // Set sound kit image if available
           if (soundKitData.kitImage) {
@@ -131,6 +144,12 @@ export default function AddSoundKitPage() {
         const tagsResponse = await soundKitTagAPI.getTags();
         if (tagsResponse.success) {
           setTagOptions(tagsResponse.tags);
+        }
+
+        // Load musicians from MongoDB
+        const musiciansResponse = await musicianAPI.getMusicians();
+        if (musiciansResponse.success) {
+          setMusiciansData(musiciansResponse.musicians.map((m: any) => m.name));
         }
       } catch (error) {
         console.error('Error loading categories and tags:', error);
@@ -192,6 +211,33 @@ export default function AddSoundKitPage() {
     const file = e.target.files?.[0];
     if (file) setKitFile(file);
   }
+
+  // Handle musician image change
+  const handleMusicianImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setSubmitMessage('Please select a valid image file for musician profile');
+      return;
+    }
+
+    // Validate file size (5MB limit for profile pictures)
+    if (file.size > 5 * 1024 * 1024) {
+      setSubmitMessage('Musician profile image must be less than 5MB');
+      return;
+    }
+
+    setNewMusicianImage(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setNewMusicianImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
   // Handle multi-select with checkboxes
   const handleCategoryToggle = (categoryId: string) => {
     setCategories(prev => 
@@ -349,9 +395,33 @@ export default function AddSoundKitPage() {
         setIsSubmitting(false);
         return;
       }
+      
+      // Validate musician field with debugging
+      console.log('Validating musician field:');
+      console.log('- musician state:', musician);
+      console.log('- musician type:', typeof musician);
+      console.log('- musician length:', musician?.length);
+      console.log('- musician trimmed:', musician?.trim());
+      console.log('- musicianProfiles keys:', Object.keys(musicianProfiles));
+      console.log('- musiciansData:', musiciansData);
+      
+      if (!musician || musician.trim() === '') {
+        if (Object.keys(musicianProfiles).length > 0 || musiciansData.length > 0) {
+          setSubmitMessage('Please select a musician from the dropdown or create a new one');
+        } else {
+          setSubmitMessage('Please select or enter a musician name');
+        }
+        setIsSubmitting(false);
+        return;
+      }
 
       // Use GridFS image URL if available, otherwise use the image state
       const imageUrl = imageFileId ? imageAPI.getImage(imageFileId) : image || '';
+
+      // Get musician profile picture URL if available
+      const musicianProfilePicture = musician && musicianProfiles[musician] 
+        ? musicianProfiles[musician] 
+        : '';
 
       const soundKitData = {
         ...formData,
@@ -359,6 +429,8 @@ export default function AddSoundKitPage() {
         category: categories.join(', '),
         price: formData.price ? parseFloat(formData.price) : 0,
         producer: musician,
+        musician: musician,
+        musicianProfilePicture: musicianProfilePicture,
         bpm: formData.bpm ? parseInt(formData.bpm) : undefined,
         kitImage: imageUrl,
         kitFile: kitFile ? kitFile.name : '',
@@ -369,6 +441,8 @@ export default function AddSoundKitPage() {
         metaDescription: seoDescription
       };
 
+      console.log('Musician state:', musician);
+      console.log('Musician profiles:', musicianProfiles);
       console.log('Sending sound kit data:', soundKitData);
 
       let response;
@@ -406,6 +480,11 @@ export default function AddSoundKitPage() {
         setSeoTitle('');
         setSeoKeyword('');
         setSeoDescription('');
+        
+        // Clear musician profile picture states
+        setNewMusicianImage(null);
+        setNewMusicianImagePreview(null);
+        setMusicianProfiles({});
         }
         
         // Redirect back to sound kits list after successful operation
@@ -494,12 +573,181 @@ export default function AddSoundKitPage() {
                 placeholder="e.g., C, Am, etc."
               />
             </div>
-            <div>
+            <div className="relative">
               <label className="block text-gray-300 mb-2">Musician</label>
-              <select className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm" value={musician} onChange={e => setMusician(e.target.value)}>
-                <option value="">Select musician</option>
-                {musicianOptions.map(opt => <option key={opt}>{opt}</option>)}
+              <select 
+                className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm" 
+                value={musician} 
+                onChange={e => setMusician(e.target.value)}
+                disabled={musiciansLoading}
+              >
+                <option value="">
+                  {musiciansLoading ? 'Loading musicians...' : 'Select musician'}
+                </option>
+                {musiciansData.map((musicianName, index) => (
+                  <option key={index} value={musicianName}>
+                    {musicianName} {musicianProfiles[musicianName] ? '📷' : ''}
+                  </option>
+                ))}
               </select>
+              <span className="pointer-events-none absolute right-4 top-9 text-gray-400 text-lg">▼</span>
+              
+              {/* Current Musician Selection Display */}
+              {musician && (
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-xs text-green-400">✓ Selected: {musician}</span>
+                  {musicianProfiles[musician] && (
+                    <>
+                      <img 
+                        src={musicianProfiles[musician]} 
+                        alt={`${musician} profile`} 
+                        className="w-8 h-8 rounded-full object-cover border border-[#E100FF]" 
+                      />
+                      <span className="text-xs text-gray-400">Profile picture available</span>
+                    </>
+                  )}
+                </div>
+              )}
+              
+              {/* Debug/Refresh Button for Musician Selection */}
+              {Object.keys(musicianProfiles).length > 0 && !musician && (
+                <div className="mt-2 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded">
+                  <p className="text-xs text-yellow-400 mb-2">
+                    Musicians available but none selected. Click to refresh:
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const availableMusicians = Object.keys(musicianProfiles);
+                      if (availableMusicians.length > 0) {
+                        setMusician(availableMusicians[0]);
+                        setSubmitMessage('Musician selection refreshed!');
+                        setTimeout(() => setSubmitMessage(''), 2000);
+                      }
+                    }}
+                    className="text-xs bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700"
+                  >
+                    Refresh Selection
+                  </button>
+                </div>
+              )}
+              
+              {/* Option to add new musician */}
+              <div className="mt-2">
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-gray-400 text-xs">Or add new musician:</label>
+                  <span className="text-gray-500 text-xs">
+                    {musiciansLoading ? 'Loading...' : `${musiciansData.length} musicians available`}
+                  </span>
+                </div>
+                
+                {/* New Musician Name Input */}
+                <input 
+                  type="text"
+                  placeholder="Enter new musician name"
+                  className="w-full bg-[#232B43] text-white rounded-lg px-3 py-1 text-sm border border-[#232B43] focus:border-[#E100FF] focus:outline-none mb-2"
+                  onKeyDown={async (e) => {
+                    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                      const newMusician = e.currentTarget.value.trim();
+                      if (!musiciansData.includes(newMusician)) {
+                        try {
+                          let profilePictureUrl = '';
+                          
+                          // If there's a profile picture, upload it to GridFS first
+                          if (newMusicianImage) {
+                            const imageResponse = await imageAPI.uploadImage(newMusicianImage);
+                            if (imageResponse.success) {
+                              profilePictureUrl = imageResponse.imageUrl;
+                            }
+                          }
+                          
+                          // Create musician profile in MongoDB
+                          const musicianResponse = await musicianAPI.createMusician({
+                            name: newMusician,
+                            profilePicture: profilePictureUrl,
+                            bio: '',
+                            country: '',
+                            genre: '',
+                            socialLinks: {},
+                            isActive: true
+                          });
+                          
+                          if (musicianResponse.success) {
+                            // Add musician to the local list
+                            setMusiciansData(prev => [...prev, newMusician].sort());
+                            setMusician(newMusician);
+                            
+                            // Store the musician profile picture mapping
+                            if (profilePictureUrl) {
+                              setMusicianProfiles(prev => ({
+                                ...prev,
+                                [newMusician]: profilePictureUrl
+                              }));
+                            }
+                            
+                            // Clear the image states
+                            setNewMusicianImage(null);
+                            setNewMusicianImagePreview(null);
+                            
+                            // Show success message
+                            setSubmitMessage('Musician profile created successfully!');
+                            setTimeout(() => setSubmitMessage(''), 3000);
+                          } else {
+                            setSubmitMessage('Failed to create musician profile');
+                          }
+                        } catch (error) {
+                          console.error('Error creating musician profile:', error);
+                          setSubmitMessage('Error creating musician profile. Please try again.');
+                        }
+                      }
+                      e.currentTarget.value = '';
+                    }
+                  }}
+                />
+
+                {/* Musician Profile Picture Upload */}
+                <div className="mt-2">
+                  <label className="block text-gray-400 text-xs mb-1">Profile Picture (Optional):</label>
+                  <div 
+                    className="flex flex-col items-center justify-center border border-[#232B43] rounded-lg bg-[#232B43] p-2 cursor-pointer hover:border-[#E100FF] transition"
+                    onClick={() => musicianImageInputRef.current?.click()}
+                  >
+                    {newMusicianImagePreview ? (
+                      <img 
+                        src={newMusicianImagePreview} 
+                        alt="Musician Profile Preview" 
+                        className="w-12 h-12 object-cover rounded-lg mb-1" 
+                      />
+                    ) : (
+                      <FaCloudUploadAlt className="text-2xl text-[#7ED7FF] mb-1" />
+                    )}
+                    <span className="text-xs text-gray-400 text-center">
+                      {newMusicianImagePreview ? 'Click to change' : 'Click to upload profile pic'}
+                    </span>
+                    <input 
+                      ref={musicianImageInputRef} 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleMusicianImageChange}
+                    />
+                  </div>
+                  
+                  {/* Remove image button */}
+                  {newMusicianImagePreview && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewMusicianImage(null);
+                        setNewMusicianImagePreview(null);
+                      }}
+                      className="mt-1 w-full px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
+                    >
+                      Remove Profile Picture
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
             {/* Sound Kit Image Upload */}
             <div>
