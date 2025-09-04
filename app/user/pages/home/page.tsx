@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import First_carousel from '../../components/First_carousel'
@@ -27,9 +28,32 @@ import CircularGallery from '../../components/CircularGallery'
 import FlowingMenu from '../../components/FlowingMenu'
 
 export default function HomePage() {
+  const router = useRouter();
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [screenSize, setScreenSize] = useState('mobile');
+
+  // Handle search
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      // Navigate to topcharts page with search query
+      router.push(`/user/pages/topcharts?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      // Navigate to topcharts page without search query
+      router.push('/user/pages/topcharts');
+    }
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   // Determine cards per page based on screen size
   const getCardsPerPage = () => {
@@ -130,7 +154,7 @@ export default function HomePage() {
           Discover a new way to create and enjoy music. Museedle is an AI-driven music marketplace where you can preview, stream, and download tracks for free. Future versions will empower musicians to upload and monetize their music with ease.
           </p>
 
-
+{/* f */}
           
           <div>
           <p className=" text-white text-sm mt-4 mb-4 text-right  ">
@@ -153,10 +177,16 @@ export default function HomePage() {
                   <input 
                     type="text" 
                     placeholder="Search Track" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     className="bg-transparent text-white text-white/70 text-sm md:text-lg outline-none flex-1  w-full"
                   />
                 </div>
-                <button className='bg-white font-roboto font-semibold text-black px-4 py-1 md:px-6 md:py-3 rounded-full'>
+                <button 
+                  onClick={handleSearch}
+                  className='bg-white font-roboto font-semibold text-black px-4 py-1 md:px-6 md:py-3 rounded-full hover:bg-gray-100 transition-colors'
+                >
                   Search
                 </button>
               </div>
