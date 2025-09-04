@@ -704,7 +704,7 @@ export default function TopChartsPage() {
                     !tagName.startsWith('Unknown Tag (') && tagName.trim() !== ''
                   );
                   
-                  const filteredTags = searchQuery.trim() 
+                const filteredTags = searchQuery.trim() 
                     ? validTags.filter(tagName => 
                         tagName.toLowerCase().includes(searchQuery.toLowerCase())
                       )
@@ -728,17 +728,17 @@ export default function TopChartsPage() {
                   }
                   
                   return filteredTags.map((tagName: string, index: number) => (
-                    <div key={`tag-${index}`} className='flex-shrink-0'>
-                      <div 
-                        className={`backdrop-blur-sm rounded-full border flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                  <div key={`tag-${index}`} className='flex-shrink-0'>
+                    <div 
+                      className={`backdrop-blur-sm rounded-full border flex items-center justify-center cursor-pointer transition-all duration-200 ${
                           selectedTag === tagName 
-                            ? 'bg-white/60 border-white/80 text-black' 
-                            : 'bg-black/40 border-white/50 text-white hover:bg-black/60'
-                        }`}
+                          ? 'bg-white/60 border-white/80 text-black' 
+                          : 'bg-black/40 border-white/50 text-white hover:bg-black/60'
+                      }`}
                         onClick={() => handleTagClick(tagName)}
-                      >
-                        <div className="py-1 px-1 flex items-center justify-center w-full">
-                          <p className={`font-roboto font-light-300 px-4 ${
+                    >
+                      <div className="py-1 px-1 flex items-center justify-center w-full">
+                        <p className={`font-roboto font-light-300 px-4 ${
                             selectedTag === tagName ? 'text-black' : 'text-white'
                           }`}>
                             {tagName}
@@ -782,7 +782,7 @@ export default function TopChartsPage() {
                       </div>
                     </div>
                   ))}
-                </div>
+                  </div>
               </>
             )}
           </div>
@@ -1048,7 +1048,7 @@ export default function TopChartsPage() {
                 </div>
               </div>
             ))}
-          </div>
+        </div>
         )}
 
         {/* Pagination Controls */}

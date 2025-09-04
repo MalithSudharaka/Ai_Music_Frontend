@@ -470,12 +470,12 @@ export default function AddSoundKitPage() {
         });
         setDescription('');
         setMusician('');
-                  setCategories([]);
-          setTags([]);
-          setImage(null);
+        setCategories([]);
+        setTags([]);
+        setImage(null);
           setImageFileId(null);
           setImageFile(null);
-          setKitFile(null);
+        setKitFile(null);
         setPublish('Private');
         setSeoTitle('');
         setSeoKeyword('');

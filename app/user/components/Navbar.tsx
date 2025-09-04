@@ -14,7 +14,6 @@ import { usePathname } from 'next/navigation';
 import Bell from '../images/Navbar/Bell.svg'
 import User from '../images/Navbar/User.svg'
 import Heart from '../images/Navbar/Heart.svg'
-import Cart from '../images/Navbar/Cart.svg'
 
 
 function Navbar() {
@@ -49,6 +48,7 @@ function Navbar() {
 
     // Load user data from localStorage
     useEffect(() => {
+        const loadUserData = () => {
         const userData = localStorage.getItem('user');
         if (userData) {
             try {
@@ -58,6 +58,31 @@ function Navbar() {
                 console.error('Error parsing user data:', error);
             }
         }
+        };
+
+        // Load initial data
+        loadUserData();
+
+        // Listen for storage changes (when user updates profile in another tab)
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'user') {
+                loadUserData();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        // Also listen for custom events (when user updates profile in same tab)
+        const handleUserUpdate = () => {
+            loadUserData();
+        };
+
+        window.addEventListener('userProfileUpdated', handleUserUpdate);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('userProfileUpdated', handleUserUpdate);
+        };
     }, []);
 
     // Handle click outside to close dropdowns
@@ -92,13 +117,6 @@ function Navbar() {
             },
             sections: [
                 {
-                    title: 'User Content',
-                    items: [
-                        { name: 'Favorites', icon: 'RiHeartLine' },
-                        { name: 'Purchased', icon: 'RiCheckLine' }
-                    ]
-                },
-                {
                     title: 'Settings',
                     items: [
                         { name: 'Account Setting', icon: 'RiSettings3Line' }
@@ -112,7 +130,6 @@ function Navbar() {
                 }
             ]
         },
-        cart: ['Cart', 'Orders', 'History']
     };
 
     return (
@@ -164,8 +181,80 @@ function Navbar() {
 
                         <div className="hidden md:block">
                             {user ? (
-                                <div className="text-white text-lg bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                                    Welcome, <span className="text-primary font-bold">{user.firstName}</span>!
+                                <div className="relative flex items-center space-x-2 text-white text-lg bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                                    {user.profilePicture ? (
+                                        <img 
+                                            src={user.profilePicture} 
+                                            alt="Profile" 
+                                            className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
+                                        />
+                                    ) : (
+                                        <CgProfile className="text-white text-xl" />
+                                    )}
+                                    <button
+                                        onClick={() => setActiveDropdown(activeDropdown === 'welcome-profile' ? null : 'welcome-profile')}
+                                        className="flex items-center hover:bg-white/10 rounded px-1 transition-colors"
+                                    >
+                                        <RiArrowDropDownLine className="text-white text-lg" />
+                                    </button>
+                                    <span>Welcome, <span className="text-primary font-bold">{user.firstName}</span>!</span>
+                                    
+                                    {activeDropdown === 'welcome-profile' && (
+                                        <div className="absolute top-full right-0 mt-2 w-80 bg-black/95 backdrop-blur-sm rounded-lg border border-white/20 shadow-lg z-50 max-h-[80vh] overflow-hidden">
+                                            {/* Profile Section */}
+                                            <div className="p-4 border-b border-white/20">
+                                                <div
+                                                    className="flex items-center space-x-3 cursor-pointer hover:bg-white/10 rounded-lg p-2 transition-colors"
+                                                    onClick={() => {
+                                                        setActiveDropdown(null);
+                                                        window.location.href = '/user/pages/UserProfile';
+                                                    }}
+                                                >
+                                                                                                    <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center overflow-hidden">
+                                                    {user.profilePicture ? (
+                                                        <img 
+                                                            src={user.profilePicture} 
+                                                            alt="Profile" 
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <CgProfile className="text-white text-xl" />
+                                                    )}
+                                                </div>
+                                                    <div>
+                                                        <div className="text-white font-medium">{iconDropdowns.user.profile.username}</div>
+                                                        <div className="text-gray-400 text-sm">{iconDropdowns.user.profile.status}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Menu Sections */}
+                                            <div className="py-2 overflow-y-auto max-h-[60vh]">
+                                                {iconDropdowns.user.sections.map((section, sectionIndex) => (
+                                                    <div key={section.title}>
+                                                        {sectionIndex > 0 && <div className="border-t border-white/20 my-2"></div>}
+                                                        {section.items.map((item) => (
+                                                            <button
+                                                                key={item.name}
+                                                                onClick={() => {
+                                                                    setActiveDropdown(null);
+                                                                    if (item.name === 'Account Setting') {
+                                                                        window.location.href = '/user/pages/UserProfile?edit=true';
+                                                                    } else if (item.name === 'Log out') {
+                                                                        handleLogout();
+                                                                    }
+                                                                }}
+                                                                className="w-full flex items-center space-x-3 px-4 py-1 text-sm hover:bg-white/10 transition-colors text-white"
+                                                            >
+                                                                {renderIcon(item.icon)}
+                                                                <span>{item.name}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <ul className="font-roboto font-light-300 flex items-center space-x-3 md:space-x-3 lg:space-x-3 xl:space-x-6">
@@ -253,47 +342,23 @@ function Navbar() {
 
 
 
-                                    {/* Cart Dropdown */}
-                                    <div className="relative">
-                                        <button
-                                            onClick={() => setActiveDropdown(activeDropdown === 'mobile-cart' ? null : 'mobile-cart')}
-                                            className="w-full flex items-center justify-between p-3 text-white hover:bg-white/10 rounded-lg transition-colors"
-                                        >
-                                            <div className="flex items-center space-x-3">
-                                                <img src={Cart.src} className="h-5" alt="Cart" />
-                                                <span className="font-roboto font-light-300 text-sm">Cart</span>
-                                            </div>
-                                            <RiArrowDropDownLine className="text-white text-lg" />
-                                        </button>
-
-                                        {activeDropdown === 'mobile-cart' && (
-                                            <div className="mt-2 ml-4 bg-black/70 rounded-lg border border-white/20 p-2 max-h-[40vh] overflow-y-auto">
-                                                {iconDropdowns.cart.map((option) => (
-                                                    <button
-                                                        key={option}
-                                                        onClick={() => {
-                                                            setActiveDropdown(null);
-                                                            if (option === 'Cart') {
-                                                                window.location.href = '/user/pages/Cart';
-                                                            }
-                                                        }}
-                                                        className="w-full flex items-center space-x-3 px-3 py-2 text-sm hover:bg-white/10 transition-colors text-white rounded"
-                                                    >
-                                                        <span>🛒</span>
-                                                        <span>{option}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
                                 </div>
                             </div>
 
                             <div className="border-t border-white/20 pt-4">
                                 {user ? (
                                     <div className="text-center">
-                                        <div className="text-white text-lg mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                                            Welcome, <span className="text-primary font-bold">{user.firstName}</span>!
+                                        <div className="flex items-center justify-center space-x-2 text-white text-lg mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                                            {user.profilePicture ? (
+                                                <img 
+                                                    src={user.profilePicture} 
+                                                    alt="Profile" 
+                                                    className="w-6 h-6 rounded-full object-cover border-2 border-white/20"
+                                                />
+                                            ) : (
+                                                <CgProfile className="text-white text-xl" />
+                                            )}
+                                            <span>Welcome, <span className="text-primary font-bold">{user.firstName}</span>!</span>
                                         </div>
                                         <button
                                             onClick={handleLogout}
@@ -314,114 +379,6 @@ function Navbar() {
                 )}
 
 
-                <nav className="py-2">
-                                            <div className="justify-end flex flex-col sm:flex-row gap-4 sm:gap-10 items-center">
-
-                        {user && (
-                        <div className="hidden md:flex flex-wrap items-center justify-between">
-                            <div className="">
-                                <ul className="font-roboto font-light-300 flex flex-col p-4 md:p-0 md:flex-row gap-3 md:gap-3 lg:gap-3 md:mt-0">
-                                    <li className="flex items-center relative">
-                                        <img src={User.src} className="h-5 md:h-5 lg:h-6" alt="User Icon" />
-                                        <button
-                                            onClick={() => setActiveDropdown(activeDropdown === 'user' ? null : 'user')}
-                                            className="flex items-center hover:bg-white/10 rounded px-1 md:px-1 lg:px-2 py-1 transition-colors"
-                                        >
-                                            <RiArrowDropDownLine className="text-white text-lg md:text-lg lg:text-xl" />
-                                        </button>
-
-                                        {activeDropdown === 'user' && (
-                                            <div className="absolute top-full left-0 mt-2 w-80 bg-black/95 backdrop-blur-sm rounded-lg border border-white/20 shadow-lg z-50 max-h-[80vh] overflow-hidden">
-                                                {/* Profile Section */}
-                                                <div className="p-4 border-b border-white/20">
-                                                    <div
-                                                        className="flex items-center space-x-3 cursor-pointer hover:bg-white/10 rounded-lg p-2 transition-colors"
-                                                        onClick={() => {
-                                                            setActiveDropdown(null);
-                                                            window.location.href = '/user/pages/UserProfile';
-                                                        }}
-                                                    >
-                                                        <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center">
-                                                            <CgProfile className="text-white text-xl" />
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-white font-medium">{iconDropdowns.user.profile.username}</div>
-                                                            <div className="text-gray-400 text-sm">{iconDropdowns.user.profile.status}</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Menu Sections */}
-                                                <div className="py-2 overflow-y-auto max-h-[60vh]">
-                                                    {iconDropdowns.user.sections.map((section, sectionIndex) => (
-                                                        <div key={section.title}>
-                                                            {sectionIndex > 0 && <div className="border-t border-white/20 my-2"></div>}
-                                                            {section.items.map((item) => (
-                                                                <button
-                                                                    key={item.name}
-                                                                    onClick={() => {
-                                                                        setActiveDropdown(null);
-                                                                        if (item.name === 'Account Setting') {
-                                                                            window.location.href = '/user/pages/UserProfile?edit=true';
-                                                                        } else if (item.name === 'Favorites') {
-                                                                            window.location.href = '/user/pages/PlayList';
-                                                                        } else if (item.name === 'Log out') {
-                                                                            handleLogout();
-                                                                        }
-                                                                    }}
-                                                                    className="w-full flex items-center space-x-3 px-4 py-1 text-sm hover:bg-white/10 transition-colors text-white"
-                                                                >
-                                                                    {renderIcon(item.icon)}
-                                                                    <span>{item.name}</span>
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </li>
-
-
-
-                                    <div className='h-4 md:h-4 lg:h-6 w-px bg-white' />
-                                    <li className="flex items-center relative">
-                                        <img src={Cart.src} className="h-5 md:h-5 lg:h-6" alt="Cart Icon" />
-                                        <button
-                                            onClick={() => setActiveDropdown(activeDropdown === 'cart' ? null : 'cart')}
-                                            className="flex items-center hover:bg-white/10 rounded px-1 md:px-1 lg:px-2 py-1 transition-colors"
-                                        >
-                                            <RiArrowDropDownLine className="text-white text-lg md:text-lg lg:text-xl" />
-                                        </button>
-
-                                        {activeDropdown === 'cart' && (
-                                            <div className="absolute top-full left-0 mt-2 w-48 bg-black/90 backdrop-blur-sm rounded-lg border border-white/20 shadow-lg z-50 max-h-[60vh] overflow-hidden">
-                                                <div className="py-1 overflow-y-auto max-h-[60vh]">
-                                                    {iconDropdowns.cart.map((option) => (
-                                                        <button
-                                                            key={option}
-                                                            onClick={() => {
-                                                                setActiveDropdown(null);
-                                                                if (option === 'Cart') {
-                                                                    window.location.href = '/user/pages/Cart';
-                                                                }
-                                                            }}
-                                                            className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors text-white"
-                                                        >
-                                                            {option}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        )}
-                    </div>
-
-                </nav>
             </div>
         </div>
     )

@@ -64,6 +64,7 @@ export const profileAPI = {
     location: string;
     country: string;
     biography: string;
+    profilePicture?: string;
     socialLinks: {
       facebook: string;
       twitter: string;
