@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, Suspense } from "react";
 import { FaCloudUploadAlt, FaFileAudio, FaPlus } from "react-icons/fa";
 import { soundKitAPI, soundKitCategoryAPI, soundKitTagAPI, imageAPI, trackAPI, musicianAPI } from "../../../utils/api";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 const publishOptions = ["Private", "Public"];
 
-export default function AddSoundKitPage() {
+function AddSoundKitForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditMode = searchParams.get('mode') === 'edit';
@@ -1060,5 +1060,17 @@ export default function AddSoundKitPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function AddSoundKitPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen p-8 bg-[#081028] flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <AddSoundKitForm />
+    </Suspense>
   );
 } 
