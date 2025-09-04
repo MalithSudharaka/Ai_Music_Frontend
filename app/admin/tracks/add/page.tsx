@@ -671,31 +671,31 @@ export default function AddTrackPage() {
         
         if (!isEditMode) {
           // Reset form only for new tracks
-          setFormData({
-            trackName: '',
-            trackId: '',
-            bpm: '',
-            trackKey: '',
-            trackPrice: '',
-            musician: '',
-            trackType: '',
-            moodType: '',
-            energyType: '',
-            instrument: '',
-            generatedTrackPlatform: '',
-            about: '',
-            seoTitle: '',
-            metaKeyword: '',
-            metaDescription: ''
-          });
-          setSelectedGenres([]);
-          setSelectedBeats([]);
-          setSelectedTags([]);
-          setTrackImage(null);
+        setFormData({
+          trackName: '',
+          trackId: '',
+          bpm: '',
+          trackKey: '',
+          trackPrice: '',
+          musician: '',
+          trackType: '',
+          moodType: '',
+          energyType: '',
+          instrument: '',
+          generatedTrackPlatform: '',
+          about: '',
+          seoTitle: '',
+          metaKeyword: '',
+          metaDescription: ''
+        });
+        setSelectedGenres([]);
+        setSelectedBeats([]);
+        setSelectedTags([]);
+        setTrackImage(null);
           setImageFileId(null);
           setImageFile(null);
-          setTrackFile(null);
-          setPublish('Private');
+        setTrackFile(null);
+        setPublish('Private');
           
           // Clear musician profile picture states
           setNewMusicianImage(null);

@@ -117,7 +117,7 @@ export default function HomePage() {
       <div className='relative containerpaddin container mx-auto'>
         <div className='pt-34 sm:pt-28 md:pt-32 lg:pt-50  lg:leading-15 xl:leading-25 2xl:leading-35'>
           <h1 className='text-white font-Title font-bold text-[40px] md:text-[50px] lg:text-[60px] xl:text-[80px] 2xl:text-[100px] font-bold'>
-            Upload & Download<br />
+          Discover, Upload, and Download<br />
             <span className='flex items-center'>
               AI S
               <span>
@@ -127,18 +127,17 @@ export default function HomePage() {
             </span>
           </h1>
           <p className='max-w-[100%] font-bold  md:max-w-[60%] text-white lg:text-lg mt-4'>
-            After the trial, you can still use Cursor with limited features (GPT-4 mini or Cursor small models),
-            which are only good for simple tasks.After the trial
+          Discover a new way to create and enjoy music. Museedle is an AI-driven music marketplace where you can preview, stream, and download tracks for free. Future versions will empower musicians to upload and monetize their music with ease.
           </p>
 
 
           
           <div>
           <p className=" text-white text-sm mt-4 mb-4 text-right  ">
-          
-            fter the trial, you can still use Cursor with limited <br />
-            features (GPT-4 mini or Cursor small models), <br />
-            which are only good for simple tasks.After the trial
+          A next-generation platform for artists to create, share,<br />
+           and monetize AI-powered music. For fans, it's your portal to<br />
+            download exclusive tracks and be the first to hear the future.
+
           </p>
           </div>
         </div>
@@ -153,7 +152,7 @@ export default function HomePage() {
                   </svg>
                   <input 
                     type="text" 
-                    placeholder="Try searching Sad or Juice Wrld..." 
+                    placeholder="Search Track" 
                     className="bg-transparent text-white text-white/70 text-sm md:text-lg outline-none flex-1  w-full"
                   />
                 </div>
@@ -174,7 +173,7 @@ export default function HomePage() {
 
           <div className='flex flex-col lg:flex-row mt-4 md:mt-2 lg:mt-2 items-center gap-1 lg:gap-10'>
             <div className='font-Galldis font-light-500 text-white text-sm text-white  mt-2'>
-              <p>PWhat’s trending right nowhhhh</p>
+              <p>Discover What’s Hot Today</p>
             </div>
 
             <div className='font-Galldis font-light-500 text-white text-sm text-white  mt-2 flex items-center gap-2'>
@@ -185,7 +184,7 @@ export default function HomePage() {
                 R&B
               </button>
               <button className='font-Galldis font-light-500 text-white text-sm text-white border border-white/50 font-regular text-black px-4 py-1 rounded-full justify-center items-center'>
-                PCountryOP
+                Hip-Hop
               </button>
             </div>
           </div>
@@ -273,12 +272,14 @@ export default function HomePage() {
 </p>
 
 <h1 className='text-white font-Title text-[20px] md:text-[25px] lg:text-[30px] xl:text-[40px] 2xl:text-[50px] text-center mt-4'>
-  Create Song With <br></br>
-  The Power of AI
+Create, Remix & <br/>
+Shine with AI Music.
 </h1>
 
-<p className='font-Galldis font-light-500 text-white text-[10px] text-white  mt-4 text-center'>
-  The largest marketplace for high quality beatsAccess over 8 <br/>million beats from our growing community of producers<br/> around the world.
+<p className='font-Galldis font-light-500 text-white text-[10px] md:text-[15px] text-white  mt-4 text-center'>
+Discover a smarter way to make music online. Whether you’re a beginner or a pro, <br/>
+ our AI platform makes it easy to create, remix, and download high-quality tracks.<br/>
+  Join the next wave of artists shaping the future of music with technology.
 </p>
 
 <div className='flex items-center justify-center gap-4 mt-10'>

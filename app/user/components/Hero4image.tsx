@@ -41,10 +41,12 @@ function Hero4image() {
                     <div className="flex flex-col  items-end gap-0">
                       <img src={MainIcon.src} alt="" className="h-15 md:h-10 xl:h-15 w-auto hover:scale-110 hover:rotate-6 transition-all duration-700 ease-out cursor-pointer" />
                       <p className="font-Galldis font-light-500 text-white text-[13px] md:text-[9px] xl:text-[13px] text-white  mt-4 xl:leading-5 text-right">
-                        <span className="font-bold">After the trial,</span><br />
-                        you can still use Cursor with limited <br />
-                        features (GPT-4 mini or Cursor small)<br />
-                        which are only good for simple tasks.
+                        <span className="font-bold">Your next track</span><br />
+
+                        is just a click away.<br />
+                         Experience the future of music with AI. <br />
+                         Start your free trial today.
+                        
                       </p>
                     </div>
                     <img src={Hero4.src} alt="" className="w-full md:w-auto hover:scale-110 hover:rotate-2 transition-all duration-700 ease-out cursor-pointer" />
@@ -55,12 +57,13 @@ function Hero4image() {
             </div>
           </div>
           <h1 className='text-white font-Title text-[20px] md:text-[30px] xl:text-[50px] font-roboto font-bold mt-10'>
-            Create Song With <br></br>
-            The Power of AI
+          Turn Ideas Into Hits  <br></br>
+          with AI Music Creation.
           </h1>
           <p className='font-Galldis font-light-500 text-white text-sm text-white  mt-4'>
-            After the trial, you can still use Cursor with limited features (GPT-4 mini or Cursor small models),<br />
-            which are only good for simple tasks.After the trial
+
+          From trap beats to lo-fi vibes, generate high-quality music using our AI-powered song maker.<br /> Perfect for artists, creators, and dreamers.
+            
           </p>
         </div>
 
