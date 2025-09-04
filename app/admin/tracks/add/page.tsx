@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import { FaCloudUploadAlt, FaFileAudio } from "react-icons/fa";
 import { trackAPI, genreAPI, beatAPI, tagAPI, imageAPI, musicianAPI } from '../../../utils/api';
 import { useRouter, useSearchParams } from "next/navigation";
@@ -17,7 +17,7 @@ const trackKeyOptions = [
   "None", "Cm", "Dm", "Em", "Fm", "Gm", "Bm", "F♯m", "Am", "C♯m", "D♯m", "G♯m", "A♯m", "E♭m", "CM", "B♭m", "DM", "A♭m", "GM", "EM", "AM", "FM", "BM", "F♯M", "D♭m", "E♭M", "A♭M", "C♯M", "D♭M", "B♭M", "A♯M", "G♭M", "C♭M", "D♯M", "G♯M"
 ];
 
-export default function AddTrackPage() {
+function AddTrackForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isEditMode = searchParams.get('mode') === 'edit';
@@ -1562,5 +1562,17 @@ export default function AddTrackPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function AddTrackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen p-8 bg-[#081028] flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <AddTrackForm />
+    </Suspense>
   );
 } 

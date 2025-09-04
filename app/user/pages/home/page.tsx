@@ -13,6 +13,7 @@ import HeroButton from '../../images/Home/herobutton.svg'
 import Banner from '../../components/Banner'
 import Musicdata from '../musicdata.json'
 import Downloadicon from '../../images/icon/Download.svg'
+import { trackAPI } from '../../../utils/api'
 import Career from '../../components/Career'
 import Logo1 from '../../images/LogoCarousel/logo1.png'
 import Logo2 from '../../images/LogoCarousel/logo2.png'
@@ -26,12 +27,30 @@ import MadeonCarousel from '../../components/MadeonCarousel'
 import ImageTrail from '../../components/ImageTrail'
 import CircularGallery from '../../components/CircularGallery'
 import FlowingMenu from '../../components/FlowingMenu'
+import { 
+  FaMusic, 
+  FaGuitar, 
+  FaMicrophone, 
+  FaHeadphones, 
+  FaVolumeUp, 
+  FaDrum, 
+  FaKeyboard, 
+  FaCompactDisc,
+  FaStar
+} from 'react-icons/fa'
 
 export default function HomePage() {
   const router = useRouter();
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // OS detection state
+  const [isMac, setIsMac] = useState(false);
+  
+  // Database tracks state
+  const [tracks, setTracks] = useState<any[]>([]);
+  const [tracksLoading, setTracksLoading] = useState(true);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,6 +74,36 @@ export default function HomePage() {
     }
   };
 
+  // Detect operating system
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      const isMacOS = userAgent.includes('mac');
+      setIsMac(isMacOS);
+    }
+  }, []);
+
+  // Fetch tracks from database
+  useEffect(() => {
+    const loadTracks = async () => {
+      try {
+        setTracksLoading(true);
+        const response = await trackAPI.getTracks();
+        if (response.success) {
+          setTracks(response.tracks);
+        } else {
+          console.error('Failed to load tracks:', response.message);
+        }
+      } catch (error) {
+        console.error('Error loading tracks:', error);
+      } finally {
+        setTracksLoading(false);
+      }
+    };
+
+    loadTracks();
+  }, []);
+
   // Determine cards per page based on screen size
   const getCardsPerPage = () => {
     if (typeof window !== 'undefined') {
@@ -68,20 +117,21 @@ export default function HomePage() {
   };
 
   const demoItems = [
-    { link: '#', text: 'Mojave', image: 'https://picsum.photos/600/400?random=1' },
-    { link: '#', text: 'Sonoma', image: 'https://picsum.photos/600/400?random=2' },
-    { link: '#', text: 'Monterey', image: 'https://picsum.photos/600/400?random=3' },
-    { link: '#', text: 'Sequoia', image: 'https://picsum.photos/600/400?random=4' }
+    { link: '#', text: 'Hip-Hop', image: 'https://media.timeout.com/images/101659805/image.jpg' },
+    { link: '#', text: 'R&B', image: 'https://taiandrewsinstrumentals.com/storage/2024/11/Modern-Rhythm-and-Blues-Introducing-Contemporary-RB-Music.jpg.webp' },
+    { link: '#', text: 'Electronic', image: 'https://admin.musiconline.co/uploads/images/blog/header/elektronik-muzik.jpg' },
+    { link: '#', text: 'Rock', image: 'https://static0.thegamerimages.com/wordpress/wp-content/uploads/2019/09/RockBand2.jpg' }
   ];
 
   const cardsPerPage = getCardsPerPage();
 
-  // Pagination logic
-  const totalCards = Musicdata.length;
+  // Pagination logic - use database tracks or fallback to JSON data
+  const dataSource = tracks.length > 0 ? tracks : Musicdata;
+  const totalCards = dataSource.length;
   const totalPages = Math.ceil(totalCards / cardsPerPage);
   const startIndex = (currentPage - 1) * cardsPerPage;
   const endIndex = startIndex + cardsPerPage;
-  const currentCards = Musicdata.slice(startIndex, endIndex);
+  const currentCards = dataSource.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -134,9 +184,9 @@ export default function HomePage() {
       <SplashCursor /> 
       
       <div className='relative z-50'>
-      <div className='absolute bottom-[40%] md:bottom-[20%] xl:bottom-[12%] right-0 left-0 w-full '>
+             <div className={`absolute bottom-[40%] md:bottom-[20%] xl:bottom-[-200px] ${isMac ? '2xl:bottom-[15%]' : '2xl:bottom-[1%]'} right-0 left-0 w-full`}>
         
-        <img src={Whiteline.src} alt="" className="w-full items-center justify-center" />
+        <img src={Whiteline.src} alt="" className="w-full items-center justify-center " />
       </div>
       <div className='relative containerpaddin container mx-auto'>
         <div className='pt-34 sm:pt-28 md:pt-32 lg:pt-50  lg:leading-15 xl:leading-25 2xl:leading-35'>
@@ -232,52 +282,173 @@ export default function HomePage() {
         <div className='bg-black/30 backdrop-blur-sm  px-4 py-8 overflow-hidden'>
         <div className='containerpaddin container mx-auto'>
           <div className='flex items-center opacity-50 animate-scroll'>
-             <img src={Logo1.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo2.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo3.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo4.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo5.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo6.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo7.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             {/* Duplicate logos for seamless loop */}
-             <img src={Logo1.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo2.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo3.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo4.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo5.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo6.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
-             <img src={Logo7.src} alt="" className='mx-2 md:mx-8 flex-shrink-0 h-4 md:h-8 lg:h-5 xl:h-8 w-auto' />
+                         <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaStar className='text-white' />
+              POP
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaGuitar className='text-white' />
+              ROCK
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaMicrophone className='text-white' />
+              HIP-HOP
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaMusic className='text-white' />
+              R&B
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaVolumeUp className='text-white' />
+              ELECTRONIC
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaKeyboard className='text-white' />
+              JAZZ
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaCompactDisc className='text-white' />
+              CLASSICAL
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaGuitar className='text-white' />
+              COUNTRY
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaDrum className='text-white' />
+              REGGAE
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaHeadphones className='text-white' />
+              K-POP
+            </div>
+            {/* Duplicate genre names for seamless loop */}
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaStar className='text-white' />
+              POP
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaGuitar className='text-white' />
+              ROCK
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaMicrophone className='text-white' />
+              HIP-HOP
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaMusic className='text-white' />
+              R&B
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaVolumeUp className='text-white' />
+              ELECTRONIC
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaKeyboard className='text-white' />
+              JAZZ
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaCompactDisc className='text-white' />
+              CLASSICAL
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaGuitar className='text-white' />
+              COUNTRY
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaDrum className='text-white' />
+              REGGAE
+            </div>
+            <div className='mx-2 md:mx-8 flex-shrink-0 text-white font-roboto font-bold text-sm md:text-lg lg:text-base xl:text-lg whitespace-nowrap flex items-center gap-2'>
+              <FaHeadphones className='text-white' />
+              K-POP
+            </div>
           </div>
           </div>
         </div>
       </div>
 
 {/* Music Cards */}
-        <div className='containerpaddin container mx-auto mt-[50px] '>
+        <div className='relative z-[1000] containerpaddin container mx-auto mt-[50px] '>
         <h1 className='text-white font-Title text-[10px] md:text-[10px] lg:text-[10px] xl:text-[20px] 2xl:text-[20px]'>
             Trending Songs
           </h1>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5   gap-6 overflow-x-auto scrollbar-hide  mt-9">
+        
+        {tracksLoading ? (
+          <div className="flex justify-center items-center mt-9">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+            <span className="text-white ml-4">Loading tracks...</span>
+          </div>
+        ) : (
+          <div className="relative z-[1000] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 overflow-x-auto scrollbar-hide mt-9">
 
             {
-            currentCards.map( musicdata => (
-            <div key={musicdata.id} className='flex-shrink-0'>
-            <div className="">
-                          <img src={musicdata.image} className="rounded-sm w-full h-full hover:brightness-125 hover:shadow-lg hover:shadow-white/20 transition-all duration-200 cursor-pointer" alt="Description" />
-                          <h1 className="text-white font-Galldis font-light-500 text-white text-[12px]  mt-2">{musicdata.title}</h1>
-                          <h1 className="text-white font-Galldis font-light-500 text-white text-[10px]  ">Skeyes_A</h1>
-                          <div className="grid grid-cols-8 gap-2 mt-2">
+            currentCards.map( (track, index) => {
+              // Helper function to get proper image URL
+              const getImageUrl = (trackImage: string | null | undefined) => {
+                if (!trackImage) return "/vercel.svg";
+                
+                // If it's already a full URL, return it
+                if (trackImage.startsWith('http://') || trackImage.startsWith('https://')) {
+                  return trackImage;
+                }
+                
+                // If it's a GridFS file ID, construct the URL
+                if (trackImage.length === 24) { // MongoDB ObjectId length
+                  return `http://localhost:3001/api/image/${trackImage}`;
+                }
+                
+                // If it's a relative path or other format, return as is
+                return trackImage;
+              };
 
-                         <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-Galldis font-light-500 text-white text-sm justify-center items-center rounded-sm hover:bg-white/30 transition-colors duration-200">$ {musicdata.plays}</button>
-                 <button className="grid col-span-2 bg-primary text-black px-2 py-2 md:px-2 md:py-2 xl:px-4 xl:py-1 rounded-sm hover:bg-primary/70 transition-colors duration-200">
-                <img src={Downloadicon.src} alt="Download" className="" />
+              // Use database track data if available, otherwise fallback to JSON data
+              const isDatabaseTrack = tracks.length > 0;
+              const trackData = isDatabaseTrack ? track : track;
+              const trackId = isDatabaseTrack ? track._id : track.id;
+              const trackImage = isDatabaseTrack ? track.trackImage : track.image;
+              const trackName = isDatabaseTrack ? track.trackName : track.title;
+              const musician = isDatabaseTrack ? track.musician : 'Skeyes_A';
+              const price = isDatabaseTrack ? track.trackPrice : track.plays;
+
+              return (
+                <div key={trackId || index} className='flex-shrink-0 w-full'>
+                  <div className="w-full h-full flex flex-col">
+                    {/* Image container with fixed aspect ratio */}
+                    <div className="w-full aspect-square overflow-hidden rounded-sm bg-black/20">
+                      <img 
+                        src={getImageUrl(trackImage)} 
+                        className="w-full h-full object-cover hover:brightness-125 hover:shadow-lg hover:shadow-white/20 transition-all duration-200 cursor-pointer" 
+                        alt={trackName}
+                        onError={(e) => {
+                          e.currentTarget.src = "/vercel.svg";
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Content container with fixed height */}
+                    <div className="flex flex-col justify-between h-20 mt-2">
+                      <div className="flex-1">
+                        <h1 className="text-white font-Galldis font-light-500 text-[12px] mt-1 line-clamp-2 leading-tight font-bold">{trackName}</h1>
+                        <h1 className="text-white font-Galldis font-light-500 text-[10px] mt-1 line-clamp-1">{musician}</h1>
+                      </div>
+                      
+                      {/* Fixed height button container */}
+                      <div className="grid grid-cols-8 gap-2 mt-2 h-8">
+                        <button className="grid col-span-6 bg-white/20 backdrop-blur-sm rounded-full font-Galldis font-light-500 text-white text-sm justify-center items-center rounded-sm hover:bg-white/30 transition-colors duration-200">
+                          $ {price}
+                        </button>
+                        <button className="grid col-span-2 bg-primary text-black px-2 py-1 rounded-sm hover:bg-primary/70 transition-colors duration-200 flex items-center justify-center">
+                          <img src={Downloadicon.src} alt="Download" className="w-4 h-4" />
               </button>
-
+                      </div>
             </div>
             </div>
             </div>
-            ))}
+              );
+            })}
             </div>
+        )}
         </div>
 
 

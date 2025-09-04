@@ -4,7 +4,7 @@ import Navbar from '../../components/Navbar'
 import Musicdata from '../musicdata.json'
 import Dropdown from '../../dropdown.json'
 import Filters from '../../filters.json'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Downloadicon from '../../images/icon/Download.svg'
 import Image from '../../images/songimage/song.png'
@@ -12,7 +12,7 @@ import First_carousel from '../../components/First_carousel'
 import Footer from '../../components/Footer'
 import { trackAPI, imageAPI, genreAPI, tagAPI } from '../../../utils/api'
 
-export default function TopChartsPage() {
+function TopChartsContent() {
   const searchParams = useSearchParams();
   
   const [isDragging, setIsDragging] = useState(false);
@@ -937,4 +937,16 @@ export default function TopChartsPage() {
       <Footer />
     </div>
   )
+}
+
+export default function TopChartsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#081028] flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <TopChartsContent />
+    </Suspense>
+  );
 } 
