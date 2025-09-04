@@ -5,6 +5,7 @@ import Musicdata from '../musicdata.json'
 import Dropdown from '../../dropdown.json'
 import Filters from '../../filters.json'
 import React, { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Downloadicon from '../../images/icon/Download.svg'
 import Image from '../../images/songimage/song.png'
 import First_carousel from '../../components/First_carousel'
@@ -12,6 +13,8 @@ import Footer from '../../components/Footer'
 import { trackAPI, imageAPI, genreAPI, tagAPI } from '../../../utils/api'
 
 export default function TopChartsPage() {
+  const searchParams = useSearchParams();
+  
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -127,6 +130,14 @@ export default function TopChartsPage() {
     const tag = tags.find(t => t.name === tagName);
     return tag ? tag._id : tagName;
   };
+
+  // Initialize search query from URL parameters
+  useEffect(() => {
+    const searchParam = searchParams.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    }
+  }, [searchParams]);
 
   // Load tracks, genres, and tags from MongoDB
   useEffect(() => {
