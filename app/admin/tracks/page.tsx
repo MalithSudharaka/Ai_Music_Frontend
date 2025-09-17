@@ -3,12 +3,13 @@ import React, { useEffect, useState } from "react";
 
 import { trackAPI, imageAPI } from "../../utils/api";
 
-import { FaEye, FaEdit, FaTrash, FaTimes, FaPlus } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaTimes, FaPlus, FaPlay, FaPause } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface Track {
-  _id: string;
+  id?: string; // Supabase ID
+  _id?: string; // MongoDB ID (for backward compatibility)
   trackName: string;
   trackId: string;
   bpm?: number;
@@ -47,6 +48,16 @@ export default function TracksPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingTrack, setDeletingTrack] = useState<Track | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Helper function to get track ID (supports both Supabase and MongoDB)
+  const getTrackId = (track: Track): string => {
+    return track.id || track._id || '';
+  };
+
+  // Audio player states
+  const [currentPlayingTrack, setCurrentPlayingTrack] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
 
   const pageSize = 8;
 
@@ -134,11 +145,21 @@ export default function TracksPage() {
     
     setIsDeleting(true);
     try {
-      const response = await trackAPI.deleteTrack(deletingTrack._id);
+      const trackId = getTrackId(deletingTrack);
+      console.log('Deleting track with ID:', trackId);
+      console.log('Track object:', deletingTrack);
+      
+      if (!trackId) {
+        setMessage('Error: Track ID not found');
+        setIsDeleting(false);
+        return;
+      }
+      
+      const response = await trackAPI.deleteTrack(trackId);
       if (response.success) {
         setMessage('Track deleted successfully!');
         // Remove from local state
-        setTracks(prev => prev.filter(track => track._id !== deletingTrack._id));
+        setTracks(prev => prev.filter(track => getTrackId(track) !== trackId));
         closeDeleteModal();
         // Clear success message after 3 seconds
         setTimeout(() => {
@@ -147,9 +168,87 @@ export default function TracksPage() {
       }
     } catch (error: any) {
       console.error('Error deleting track:', error);
-      setMessage('Failed to delete track');
+      console.error('Error response:', error.response?.data);
+      setMessage(error.response?.data?.message || 'Failed to delete track');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  // Audio player functions
+  const getTrackFileUrl = (trackFile: string | undefined) => {
+    if (!trackFile) return null;
+    
+    // If it's already a full URL, return it
+    if (trackFile.startsWith('http://') || trackFile.startsWith('https://')) {
+      return trackFile;
+    }
+    
+    // If it's a GridFS file ID, construct the URL (similar to image API)
+    if (trackFile.length === 24) { // MongoDB ObjectId length
+      // Assuming there's a similar API for audio files
+      return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/audio/${trackFile}`;
+    }
+    
+    return trackFile;
+  };
+
+  const handlePlayTrack = async (track: Track) => {
+    const trackFileUrl = getTrackFileUrl(track.trackFile);
+    
+    if (!trackFileUrl) {
+      setMessage('No audio file available for this track');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+
+    // Get track ID using helper function
+    const trackId = getTrackId(track);
+    
+    // If the same track is already playing, pause it
+    if (currentPlayingTrack === trackId && isPlaying && audioRef) {
+      audioRef.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    // Stop any currently playing audio
+    if (audioRef) {
+      audioRef.pause();
+    }
+
+    // Create new audio element
+    const audio = new Audio(trackFileUrl);
+    
+    audio.onplay = () => {
+      setIsPlaying(true);
+      setCurrentPlayingTrack(trackId);
+    };
+    
+    audio.onpause = () => {
+      setIsPlaying(false);
+    };
+    
+    audio.onended = () => {
+      setIsPlaying(false);
+      setCurrentPlayingTrack(null);
+    };
+
+    audio.onerror = () => {
+      setMessage('Error playing audio file');
+      setIsPlaying(false);
+      setCurrentPlayingTrack(null);
+      setTimeout(() => setMessage(''), 3000);
+    };
+
+    setAudioRef(audio);
+    
+    try {
+      await audio.play();
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      setMessage('Error playing audio file');
+      setTimeout(() => setMessage(''), 3000);
     }
   };
 
@@ -209,7 +308,7 @@ export default function TracksPage() {
           <tbody>
             {paginatedTracks.map((track, idx) => (
               <tr
-                key={track._id}
+                key={getTrackId(track)}
                 className={
                   idx % 2 === 0
                     ? "bg-[#101936] hover:bg-[#232B43] transition-colors"
@@ -217,14 +316,28 @@ export default function TracksPage() {
                 }
               >
                 <td className="px-6 py-4">
-                  <img 
-                    src={getImageUrl(track.trackImage)} 
-                    alt="Track" 
-                    className="w-10 h-10 rounded-full border-2 border-[#E100FF] bg-white object-cover" 
-                    onError={(e) => {
-                      e.currentTarget.src = "/vercel.svg";
-                    }}
-                  />
+                  <div className="relative w-10 h-10 group">
+                    <img 
+                      src={getImageUrl(track.trackImage)} 
+                      alt="Track" 
+                      className="w-10 h-10 rounded-full border-2 border-[#E100FF] bg-white object-cover" 
+                      onError={(e) => {
+                        e.currentTarget.src = "/vercel.svg";
+                      }}
+                    />
+                    {/* Play Button Overlay */}
+                    <button
+                      onClick={() => handlePlayTrack(track)}
+                      className="absolute inset-0 w-10 h-10 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-white hover:bg-black/70"
+                      title={currentPlayingTrack === getTrackId(track) && isPlaying ? "Pause" : "Play"}
+                    >
+                      {currentPlayingTrack === getTrackId(track) && isPlaying ? (
+                        <FaPause className="text-xs" />
+                      ) : (
+                        <FaPlay className="text-xs ml-0.5" />
+                      )}
+                    </button>
+                  </div>
                 </td>
                 <td className="px-6 py-4 font-mono">{track.trackId}</td>
                 <td className="px-6 py-4">{track.trackName}</td>

@@ -7,22 +7,51 @@ import { FaEye, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+interface SoundKit {
+  id?: string; // Supabase ID
+  _id?: string; // MongoDB ID (for backward compatibility)
+  kitName: string;
+  kitId: string;
+  description?: string;
+  category?: string | string[];
+  price?: number;
+  producer?: string;
+  musician?: string;
+  musicianProfilePicture?: string;
+  kitType?: string;
+  bpm?: number;
+  key?: string;
+  kitImage?: string;
+  kitFile?: string;
+  tags?: string[];
+  publish?: string;
+  seoTitle?: string;
+  metaKeyword?: string;
+  metaDescription?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export default function SoundKitsPage() {
   const router = useRouter();
-  const [soundKits, setSoundKits] = useState<any[]>([]);
+  const [soundKits, setSoundKits] = useState<SoundKit[]>([]);
   const [page, setPage] = useState(1);
 
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedKit, setSelectedKit] = useState<any>(null);
+  const [selectedKit, setSelectedKit] = useState<SoundKit | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editingKit, setEditingKit] = useState<any>(null);
+  const [editingKit, setEditingKit] = useState<SoundKit | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletingKit, setDeletingKit] = useState<any>(null);
+  const [deletingKit, setDeletingKit] = useState<SoundKit | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Helper function to get sound kit ID (supports both Supabase and MongoDB)
+  const getSoundKitId = (kit: SoundKit): string => {
+    return kit.id || kit._id || '';
+  };
 
   const pageSize = 8;
 
@@ -126,12 +155,12 @@ export default function SoundKitsPage() {
     }));
   };
 
-  const openDeleteModal = (kit: any) => {
+  const openDeleteModal = (kit: SoundKit) => {
     setDeletingKit(kit);
     setShowDeleteModal(true);
   };
 
-  const handleEditKit = (kit: any) => {
+  const handleEditKit = (kit: SoundKit) => {
     // Store sound kit data in localStorage for editing
     localStorage.setItem('editSoundKitData', JSON.stringify(kit));
     // Navigate to add sound kit page
@@ -148,15 +177,26 @@ export default function SoundKitsPage() {
     
     setIsDeleting(true);
     try {
-      const response = await soundKitAPI.deleteSoundKit(deletingKit._id);
+      const kitId = getSoundKitId(deletingKit);
+      console.log('Deleting sound kit with ID:', kitId);
+      console.log('Sound kit object:', deletingKit);
+      
+      if (!kitId) {
+        console.error('Error: Sound kit ID not found');
+        setIsDeleting(false);
+        return;
+      }
+      
+      const response = await soundKitAPI.deleteSoundKit(kitId);
       
       if (response.success) {
         // Remove from local state
-        setSoundKits(prev => prev.filter(kit => kit._id !== deletingKit._id));
+        setSoundKits(prev => prev.filter(kit => getSoundKitId(kit) !== kitId));
         closeDeleteModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting sound kit:', error);
+      console.error('Error response:', error.response?.data);
     } finally {
       setIsDeleting(false);
     }
@@ -212,26 +252,7 @@ export default function SoundKitsPage() {
     setEditSoundKit({ soundKitName: '', musician: '', price: '' });
   }
 
-  function handleDeleteSoundKit(soundKit: SoundKit) {
-    setSelectedSoundKit(soundKit);
-    setShowDeleteModal(true);
-  }
 
-  function handleConfirmDelete() {
-    if (selectedSoundKit) {
-      // Here you would typically delete from your backend
-      console.log('Deleting sound kit:', selectedSoundKit.id);
-      // Remove the sound kit from the local state (simulate backend deletion)
-      setSoundKits(soundKits.filter(kit => kit.id !== selectedSoundKit.id));
-      setShowDeleteModal(false);
-      setSelectedSoundKit(null);
-    }
-  }
-
-  function handleCloseDeleteModal() {
-    setShowDeleteModal(false);
-    setSelectedSoundKit(null);
-  }
 
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-[#081028]">
@@ -288,7 +309,7 @@ export default function SoundKitsPage() {
             ) : (
               paginatedKits.map((kit, idx) => (
                 <tr
-                  key={kit._id + '-' + idx}
+                  key={getSoundKitId(kit) + '-' + idx}
                   className={
                     idx % 2 === 0
                       ? "bg-[#181F36] hover:bg-[#232B43] transition-colors"
@@ -354,7 +375,7 @@ export default function SoundKitsPage() {
           ) : (
             paginatedKits.map((kit, idx) => (
               <div
-                key={kit._id + '-' + idx}
+                key={getSoundKitId(kit) + '-' + idx}
                 className="bg-[#101936] rounded-xl p-4 shadow-lg border border-[#232B43]"
               >
                 <div className="flex items-start gap-4 mb-3">

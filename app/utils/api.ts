@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://ai-music-backend-73mf.onrender.com/api';
-
+//const API_BASE_URL = 'https://ai-music-backend-73mf.onrender.com/api';
+ const API_BASE_URL = 'http://localhost:3001/api';
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json', 
   },
 });
 
@@ -141,6 +141,15 @@ export const trackAPI = {
     metaDescription?: string;
   }) => {
     const response = await api.post('/tracks', trackData);
+    return response.data;
+  },
+
+  createTrackWithFiles: async (trackData: FormData) => {
+    const response = await api.post('/tracks/upload', trackData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   },
 
@@ -319,6 +328,15 @@ export const soundKitAPI = {
     return response.data;
   },
 
+  createSoundKitWithFiles: async (soundKitData: FormData) => {
+    const response = await api.post('/sound-kits/upload', soundKitData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   getSoundKits: async () => {
     const response = await api.get('/sound-kits');
     return response.data;
@@ -431,16 +449,44 @@ export const imageAPI = {
   },
 
   getImage: (fileId: string) => {
-    return `${API_BASE_URL}/image/${fileId}`;
+    return `${API_BASE_URL}/file/${fileId}`;
   },
 
   deleteImage: async (fileId: string) => {
-    const response = await api.delete(`/image/${fileId}`);
+    const response = await api.delete(`/file/${fileId}`);
     return response.data;
   },
 
   listImages: async () => {
-    const response = await api.get('/images');
+    const response = await api.get('/files');
+    return response.data;
+  },
+};
+
+export const audioAPI = {
+  uploadAudio: async (file: File) => {
+    const formData = new FormData();
+    formData.append('audio', file);
+    
+    const response = await api.post('/upload-audio', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  getAudio: (fileId: string) => {
+    return `${API_BASE_URL}/file/${fileId}`;
+  },
+
+  deleteAudio: async (fileId: string) => {
+    const response = await api.delete(`/file/${fileId}`);
+    return response.data;
+  },
+
+  listAudio: async () => {
+    const response = await api.get('/files');
     return response.data;
   },
 };
