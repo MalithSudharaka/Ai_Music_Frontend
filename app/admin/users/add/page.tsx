@@ -11,7 +11,20 @@ function validateUsername(username: string) {
   return username.length >= 3;
 }
 function validatePassword(password: string) {
-  return password.length >= 6;
+  const minLength = password.length >= 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  
+  return {
+    isValid: minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar,
+    minLength,
+    hasUpperCase,
+    hasLowerCase,
+    hasNumbers,
+    hasSpecialChar
+  };
 }
 function validatePhone(phone: string) {
   return phone === "" || (/^\d{7,}$/.test(phone));
@@ -30,10 +43,36 @@ export default function AddUserPage() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [passwordValidation, setPasswordValidation] = useState({
+    isValid: false,
+    minLength: false,
+    hasUpperCase: false,
+    hasLowerCase: false,
+    hasNumbers: false,
+    hasSpecialChar: false
+  });
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (file) setAvatar(URL.createObjectURL(file));
+  }
+
+  function handlePasswordChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    
+    // Update password validation in real-time
+    const validation = validatePassword(newPassword);
+    setPasswordValidation(validation);
+    
+    // Clear password error if password becomes valid
+    if (validation.isValid && errors.password) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.password;
+        return newErrors;
+      });
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -44,7 +83,17 @@ export default function AddUserPage() {
     if (!lastName.trim()) newErrors.lastName = "Last name is required.";
     if (!validateEmail(email)) newErrors.email = "Please enter a valid email address.";
     if (!validateUsername(username)) newErrors.username = "Username must be at least 3 characters.";
-    if (!validatePassword(password)) newErrors.password = "Password must be at least 6 characters.";
+    const passwordValidationResult = validatePassword(password);
+    if (!passwordValidationResult.isValid) {
+      const missingRequirements = [];
+      if (!passwordValidationResult.minLength) missingRequirements.push("at least 8 characters");
+      if (!passwordValidationResult.hasUpperCase) missingRequirements.push("uppercase letter");
+      if (!passwordValidationResult.hasLowerCase) missingRequirements.push("lowercase letter");
+      if (!passwordValidationResult.hasNumbers) missingRequirements.push("number");
+      if (!passwordValidationResult.hasSpecialChar) missingRequirements.push("special character");
+      
+      newErrors.password = `Password must contain: ${missingRequirements.join(", ")}.`;
+    }
     if (!validatePhone(phone)) newErrors.phone = "Phone number must be at least 7 digits.";
     
     setErrors(newErrors);
@@ -191,11 +240,50 @@ export default function AddUserPage() {
               <label className="block text-gray-300 mb-1 text-sm md:text-base">Password *</label>
                   <input
                     type="password"
-                className={`w-full bg-transparent border ${errors.password ? 'border-pink-500' : 'border-[#232B43]'} rounded-lg px-3 md:px-4 py-2 text-white focus:outline-none text-sm md:text-base`} 
+                className={`w-full bg-transparent border ${errors.password ? 'border-pink-500' : passwordValidation.isValid ? 'border-green-500' : 'border-[#232B43]'} rounded-lg px-3 md:px-4 py-2 text-white focus:outline-none text-sm md:text-base`} 
                 value={password} 
-                onChange={e => setPassword(e.target.value)} 
+                onChange={handlePasswordChange} 
                 disabled={isSubmitting}
+                placeholder="Enter a strong password"
               />
+              
+              {/* Password Requirements */}
+              {password && (
+                <div className="mt-2 space-y-1">
+                  <div className="text-xs text-gray-400 mb-2">Password requirements:</div>
+                  <div className={`text-xs flex items-center gap-2 ${passwordValidation.minLength ? 'text-green-400' : 'text-gray-500'}`}>
+                    <span className={passwordValidation.minLength ? 'text-green-400' : 'text-gray-500'}>
+                      {passwordValidation.minLength ? '✓' : '○'}
+                    </span>
+                    At least 8 characters
+                  </div>
+                  <div className={`text-xs flex items-center gap-2 ${passwordValidation.hasUpperCase ? 'text-green-400' : 'text-gray-500'}`}>
+                    <span className={passwordValidation.hasUpperCase ? 'text-green-400' : 'text-gray-500'}>
+                      {passwordValidation.hasUpperCase ? '✓' : '○'}
+                    </span>
+                    One uppercase letter
+                  </div>
+                  <div className={`text-xs flex items-center gap-2 ${passwordValidation.hasLowerCase ? 'text-green-400' : 'text-gray-500'}`}>
+                    <span className={passwordValidation.hasLowerCase ? 'text-green-400' : 'text-gray-500'}>
+                      {passwordValidation.hasLowerCase ? '✓' : '○'}
+                    </span>
+                    One lowercase letter
+                  </div>
+                  <div className={`text-xs flex items-center gap-2 ${passwordValidation.hasNumbers ? 'text-green-400' : 'text-gray-500'}`}>
+                    <span className={passwordValidation.hasNumbers ? 'text-green-400' : 'text-gray-500'}>
+                      {passwordValidation.hasNumbers ? '✓' : '○'}
+                    </span>
+                    One number
+                  </div>
+                  <div className={`text-xs flex items-center gap-2 ${passwordValidation.hasSpecialChar ? 'text-green-400' : 'text-gray-500'}`}>
+                    <span className={passwordValidation.hasSpecialChar ? 'text-green-400' : 'text-gray-500'}>
+                      {passwordValidation.hasSpecialChar ? '✓' : '○'}
+                    </span>
+                    One special character (!@#$%^&*)
+                  </div>
+                </div>
+              )}
+              
               {errors.password && <div className="text-pink-400 text-xs mt-1">{errors.password}</div>}
             </div>
 
