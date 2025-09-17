@@ -639,29 +639,83 @@ function AddTrackForm() {
       
       console.log('- Final musicianProfilePicture after API check:', musicianProfilePicture);
 
-      const trackData = {
-        ...formData,
-        bpm: formData.bpm ? parseInt(formData.bpm) : undefined,
-        trackPrice: formData.trackPrice ? parseFloat(formData.trackPrice) : 0,
-        trackImage: imageUrl,
-        trackFile: trackFile ? trackFile.name : '',
-        publish: publish,
-        genreCategory: selectedGenres,
-        beatCategory: selectedBeats,
-        trackTags: selectedTags,
-        musicianProfilePicture: musicianProfilePicture
-      };
-
-      console.log('Form data musician:', formData.musician);
-      console.log('Musician profiles:', musicianProfiles);
-      console.log('Sending track data:', trackData);
-
+      // Check if we have files to upload
+      const hasFiles = trackFile || trackImage;
+      
       let response;
       if (isEditMode && editingTrackId) {
-        // Update existing track
+        // For updates, use regular API (no file upload for updates in this implementation)
+        const trackData = {
+          ...formData,
+          bpm: formData.bpm ? parseInt(formData.bpm) : undefined,
+          trackPrice: formData.trackPrice ? parseFloat(formData.trackPrice) : 0,
+          trackImage: imageUrl,
+          trackFile: trackFile?.name || '',
+          publish: publish,
+          genreCategory: selectedGenres,
+          beatCategory: selectedBeats,
+          trackTags: selectedTags,
+          musicianProfilePicture: musicianProfilePicture
+        };
         response = await trackAPI.updateTrack(editingTrackId, trackData);
+      } else if (hasFiles) {
+        // Create new track with files using FormData
+        const formDataToSend = new FormData();
+        
+        // Add all form fields
+        formDataToSend.append('trackName', formData.trackName);
+        formDataToSend.append('trackId', formData.trackId);
+        if (formData.bpm) formDataToSend.append('bpm', formData.bpm);
+        if (formData.trackKey) formDataToSend.append('trackKey', formData.trackKey);
+        if (formData.trackPrice) formDataToSend.append('trackPrice', formData.trackPrice);
+        if (formData.musician) formDataToSend.append('musician', formData.musician);
+        formDataToSend.append('trackType', formData.trackType);
+        if (formData.moodType) formDataToSend.append('moodType', formData.moodType);
+        if (formData.energyType) formDataToSend.append('energyType', formData.energyType);
+        if (formData.instrument) formDataToSend.append('instrument', formData.instrument);
+        if (formData.generatedTrackPlatform) formDataToSend.append('generatedTrackPlatform', formData.generatedTrackPlatform);
+        if (formData.about) formDataToSend.append('about', formData.about);
+        if (formData.seoTitle) formDataToSend.append('seoTitle', formData.seoTitle);
+        if (formData.metaKeyword) formDataToSend.append('metaKeyword', formData.metaKeyword);
+        if (formData.metaDescription) formDataToSend.append('metaDescription', formData.metaDescription);
+        formDataToSend.append('publish', publish);
+        if (musicianProfilePicture) formDataToSend.append('musicianProfilePicture', musicianProfilePicture);
+        
+        // Add array fields
+        selectedGenres.forEach((genre, index) => {
+          formDataToSend.append(`genreCategory[${index}]`, genre);
+        });
+        selectedBeats.forEach((beat, index) => {
+          formDataToSend.append(`beatCategory[${index}]`, beat);
+        });
+        selectedTags.forEach((tag, index) => {
+          formDataToSend.append(`trackTags[${index}]`, tag);
+        });
+        
+        // Add files
+        if (trackFile) {
+          formDataToSend.append('audio', trackFile);
+        }
+        // Use the actual File object, not the preview blob URL
+        if (imageFile) {
+          formDataToSend.append('image', imageFile);
+        }
+        
+        response = await trackAPI.createTrackWithFiles(formDataToSend);
       } else {
-        // Create new track
+        // Create new track without files
+        const trackData = {
+          ...formData,
+          bpm: formData.bpm ? parseInt(formData.bpm) : undefined,
+          trackPrice: formData.trackPrice ? parseFloat(formData.trackPrice) : 0,
+          trackImage: imageUrl,
+          trackFile: '', // No file in this case
+          publish: publish,
+          genreCategory: selectedGenres,
+          beatCategory: selectedBeats,
+          trackTags: selectedTags,
+          musicianProfilePicture: musicianProfilePicture
+        };
         response = await trackAPI.createTrack(trackData);
       }
       

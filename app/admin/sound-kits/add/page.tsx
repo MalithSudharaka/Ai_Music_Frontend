@@ -209,7 +209,22 @@ function AddSoundKitForm() {
   }
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) setKitFile(file);
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('audio/')) {
+      setSubmitMessage('Please select a valid audio file');
+      return;
+    }
+
+    // Validate file size (50MB limit)
+    if (file.size > 50 * 1024 * 1024) {
+      setSubmitMessage('Audio file size must be less than 50MB');
+      return;
+    }
+
+    setKitFile(file);
+    setSubmitMessage(''); // Clear any previous error messages
   }
 
   // Handle musician image change
@@ -449,8 +464,45 @@ function AddSoundKitForm() {
       if (isEditMode && editingSoundKitId) {
         // Update existing sound kit
         response = await soundKitAPI.updateSoundKit(editingSoundKitId, soundKitData);
+      } else if (kitFile || imageFile) {
+        // Create new sound kit with files using FormData
+        const formDataToSend = new FormData();
+        
+        // Add all form fields
+        formDataToSend.append('kitName', formData.kitName);
+        formDataToSend.append('kitId', formData.kitId);
+        if (formData.price) formDataToSend.append('price', formData.price);
+        if (formData.kitType) formDataToSend.append('kitType', formData.kitType);
+        if (formData.bpm) formDataToSend.append('bpm', formData.bpm);
+        if (formData.key) formDataToSend.append('key', formData.key);
+        if (description) formDataToSend.append('description', description);
+        if (musician) formDataToSend.append('producer', musician);
+        if (musician) formDataToSend.append('musician', musician);
+        if (musicianProfilePicture) formDataToSend.append('musicianProfilePicture', musicianProfilePicture);
+        if (seoTitle) formDataToSend.append('seoTitle', seoTitle);
+        if (seoKeyword) formDataToSend.append('metaKeyword', seoKeyword);
+        if (seoDescription) formDataToSend.append('metaDescription', seoDescription);
+        formDataToSend.append('publish', publish);
+        
+        // Add array fields
+        categories.forEach((category, index) => {
+          formDataToSend.append(`category[${index}]`, category);
+        });
+        tags.forEach((tag, index) => {
+          formDataToSend.append(`tags[${index}]`, tag);
+        });
+        
+        // Add files
+        if (kitFile) {
+          formDataToSend.append('kitFile', kitFile);
+        }
+        if (imageFile) {
+          formDataToSend.append('image', imageFile);
+        }
+        
+        response = await soundKitAPI.createSoundKitWithFiles(formDataToSend);
       } else {
-        // Create new sound kit
+        // Create new sound kit without files
         response = await soundKitAPI.createSoundKit(soundKitData);
       }
       
@@ -756,16 +808,22 @@ function AddSoundKitForm() {
                 {isUploadingImage ? (
                   <div className="flex flex-col items-center">
                     <div className="w-8 h-8 border-2 border-[#E100FF] border-t-transparent rounded-full animate-spin mb-2"></div>
-                    <span className="text-xs text-gray-400">Uploading to GridFS...</span>
+                    <span className="text-xs text-gray-400">Uploading to Supabase Storage...</span>
                   </div>
                 ) : image ? (
-                  <img src={image} alt="Sound Kit" className="w-20 h-20 object-cover rounded-lg mb-2" />
+                  <div className="flex flex-col items-center">
+                    <img src={image} alt="Sound Kit" className="w-20 h-20 object-cover rounded-lg mb-2" />
+                    {imageFile && (
+                      <span className="text-xs text-green-400 text-center break-all">{imageFile.name}</span>
+                    )}
+                  </div>
                 ) : (
-                  <FaCloudUploadAlt className="text-4xl text-[#7ED7FF] mb-2" />
+                  <>
+                    <FaCloudUploadAlt className="text-4xl text-[#7ED7FF] mb-2" />
+                    <span className="text-xs text-gray-400">Click or drag to upload image</span>
+                    <span className="text-xs text-gray-500 mt-1">Supported: JPG, PNG, GIF (Max: 10MB)</span>
+                  </>
                 )}
-                <span className="text-xs text-gray-400">
-                  {isUploadingImage ? 'Uploading...' : 'Click or drag to upload image'}
-                </span>
                 <input 
                   ref={imageInputRef} 
                   type="file" 
@@ -780,8 +838,21 @@ function AddSoundKitForm() {
             <div>
               <label className="block text-gray-300 mb-2">Sound Kit Upload</label>
               <div className="flex flex-col items-center justify-center border-2 border-dashed border-[#232B43] rounded-xl bg-[#181F36] p-4 cursor-pointer hover:border-[#E100FF] transition" onClick={() => fileInputRef.current?.click()}>
-                <FaFileAudio className="text-4xl text-[#E100FF] mb-2" />
-                <span className="text-xs text-gray-400">Click or drag to upload sound kit</span>
+                {kitFile ? (
+                  <div className="flex flex-col items-center">
+                    <FaFileAudio className="text-4xl text-green-400 mb-2" />
+                    <span className="text-xs text-green-400 text-center break-all">{kitFile.name}</span>
+                    <span className="text-xs text-gray-400 mt-1">
+                      {(kitFile.size / (1024 * 1024)).toFixed(2)} MB
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <FaFileAudio className="text-4xl text-[#E100FF] mb-2" />
+                    <span className="text-xs text-gray-400">Click or drag to upload sound kit</span>
+                    <span className="text-xs text-gray-500 mt-1">Supported: MP3, WAV, FLAC (Max: 50MB)</span>
+                  </>
+                )}
                 <input ref={fileInputRef} type="file" accept="audio/*" className="hidden" onChange={handleFileChange} />
               </div>
             </div>
