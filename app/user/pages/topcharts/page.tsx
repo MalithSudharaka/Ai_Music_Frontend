@@ -24,6 +24,7 @@ function TopChartsContent() {
   const [genres, setGenres] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tagsLoading, setTagsLoading] = useState(true);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -121,8 +122,19 @@ function TopChartsContent() {
 
   // Helper function to get tag name by ID
   const getTagName = (tagId: string) => {
+    if (!tagId || !tags || tags.length === 0) {
+      console.log('getTagName: No tags loaded or invalid tagId:', tagId);
+      return tagId;
+    }
+    
     const tag = tags.find(t => t._id === tagId);
-    return tag ? tag.name : tagId;
+    if (!tag) {
+      console.log('getTagName: Tag not found for ID:', tagId, 'Available tags:', tags.map(t => ({ id: t._id, name: t.name })));
+      return tagId;
+    }
+    
+    console.log('getTagName: Found tag:', tag.name, 'for ID:', tagId);
+    return tag.name;
   };
 
   // Helper function to get tag ID by name
@@ -148,7 +160,11 @@ function TopChartsContent() {
         // Load tracks
         const tracksResponse = await trackAPI.getTracks();
         if (tracksResponse.success) {
+          console.log('Tracks loaded successfully:', tracksResponse.tracks);
+          console.log('Sample track structure:', tracksResponse.tracks[0]);
           setData(tracksResponse.tracks);
+        } else {
+          console.error('Failed to load tracks:', tracksResponse);
         }
         
         // Load genres
@@ -158,10 +174,15 @@ function TopChartsContent() {
         }
         
         // Load tags
+        setTagsLoading(true);
         const tagsResponse = await tagAPI.getTags();
         if (tagsResponse.success) {
+          console.log('Tags loaded successfully:', tagsResponse.tags);
           setTags(tagsResponse.tags);
+        } else {
+          console.error('Failed to load tags:', tagsResponse);
         }
+        setTagsLoading(false);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -522,44 +543,116 @@ function TopChartsContent() {
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
           >
-            {
-              // Collect all unique tags from all tracks and filter by search query
-              (() => {
-                const allTags = new Set<string>();
+            {tagsLoading ? (
+              <div className="flex items-center gap-2 text-gray-400">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                <span className="text-sm">Loading tags...</span>
+              </div>
+            ) : (
+              <>
+                {/* Collect all unique tags from all tracks and filter by search query */}
+                {(() => {
+                  console.log('=== TAG PROCESSING DEBUG ===');
+                  console.log('Data length:', data.length);
+                  console.log('Tags length:', tags.length);
+                  console.log('Tags data:', tags);
+                  
+                  const allTagNames = new Set<string>();
                 
                 data.forEach(track => {
-                  const trackTags = Array.isArray(track.trackTags) 
-                    ? track.trackTags 
-                    : typeof track.trackTags === 'string' 
-                      ? track.trackTags.split(',').map((tag: string) => tag.trim())
-                      : [];
+                  console.log('=== TRACK DEBUG ===');
+                  console.log('Track name:', track.trackName);
+                  console.log('Track object keys:', Object.keys(track));
+                  console.log('trackTags field:', track.trackTags);
+                  console.log('trackTags type:', typeof track.trackTags);
+                  console.log('tags field:', track.tags);
+                  console.log('tags type:', typeof track.tags);
                   
-                  trackTags.forEach((tagId: string) => allTags.add(getTagName(tagId)));
+                  // Try multiple possible field names for tags
+                  let trackTags: string[] = [];
+                  
+                  if (track.trackTags) {
+                    trackTags = Array.isArray(track.trackTags) 
+                      ? track.trackTags 
+                      : typeof track.trackTags === 'string' 
+                        ? track.trackTags.split(',').map((tag: string) => tag.trim())
+                        : [];
+                  } else if (track.tags) {
+                    trackTags = Array.isArray(track.tags) 
+                      ? track.tags 
+                      : typeof track.tags === 'string' 
+                        ? track.tags.split(',').map((tag: string) => tag.trim())
+                        : [];
+                  }
+                  
+                  console.log('Final processed trackTags:', trackTags);
+                  
+                  // Convert tag IDs to readable names using the tags from database
+                  trackTags.forEach((tagId: string) => {
+                    if (tagId && tagId.trim()) {
+                      console.log(`Processing tag ID: ${tagId}`);
+                      
+                      // Find the tag in the database
+                      const foundTag = tags.find(t => t._id === tagId);
+                      console.log(`Found tag for ID ${tagId}:`, foundTag);
+                      
+                      if (foundTag && foundTag.name) {
+                        // Successfully found tag name
+                        allTagNames.add(foundTag.name);
+                        console.log(`Added tag name: ${foundTag.name}`);
+                      } else {
+                        // Tag not found in database - skip it instead of showing the ID
+                        console.warn(`Tag ID ${tagId} not found in database - skipping`);
+                        // Don't add unknown tags to the display
+                      }
+                    }
+                  });
                 });
                 
-                // Filter tags based on search query
-                const filteredTags = searchQuery.trim() 
-                  ? Array.from(allTags).filter(tag => 
-                      tag.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                  : Array.from(allTags);
+                console.log('All collected tag names:', Array.from(allTagNames));
                 
-                return filteredTags.map((tag: string, index: number) => (
+                // Filter out any invalid entries and filter by search query
+                const validTags = Array.from(allTagNames).filter(tagName => 
+                  !tagName.startsWith('Unknown Tag (') && tagName.trim() !== '' && tagName.length > 0
+                );
+                
+                const filteredTags = searchQuery.trim() 
+                  ? validTags.filter(tagName => 
+                      tagName.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                  : validTags;
+                
+                console.log('All collected tags (before filtering):', Array.from(allTagNames));
+                console.log('Valid tags (after removing invalid entries):', validTags);
+                console.log('Filtered tags for display:', filteredTags);
+                
+                // If no tags found, show a message
+                if (filteredTags.length === 0) {
+                  return (
+                    <div className="text-gray-400 text-sm">
+                      {data.length === 0 ? 'No tracks loaded' : 
+                       allTagNames.size === 0 ? 'No tags found in any tracks' : 
+                       'No valid tags found (all tags are invalid IDs)'}
+                    </div>
+                  );
+                }
+                
+                return filteredTags.map((tagName: string, index: number) => (
                   <div key={`tag-${index}`} className='flex-shrink-0'>
                     <div 
                       className={`backdrop-blur-sm rounded-full border flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                        selectedTag === tag 
+                        selectedTag === tagName 
                           ? 'bg-white/60 border-white/80 text-black' 
                           : 'bg-black/40 border-white/50 text-white hover:bg-black/60'
                       }`}
-                      onClick={() => handleTagClick(tag)}
+                      onClick={() => handleTagClick(tagName)}
                     >
                       <div className="py-1 px-1 flex items-center justify-center w-full">
                         <p className={`font-roboto font-light-300 px-4 ${
-                          selectedTag === tag ? 'text-black' : 'text-white'
+                          selectedTag === tagName ? 'text-black' : 'text-white'
                         }`}>
-                          {tag}
-                          {selectedTag === tag && <span className="ml-1">✓</span>}
+                          {tagName}
+                          {selectedTag === tagName && <span className="ml-1">✓</span>}
                         </p>
                       </div>
                     </div>
@@ -567,6 +660,8 @@ function TopChartsContent() {
                 ));
               })()
             }
+              </>
+            )}
           </div>
         </div>
 
