@@ -22,7 +22,6 @@ function AddTrackForm() {
   const searchParams = useSearchParams();
   const isEditMode = searchParams.get('mode') === 'edit';
   
-  const [publish, setPublish] = useState("Private");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedBeats, setSelectedBeats] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -126,8 +125,6 @@ function AddTrackForm() {
             metaDescription: trackData.metaDescription || ''
           });
 
-          // Set publish status
-          setPublish(trackData.publish || 'Private');
 
           // Set track image if available
           if (trackData.trackImage) {
@@ -312,6 +309,36 @@ function AddTrackForm() {
       ...prev,
       [name]: value
     }));
+  }
+
+  function handlePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    
+    // Allow only numbers, decimal point, and empty string
+    const numericRegex = /^[0-9]*\.?[0-9]*$/;
+    
+    if (value === '' || numericRegex.test(value)) {
+      setFormData(prev => ({
+        ...prev,
+        trackPrice: value
+      }));
+    }
+    // If the input doesn't match the regex, don't update the state
+  }
+
+  function handleBPMChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    
+    // Allow only numbers and empty string (BPM should be whole numbers)
+    const integerRegex = /^[0-9]*$/;
+    
+    if (value === '' || integerRegex.test(value)) {
+      setFormData(prev => ({
+        ...prev,
+        bpm: value
+      }));
+    }
+    // If the input doesn't match the regex, don't update the state
   }
 
   // Handle multi-select with checkboxes
@@ -645,7 +672,7 @@ function AddTrackForm() {
         trackPrice: formData.trackPrice ? parseFloat(formData.trackPrice) : 0,
         trackImage: imageUrl,
         trackFile: trackFile ? trackFile.name : '',
-        publish: publish,
+        publish: 'Private',
         genreCategory: selectedGenres,
         beatCategory: selectedBeats,
         trackTags: selectedTags,
@@ -695,7 +722,6 @@ function AddTrackForm() {
           setImageFileId(null);
           setImageFile(null);
         setTrackFile(null);
-        setPublish('Private');
           
           // Clear musician profile picture states
           setNewMusicianImage(null);
@@ -772,9 +798,14 @@ function AddTrackForm() {
                 inputMode="numeric" 
                 pattern="[0-9]*" 
                 value={formData.bpm}
-                onChange={handleInputChange}
-                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+                onChange={handleBPMChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E100FF] focus:border-[#E100FF]" 
+                placeholder="Beats per minute"
+                title="Please enter only numbers"
               />
+              <div className="text-xs text-gray-400 mt-1">
+                Enter BPM as whole numbers only (e.g., 120)
+              </div>
             </div>
             <div className="relative">
               <label className="block text-gray-300 mb-2">Track Key</label>
@@ -797,9 +828,16 @@ function AddTrackForm() {
                 name="trackPrice"
                 type="text" 
                 value={formData.trackPrice}
-                onChange={handleInputChange}
-                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none" 
+                onChange={handlePriceChange}
+                className="w-full bg-[#181F36] text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E100FF] focus:border-[#E100FF]" 
+                placeholder="0.00"
+                inputMode="decimal"
+                pattern="[0-9]*\.?[0-9]*"
+                title="Please enter only numbers and decimal point"
               />
+              <div className="text-xs text-gray-400 mt-1">
+                Enter price in numbers only (e.g., 25.99)
+            </div>
             </div>
             <div className="relative">
               <label className="block text-gray-300 mb-2">Musician</label>
@@ -1173,16 +1211,7 @@ function AddTrackForm() {
         </div>
         {/* Right: Sidebar Sections */}
         <div className="flex flex-col gap-8">
-          {/* Publish Section */}
           <div className="bg-[#101936] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
-            <label className="block text-gray-300 mb-2">Publish</label>
-            <div className="relative">
-              <select value={publish} onChange={e => setPublish(e.target.value)} className="w-full bg-[#181F36] text-white rounded-xl px-4 py-2 border border-[#232B43] focus:border-[#E100FF] focus:ring-2 focus:ring-[#E100FF] transition-all appearance-none shadow-sm">
-                <option>Private</option>
-                <option>Public</option>
-              </select>
-              <span className="pointer-events-none absolute right-4 top-3 text-gray-400 text-lg">▼</span>
-            </div>
             {submitMessage && (
               <div className={`mt-4 p-3 rounded-lg text-sm ${
                 submitMessage.includes('successfully') 

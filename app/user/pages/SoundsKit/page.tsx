@@ -599,60 +599,6 @@ export default function TopChartsPage() {
                   console.log('Sample tag from database:', tags[0]);
                   console.log('Tags structure:', tags.map(t => ({ id: t._id, name: t.name })));
                   
-                  // If tags are not loaded from database, show a message
-                  if (!tags || tags.length === 0) {
-                    return (
-                      <div className="text-red-400 text-sm p-2 bg-red-900/20 rounded">
-                        ⚠️ Tags not loaded from database. Please check the API connection.
-                        <br />
-                        <div className="mt-2 text-xs">
-                          Expected endpoint: GET /api/tags
-                          <br />
-                          Current tags state: {tags ? `Array with ${tags.length} items` : 'undefined'}
-                          <br />
-                          <button 
-                            onClick={() => {
-                              // Test with sample tags that match your actual IDs
-                              const sampleTags = [
-                                { _id: '68aeba4db980a3ac6ba443a3', name: 'Hip Hop' },
-                                { _id: '68b6079432bd3b3be2f886c0', name: 'Electronic' },
-                                { _id: '68b6079432bd3b3be2f886c1', name: 'Jazz' }
-                              ];
-                              setTags(sampleTags);
-                              console.log('Set sample tags:', sampleTags);
-                            }} 
-                            className="mt-2 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 mr-2"
-                          >
-                            Test with Sample Tags
-                          </button>
-                          <button 
-                            onClick={async () => {
-                              try {
-                                console.log('Testing API call manually...');
-                                const response = await fetch('http://localhost:3001/api/tags');
-                                const data = await response.json();
-                                console.log('Manual API test result:', data);
-                                if (data.success) {
-                                  setTags(data.tags);
-                                }
-                              } catch (error) {
-                                console.error('Manual API test failed:', error);
-                              }
-                            }} 
-                            className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 mr-2"
-                          >
-                            Test API Manually
-                          </button>
-                        </div>
-                        <button 
-                          onClick={() => window.location.reload()} 
-                          className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-                        >
-                          Reload Page
-                        </button>
-                      </div>
-                    );
-                  }
                   
                   kits.forEach(kit => {
                     console.log('Kit:', kit.kitName, 'Tags field:', kit.tags, 'Tags field type:', typeof kit.tags);
